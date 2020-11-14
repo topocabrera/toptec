@@ -1,0 +1,230 @@
+@import './components/FooterView/styles';
+@import './components/Logistic/Pedido/pedido';
+@import './components/Login/styles.scss';
+@import './components/Prode/pronostic.scss';
+@import './components/Reservation/map.scss';
+// @import 'antd-mobile/dist/antd-mobile.css';
+
+.container h2 {
+  text-align: center;
+  margin: 25px auto;
+}
+
+.container.mt-3 {
+  margin-bottom: 25px;
+}
+
+.container-fluid {
+  max-width: 1140px;
+}
+
+.links__container {
+  width: 100%;
+}
+
+ul.navbar-nav.ml-auto {
+  float: right;
+}
+
+.navbar-container-links {
+  display: inline-flex;
+  vertical-align: text-top;
+}
+
+.list {
+  text-align: left;
+  // max-width: 750px;
+  // margin: auto;
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+.submit-form {
+  max-width: 300px;
+  margin: auto;
+}
+
+.edit-form {
+  max-width: 300px;
+  margin: auto;
+}
+
+.checkbox__adentro {
+  display: inline-block;
+  width: 6%;
+  vertical-align: bottom;
+  margin-left: 15px;
+}
+
+.total__title {
+  font-weight: 600;
+  display: block;
+  font-size: 16px;
+  color: #0000ff;
+}
+
+.total__title.free {
+  color: #318000;
+}
+
+.list__reservas {
+  display: inline-block;
+  padding: 10px;
+  width: 100%;
+  text-align: center;
+}
+
+.list__libres {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.new-reservation {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.cant__afuera {
+  margin-left: 10px;
+}
+
+.table-container {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.cant__total {
+  display: block;
+  text-align: center;
+  padding: 10px;
+  font-size: 18px;
+}
+
+.cant__total.red {
+  color: red;
+}
+
+.cant__total-asist {
+  display: block;
+  text-align: center;
+  padding: 0 10px 10px;
+  font-size: 18px;
+}
+
+.cant__total-asist.red {
+  color: red;
+}
+
+.column-actions {
+  text-align: center;
+}
+
+.btn.btn-danger {
+  margin-top: 5px;
+}
+
+.go-listado {
+  margin-left: 10px;
+}
+
+.empty__container {
+  text-align: center;
+}
+
+.search-button {
+  border: 1px solid #ccc;
+  background-color: white;
+  padding: 5px 15px;
+}
+
+.dropdown-container {
+  display: flex;
+}
+
+.dropdown-list {
+  border: none;
+  background-color: #343a40;
+}
+
+.dropdown-list:focus {
+  outline: none;
+}
+
+.dropdown-toggle::after {
+   transition: transform 0.15s linear; 
+}
+
+.show.dropdown .dropdown-toggle::after {
+  transform: translateY(3px);
+}
+
+.dropdown-menu.show {
+  background-color: #5b7086;
+}
+
+.dropdown-menu {
+  margin-top: 0;
+}
+
+.form-container {
+  display: flex;
+  margin: 30px 0;
+  align-items: center;
+  flex-direction: column;
+}
+
+.select__form {
+  border: 1px solid #ced4da;
+  padding: 7px 26px 7px 12px;
+  position: relative;
+  font-size: 16px;
+  transition: border-color 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+.default__textfield {
+  background-color: #fff;
+}
+
+.change-price-button {
+  margin-top: 10px;
+}
+
+@media (min-width: 700px) {
+  .col-md-6 {
+    max-width: 100%;
+    flex: 0 0 100%;
+  }
+
+  .list__reservas {
+    width: 50%;
+  }
+
+  .list__libres {
+    display: inline-block;
+    width: 50%;
+  }
+  
+
+  .new-reservation {
+    text-align: left;
+  }
+
+  .dropdown-container.left {
+    margin-left: auto;
+  }
+
+  .form-container {
+    margin-top: 64px;
+  }
+
+  .change-price-button {
+    margin-top: 0;
+    margin-left: 15px;
+  }
+}

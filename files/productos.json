@@ -1,0 +1,1281 @@
+{
+    "0" : {
+      "codigo" : "4102",
+      "descripcion" : "Cuartirolo",
+      "id" : 1,
+      "marca" : "Windy",
+      "precio" : "276.60",
+      "stock" : 1,
+      "peso" : 4.00
+    },
+    "1" : {
+      "codigo" : "4105",
+      "descripcion" : "Cuartirolo - 1/2 Horma",
+      "id" : 2,
+      "marca" : "Windy",
+      "precio" : "297.74",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "2" : {
+      "codigo" : "4103",
+      "descripcion" : "Cuartirolo - 1/4 Horma",
+      "id" : 3,
+      "marca" : "Windy",
+      "precio" : "302.81",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "3" : {
+      "codigo" : "4109",
+      "descripcion" : "Cuartirolo Procesado",
+      "id" : 4,
+      "marca" : "Windy",
+      "precio" : "202.03",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "4" : {
+      "codigo" : "4116",
+      "descripcion" : "Port Salut C/Sal Procesado Cuadrado",
+      "id" : 5,
+      "marca" : "Windy",
+      "precio" : "303.49",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "5" : {
+      "codigo" : "4104",
+      "descripcion" : "Cuartirolo",
+      "id" : 6,
+      "marca" : "Temple",
+      "precio" : "287.25",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "6" : {
+      "codigo" : "4201",
+      "descripcion" : "Tybo",
+      "id" : 7,
+      "marca" : "Windy",
+      "precio" : "328.45",
+      "stock" : 1,
+      "peso" : 4.100
+    },
+    "7" : {
+      "codigo" : "4205",
+      "descripcion" : "Tybo - 1/2 Horma",
+      "id" : 8,
+      "marca" : "Windy",
+      "precio" : "381.76",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "8" : {
+      "codigo" : "4202",
+      "descripcion" : "Tybo",
+      "id" : 9,
+      "marca" : "Temple",
+      "precio" : "351.63",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "9" : {
+      "codigo" : "4110",
+      "descripcion" : "Port Salut C/Sal - Cuadrado",
+      "id" : 10,
+      "marca" : "Windy",
+      "precio" : "325.64",
+      "stock" : 1,
+      "peso" : 4.00
+    },
+    "10" : {
+      "codigo" : "4111",
+      "descripcion" : "Port Salut C/Sal - Redondo",
+      "id" : 11,
+      "marca" : "Windy",
+      "precio" : "334.40",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "11" : {
+      "codigo" : "4207",
+      "descripcion" : "Mozarrella - Cilindro",
+      "id" : 12,
+      "marca" : "Temple",
+      "precio" : "265.00",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "12" : {
+      "codigo" : "4208",
+      "descripcion" : "Mozarrella - Plancha",
+      "id" : 13,
+      "marca" : "Temple",
+      "precio" : "262.50",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "13" : {
+      "codigo" : "4206",
+      "descripcion" : "Mozarrella - Cilindro",
+      "id" : 14,
+      "marca" : "Windy",
+      "precio" : "313.27",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "14" : {
+      "codigo" : "4204",
+      "descripcion" : "Mozarrella - Barra P/Fetear",
+      "id" : 15,
+      "marca" : "Windy",
+      "precio" : "325.80",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "15" : {
+      "codigo" : "4120",
+      "descripcion" : "Ricota - Horma Cuadrada",
+      "id" : 16,
+      "marca" : "Windy",
+      "precio" : "115.38",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "16" : {
+      "codigo" : "4122",
+      "descripcion" : "Ricota - 1/4 Horma Cuadrada",
+      "id" : 17,
+      "marca" : "Windy",
+      "precio" : "124.99",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "17" : {
+      "codigo" : "4700",
+      "descripcion" : "Queso Azul",
+      "id" : 18,
+      "marca" : "Windy",
+      "precio" : "410.00",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "18" : {
+      "codigo" : "4701",
+      "descripcion" : "Queso Azul - 1/2 Horma",
+      "id" : 19,
+      "marca" : "Windy",
+      "precio" : "410.00",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "19" : {
+      "codigo" : "4210",
+      "descripcion" : "Holanda - (Pintado)",
+      "id" : 20,
+      "marca" : "Windy",
+      "precio" : "456.25",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "20" : {
+      "codigo" : "4217",
+      "descripcion" : "Holanda - Al Vacio",
+      "id" : 21,
+      "marca" : "Windy",
+      "precio" : "456.25",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "21" : {
+      "codigo" : "4214",
+      "descripcion" : "Holanda - (Pintado)",
+      "id" : 22,
+      "marca" : "Temple",
+      "precio" : "456.25",
+      "stock" : 1,
+      "peso" : 4.300
+    },
+    "22" : {
+      "codigo" : "4212",
+      "descripcion" : "Pategras - (Pintado)",
+      "id" : 23,
+      "marca" : "Windy",
+      "precio" : "481.98",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "23" : {
+      "codigo" : "4222",
+      "descripcion" : "Pategras - Al Vacio",
+      "id" : 24,
+      "marca" : "Windy",
+      "precio" : "481.98",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "24" : {
+      "codigo" : "4215",
+      "descripcion" : "Fontina - (Pintado)",
+      "id" : 25,
+      "marca" : "Windy",
+      "precio" : "499.50",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "25" : {
+      "codigo" : "4211",
+      "descripcion" : "Provoleta - Entera Cilindro - (3,2 Kgs)",
+      "id" : 26,
+      "marca" : "Windy",
+      "precio" : "513.52",
+      "stock" : 1,
+      "peso" : 3.200
+    },
+    "26" : {
+      "codigo" : "4213",
+      "descripcion" : "Provoleta - Trozada C/Oregano (2 Unid)",
+      "id" : 27,
+      "marca" : "Windy",
+      "precio" : "513.52",
+      "stock" : 1,
+      "peso" : 0.328
+    },
+    "27" : {
+      "codigo" : "4301",
+      "descripcion" : "Sardo - Fresco - Hasta 30 Días",
+      "id" : 28,
+      "marca" : "Windy",
+      "precio" : "406.25",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "28" : {
+      "codigo" : "4303",
+      "descripcion" : "Sardo - Semi Estacionado - de 31 a 75 Días",
+      "id" : 29,
+      "marca" : "Windy",
+      "precio" : "481.98",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "29" : {
+      "codigo" : "4302",
+      "descripcion" : "Sardo - Estacionado",
+      "id" : 30,
+      "marca" : "Windy",
+      "precio" : "502.21",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "30" : {
+      "codigo" : "4304",
+      "descripcion" : "Sardo - Fresco",
+      "id" : 31,
+      "marca" : "Temple",
+      "precio" : "340.00",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "31" : {
+      "codigo" : "4308",
+      "descripcion" : "Reggiano - Fresco - Hasta 40 Días",
+      "id" : 32,
+      "marca" : "Windy",
+      "precio" : "450.00",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "32" : {
+      "codigo" : "4307",
+      "descripcion" : "Reggiano - Semi Estacionado - Hasta 85 Días",
+      "id" : 33,
+      "marca" : "Windy",
+      "precio" : "543.31",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "33" : {
+      "codigo" : "4309",
+      "descripcion" : "Reggiano - Estacionado",
+      "id" : 34,
+      "marca" : "Windy",
+      "precio" : "569.60",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "34" : {
+      "codigo" : "4408",
+      "descripcion" : "Reggiano - Trozado Estacionado",
+      "id" : 35,
+      "marca" : "Windy",
+      "precio" : "653.02",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "35" : {
+      "codigo" : "4313",
+      "descripcion" : "Provolone - Fresco - Hasta 30 Días",
+      "id" : 36,
+      "marca" : "Windy",
+      "precio" : "543.31",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "36" : {
+      "codigo" : "4310",
+      "descripcion" : "Provolone - Estacionado",
+      "id" : 37,
+      "marca" : "Windy",
+      "precio" : "569.60",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "37" : {
+      "codigo" : "4314",
+      "descripcion" : "Provolin - Estacionado",
+      "id" : 38,
+      "marca" : "Windy",
+      "precio" : "639.71",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "38" : {
+      "codigo" : "4312",
+      "descripcion" : "Romanito - Fresco - Hasta 30 Días",
+      "id" : 39,
+      "marca" : "Windy",
+      "precio" : "471.46",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "39" : {
+      "codigo" : "4311",
+      "descripcion" : "Romanito - Estacionado",
+      "id" : 40,
+      "marca" : "Windy",
+      "precio" : "502.21",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "40" : {
+      "codigo" : "1001",
+      "descripcion" : "Leche Entera x 1 Ltro.",
+      "id" : 41,
+      "marca" : "Windy",
+      "precio" : "43.13",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "41" : {
+      "codigo" : "1002",
+      "descripcion" : "Leche Descremada x 1 Ltro.",
+      "id" : 42,
+      "marca" : "Windy",
+      "precio" : "41.67",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "42" : {
+      "codigo" : "1020",
+      "descripcion" : "Yogurt Bebible x 1 Ltro. - Frutilla",
+      "id" : 43,
+      "marca" : "Windy",
+      "precio" : "48.34",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "43" : {
+      "codigo" : "1021",
+      "descripcion" : "Yogurt Bebible x 1 Ltro. - Vainilla",
+      "id" : 44,
+      "marca" : "Windy",
+      "precio" : "48.34",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "44" : {
+      "codigo" : "1022",
+      "descripcion" : "Yogurt Bebible x 1 Ltro. - Durazno",
+      "id" : 45,
+      "marca" : "Windy",
+      "precio" : "48.34",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "45" : {
+      "codigo" : "2024",
+      "descripcion" : "Yogurt Bebible x 1 Ltro. - Dulce de Leche",
+      "id" : 46,
+      "marca" : "Windy",
+      "precio" : "43.75",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "46" : {
+      "codigo" : "1051",
+      "descripcion" : "Yogurt Colchon de Frutas - Frutilla x 150 Grs.",
+      "id" : 47,
+      "marca" : "Windy",
+      "precio" : "28.10",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "47" : {
+      "codigo" : "1053",
+      "descripcion" : "Yogurt Colchon de Frutas - Durazno a x 150 Grs.",
+      "id" : 48,
+      "marca" : "Windy",
+      "precio" : "28.10",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "48" : {
+      "codigo" : "1139",
+      "descripcion" : "Yogurt Wincrem x 120 Grs. Dulce de Leche",
+      "id" : 49,
+      "marca" : "Windy",
+      "precio" : "18.82",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "49" : {
+      "codigo" : "1151",
+      "descripcion" : "Yogurt Wincrem x 120 Grs. Frutilla",
+      "id" : 50,
+      "marca" : "Windy",
+      "precio" : "18.82",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "50" : {
+      "codigo" : "1152",
+      "descripcion" : "Yogurt Wincrem x 120 Grs. Vainilla",
+      "id" : 51,
+      "marca" : "Windy",
+      "precio" : "18.82",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "51" : {
+      "codigo" : "1160",
+      "descripcion" : "Yogurt C/Cereal x 150 Grs.",
+      "id" : 52,
+      "marca" : "Windy",
+      "precio" : "36.16",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "52" : {
+      "codigo" : "4000",
+      "descripcion" : "Flan Sabor Vainilla x 120 Grs.",
+      "id" : 53,
+      "marca" : "Windy",
+      "precio" : "25.00",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "53" : {
+      "codigo" : "1201",
+      "descripcion" : "Crema de Leche x 200 CC.",
+      "id" : 54,
+      "marca" : "Windy",
+      "precio" : "56.25",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "54" : {
+      "codigo" : "1202",
+      "descripcion" : "crema de Leche x 350 CC.",
+      "id" : 55,
+      "marca" : "Windy",
+      "precio" : "97.90",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "55" : {
+      "codigo" : "1204",
+      "descripcion" : "Crema de Leche x 3 Ltros.",
+      "id" : 56,
+      "marca" : "Windy",
+      "precio" : "806.26",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "56" : {
+      "codigo" : "1205",
+      "descripcion" : "Crema de Leche x 5 Ltros.",
+      "id" : 57,
+      "marca" : "Windy",
+      "precio" : "1,297.95",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "57" : {
+      "codigo" : "1209",
+      "descripcion" : "Crema al 44% - x 15 Ltros.",
+      "id" : 58,
+      "marca" : "Windy",
+      "precio" : "3,717.84",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "58" : {
+      "codigo" : "2101",
+      "descripcion" : "Manteca x 100 Grs.",
+      "id" : 59,
+      "marca" : "Windy",
+      "precio" : "41.56",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "59" : {
+      "codigo" : "2102",
+      "descripcion" : "Manteca x 200 Grs.",
+      "id" : 60,
+      "marca" : "Windy",
+      "precio" : "83.13",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "60" : {
+      "codigo" : "2104",
+      "descripcion" : "Manteca x 5 Kilos - (Pilon)",
+      "id" : 61,
+      "marca" : "Windy",
+      "precio" : "2,078.13",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "61" : {
+      "codigo" : "4800",
+      "descripcion" : "Queso Untable x 190 Grs. Sabor Jamón",
+      "id" : 62,
+      "marca" : "Windy",
+      "precio" : "55.00",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "62" : {
+      "codigo" : "4801",
+      "descripcion" : "Queso Untable x 190 Grs. Sabor Roquefort",
+      "id" : 63,
+      "marca" : "Windy",
+      "precio" : "55.00",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "63" : {
+      "codigo" : "4802",
+      "descripcion" : "Queso Untable x 190 Grs. Sabor Salame",
+      "id" : 64,
+      "marca" : "Windy",
+      "precio" : "55.00",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "64" : {
+      "codigo" : "3101",
+      "descripcion" : "Dulce de Leche Familiar - x 250 Grs.",
+      "id" : 65,
+      "marca" : "Windy",
+      "precio" : "37.67",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "65" : {
+      "codigo" : "3104",
+      "descripcion" : "Dulce de Leche Familiar - x 375 Grs.",
+      "id" : 66,
+      "marca" : "Windy",
+      "precio" : "49.71",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "66" : {
+      "codigo" : "3102",
+      "descripcion" : "Dulce de Leche Familiar - x 500 Grs.",
+      "id" : 67,
+      "marca" : "Windy",
+      "precio" : "62.86",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "67" : {
+      "codigo" : "3106",
+      "descripcion" : "Dulce de Leche Familiar - x 1000 Grs.",
+      "id" : 68,
+      "marca" : "Windy",
+      "precio" : "128.44",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "68" : {
+      "codigo" : "3204",
+      "descripcion" : "Dulce de Leche Familiar - x 3 Kilos.",
+      "id" : 69,
+      "marca" : "Windy",
+      "precio" : "344.54",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "69" : {
+      "codigo" : "3202",
+      "descripcion" : "Dulce de Leche Familiar - x 5 Kilos.",
+      "id" : 70,
+      "marca" : "Windy",
+      "precio" : "560.86",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "70" : {
+      "codigo" : "3302",
+      "descripcion" : "Dulce de Leche Familiar - x 10 Kilos.",
+      "id" : 71,
+      "marca" : "Windy",
+      "precio" : "1,072.24",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "71" : {
+      "codigo" : "3402",
+      "descripcion" : "Dulce de Leche Familiar - x 25 Kilos.",
+      "id" : 72,
+      "marca" : "Windy",
+      "precio" : "2,651.15",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "72" : {
+      "codigo" : "3105",
+      "descripcion" : "Dulce de Leche Familiar - x 454 Grs. - Vidrio",
+      "id" : 73,
+      "marca" : "Windy",
+      "precio" : "82.81",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "73" : {
+      "codigo" : "3510",
+      "descripcion" : "Dulce de Leche Familiar - x 10 Kilos.",
+      "id" : 74,
+      "marca" : "DDL",
+      "precio" : "1,072.24",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "74" : {
+      "codigo" : "3103",
+      "descripcion" : "Dulce de Leche Repostero - x 500 Grs.",
+      "id" : 75,
+      "marca" : "Windy",
+      "precio" : "66.58",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "75" : {
+      "codigo" : "3107",
+      "descripcion" : "Dulce de Leche Repostero - x 1000 Grs.",
+      "id" : 76,
+      "marca" : "Windy",
+      "precio" : "135.63",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "76" : {
+      "codigo" : "3304",
+      "descripcion" : "Dulce de Leche Repostero - x 3 Kgs.",
+      "id" : 77,
+      "marca" : "Windy",
+      "precio" : "364.32",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "77" : {
+      "codigo" : "3204",
+      "descripcion" : "Dulce de Leche Repostero - x 5 Kgs.",
+      "id" : 78,
+      "marca" : "Windy",
+      "precio" : "593.86",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "78" : {
+      "codigo" : "3303",
+      "descripcion" : "Dulce de Leche Repostero - x 10 Kgs.",
+      "id" : 79,
+      "marca" : "Windy",
+      "precio" : "1,129.59",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "79" : {
+      "codigo" : "3403",
+      "descripcion" : "Dulce de Leche Alfajorero - x 25 Kgs.",
+      "id" : 80,
+      "marca" : "Windy",
+      "precio" : "2,787.84",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "80" : {
+      "codigo" : "3511",
+      "descripcion" : "Dulce de Leche Repostero - x 10 Kgs.",
+      "id" : 81,
+      "marca" : "DDL",
+      "precio" : "1,129.59",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "81" : {
+      "codigo" : "3305",
+      "descripcion" : "Dulce de Leche Heladero - x 3 Kgs.",
+      "id" : 82,
+      "marca" : "Windy",
+      "precio" : "425.00",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "82" : {
+      "codigo" : "3405",
+      "descripcion" : "Dulce de Leche Heladero - x 10 Kgs.",
+      "id" : 83,
+      "marca" : "Windy",
+      "precio" : "1,365.00",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "83" : {
+      "codigo" : "3404",
+      "descripcion" : "Dulce de Leche Heladero - x 25 Kgs.",
+      "id" : 84,
+      "marca" : "Windy",
+      "precio" : "3,350.00",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "84" : {
+      "codigo" : "3406",
+      "descripcion" : "Dulce de Leche Panadero - x 10 Kgs.",
+      "id" : 85,
+      "marca" : "Windy",
+      "precio" : "875.00",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "85" : {
+      "codigo" : "3407",
+      "descripcion" : "Dulce de Leche Alfajorero - x 10 Kgs.",
+      "id" : 86,
+      "marca" : "Windy",
+      "precio" : "1,368.75",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "86" : {
+      "codigo" : "3222",
+      "descripcion" : "D.de L.Rep- x 10 Kgs.",
+      "id" : 87,
+      "marca" : "D.Abdon",
+      "precio" : "806.25",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "87" : {
+      "codigo" : "3334",
+      "descripcion" : "D.de L.Rep- x 3 Kgs.",
+      "id" : 88,
+      "marca" : "D.Abdon",
+      "precio" : "262.50",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "88" : {
+      "codigo" : "3307",
+      "descripcion" : "D.de L.Rep- x 1 Kgs.",
+      "id" : 89,
+      "marca" : "D.Abdon",
+      "precio" : "111.25",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "89" : {
+      "codigo" : "3304",
+      "descripcion" : "D. de L. Familiar- x 1 Kgs.",
+      "id" : 90,
+      "marca" : "D.Abdon",
+      "precio" : "106.25",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "90" : {
+      "codigo" : "3223",
+      "descripcion" : "Dulce de Leche Familiar - x 375 Grs.",
+      "id" : 91,
+      "marca" : "D.Abdon",
+      "precio" : "38.75",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "91" : {
+      "codigo" : "1010",
+      "descripcion" : "LECHE LARGA VIDA ENTERA",
+      "id" : 92,
+      "marca" : "Diafana",
+      "precio" : "54.38",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "92" : {
+      "codigo" : "1011",
+      "descripcion" : "LECHE LARGA VIDA DIAFANA",
+      "id" : 93,
+      "marca" : "Diafana",
+      "precio" : "54.38",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "93" : {
+      "codigo" : "1004",
+      "descripcion" : "Leche en Polvo x 25 Kg.",
+      "id" : 94,
+      "marca" : "Windy",
+      "precio" : "350.73",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "94" : {
+      "codigo" : "1003",
+      "descripcion" : "Crema a Granel",
+      "id" : 95,
+      "marca" : "Windy",
+      "precio" : "325.00",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "95" : {
+      "codigo" : "4108",
+      "descripcion" : "Cuartirolo",
+      "id" : 96,
+      "marca" : "Cremosur",
+      "precio" : "231.25",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "96" : {
+      "codigo" : "4001",
+      "descripcion" : "Leche Entera x 1L S/Caja",
+      "id" : 97,
+      "marca" : "Windy",
+      "precio" : "40.42",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "97" : {
+      "codigo" : "4002",
+      "descripcion" : "Leche Descremada x 1L S/Caja",
+      "id" : 98,
+      "marca" : "Windy",
+      "precio" : "40.42",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "98" : {
+      "codigo" : "4020",
+      "descripcion" : "Yogurt x 1L Frut S/Caja",
+      "id" : 99,
+      "marca" : "Windy",
+      "precio" : "42.50",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "99" : {
+      "codigo" : "4021",
+      "descripcion" : "Yogurt x 1L Vainilla S/Caja",
+      "id" : 100,
+      "marca" : "Windy",
+      "precio" : "42.50",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "100" : {
+      "codigo" : "4022",
+      "descripcion" : "Yogurt x 1L Durazno S/Caja",
+      "id" : 101,
+      "marca" : "Windy",
+      "precio" : "42.50",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "101" : {
+      "codigo" : "4024",
+      "descripcion" : "Yogurt x 1L D.de Leche S/Caja",
+      "id" : 102,
+      "marca" : "Windy",
+      "precio" : "42.50",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "102" : {
+      "codigo" : "103",
+      "descripcion" : "Manteca La Cabaña x 2,5 Kgs (x Kgs)",
+      "id" : 103,
+      "marca" : "La Cabaña",
+      "precio" : "370.63",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "103" : {
+      "codigo" : "102",
+      "descripcion" : "Manteca La Cabaña x 5 Kgs (x Kgs)",
+      "id" : 104,
+      "marca" : "La Cabaña",
+      "precio" : "370.63",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "104" : {
+      "codigo" : "105",
+      "descripcion" : "Manteca La Cabaña x 100 Grs",
+      "id" : 105,
+      "marca" : "La Cabaña",
+      "precio" : "37.88",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "105" : {
+      "codigo" : "106",
+      "descripcion" : "Manteca La Cabaña x 200 Grs",
+      "id" : 106,
+      "marca" : "La Cabaña",
+      "precio" : "75.75",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "106" : {
+      "codigo" : "109",
+      "descripcion" : "Crema La Cabaña x 200 Grs",
+      "id" : 107,
+      "marca" : "La Cabaña",
+      "precio" : "53.75",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "107" : {
+      "codigo" : "110",
+      "descripcion" : "Crema La Cabaña x 360 Grs",
+      "id" : 108,
+      "marca" : "La Cabaña",
+      "precio" : "87.50",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "108" : {
+      "codigo" : "111",
+      "descripcion" : "Dulce de Leche INTY x 400 Grs",
+      "id" : 109,
+      "marca" : "La Cabaña",
+      "precio" : "63.30",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "109" : {
+      "codigo" : "7",
+      "descripcion" : "Jugo Plenty Durazno 8 x 1 Ltro",
+      "id" : 110,
+      "marca" : "Plenty",
+      "precio" : "359.46",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "110" : {
+      "codigo" : "8",
+      "descripcion" : "Jugo Plenty Manzana 8 x 1 Ltro",
+      "id" : 111,
+      "marca" : "Plenty",
+      "precio" : "359.46",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "111" : {
+      "codigo" : "9",
+      "descripcion" : "Jugo Plenty Mix Frutal 8 x 1 Ltro",
+      "id" : 112,
+      "marca" : "Plenty",
+      "precio" : "359.46",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "112" : {
+      "codigo" : "10",
+      "descripcion" : "Jugo Plenty Naranja 8 x 1 Ltro",
+      "id" : 113,
+      "marca" : "Plenty",
+      "precio" : "359.46",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "113" : {
+      "codigo" : "11",
+      "descripcion" : "Tutucas 10 x 1 Kgs",
+      "id" : 114,
+      "marca" : "Generico",
+      "precio" : "1,646.25",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "114" : {
+      "codigo" : "12",
+      "descripcion" : "Mani Crocante Jamón 10 x 1 Kgs",
+      "id" : 115,
+      "marca" : "Generico",
+      "precio" : "1,459.50",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "115" : {
+      "codigo" : "13",
+      "descripcion" : "Mani Crocante Pizza 10 x 1 Kgs",
+      "id" : 116,
+      "marca" : "Generico",
+      "precio" : "1,459.50",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "116" : {
+      "codigo" : "14",
+      "descripcion" : "Mani Crocante Queso 10 x 1 Kgs",
+      "id" : 117,
+      "marca" : "Generico",
+      "precio" : "1,459.50",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "117" : {
+      "codigo" : "15",
+      "descripcion" : "Mani Crocante Salame 10 x 1 Kgs",
+      "id" : 118,
+      "marca" : "Generico",
+      "precio" : "1,459.50",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "118" : {
+      "codigo" : "16",
+      "descripcion" : "Mani Sin Piel Salado 10 x 1 Kgs",
+      "id" : 119,
+      "marca" : "Generico",
+      "precio" : "1,259.13",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "119" : {
+      "codigo" : "17",
+      "descripcion" : "Mani Vaina Tostado Grande 10 x 1 Kgs",
+      "id" : 120,
+      "marca" : "Generico",
+      "precio" : "1,502.38",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "120" : {
+      "codigo" : "10103",
+      "descripcion" : "Jamón Crudo",
+      "id" : 121,
+      "marca" : "Frigorifico Recreo",
+      "precio" : "933.25",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "121" : {
+      "codigo" : "10201",
+      "descripcion" : "Bondiola",
+      "id" : 122,
+      "marca" : "Frigorifico Recreo",
+      "precio" : "626.25",
+      "stock" : 1,
+      "peso" : 1.200
+    },
+    "122" : {
+      "codigo" : "10302",
+      "descripcion" : "Panceta Ahumada",
+      "id" : 123,
+      "marca" : "Frigorifico Recreo",
+      "precio" : "641.25",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "123" : {
+      "codigo" : "12620",
+      "descripcion" : "Salame Don Otto",
+      "id" : 124,
+      "marca" : "Frigorifico Recreo",
+      "precio" : "337.50",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "124" : {
+      "codigo" : "12101",
+      "descripcion" : "Pernil Don Otto",
+      "id" : 125,
+      "marca" : "Frigorifico Recreo",
+      "precio" : "168.75",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "125" : {
+      "codigo" : "18",
+      "descripcion" : "Jamon Cocido",
+      "id" : 126,
+      "marca" : "Frigorifico Paladini",
+      "precio" : "465.00",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "126" : {
+      "codigo" : "19",
+      "descripcion" : "Mortadela",
+      "id" : 127,
+      "marca" : "Frigorifico Paladini",
+      "precio" : "350.00",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "127" : {
+      "codigo" : "20",
+      "descripcion" : "Jamon Crudo W",
+      "id" : 128,
+      "marca" : "Frigorifico Paladini",
+      "precio" : "0.00",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "128" : {
+      "codigo" : "21",
+      "descripcion" : "Leche entera",
+      "id" : 129,
+      "marca" : "La Lacteo",
+      "precio" : "56.00",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "129" : {
+      "codigo" : "22",
+      "descripcion" : "Leche descremada",
+      "id" : 130,
+      "marca" : "La Lacteo",
+      "precio" : "56.00",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "-MJyKpD6FiQdKg_C_kIr" : {
+      "codigo" : "23",
+      "descripcion" : "Queso Cremoso",
+      "id" : 131,
+      "marca" : "Punta del Agua",
+      "precio" : "335.50",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "-MJyKyzNAurHyAi99rV2" : {
+      "codigo" : "24",
+      "descripcion" : "Tybo/Danbo",
+      "id" : 132,
+      "marca" : "Punta del Agua",
+      "precio" : "377.50",
+      "stock" : 1,
+      "peso" : 4.800
+    },
+    "-MJyL3Rf4KNZ_Hkyr82D" : {
+      "codigo" : "25",
+      "descripcion" : "Port Salut",
+      "id" : 133,
+      "marca" : "Punta del Agua",
+      "precio" : "361.25",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "-MJyL8N_2b9wwG48FMTH" : {
+      "codigo" : "26",
+      "descripcion" : "Sardo Estacionado",
+      "id" : 134,
+      "marca" : "Punta del Agua",
+      "precio" : "603.75",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "-MJyLK7Ye8dpZOaTNbhT" : {
+      "codigo" : "27",
+      "descripcion" : "Sardo Semi-Estacionado",
+      "id" : 135,
+      "marca" : "Punta del Agua",
+      "precio" : "516.25",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "-MJyLSJktDYQPw6tbiv5" : {
+      "codigo" : "28",
+      "descripcion" : "Mozzarella",
+      "id" : 136,
+      "marca" : "Punta del Agua",
+      "precio" : "356.25",
+      "stock" : 1,
+      "peso" : 1
+    },
+    "-MJyLYcWBnljDkHErQgl" : {
+      "codigo" : "29",
+      "descripcion" : "Jamon Cocido",
+      "id" : 137,
+      "marca" : "La Tirolesa",
+      "precio" : "240.00",
+      "stock" : 1,
+      "peso" : 5.00
+    },
+    "-MJyLdX5xKf7fTYA82IT" : {
+      "codigo" : "30",
+      "descripcion" : "Salame Picado Fino",
+      "id" : 138,
+      "marca" : "La Tirolesa",
+      "precio" : "350.00",
+      "stock" : 1,
+      "peso" : 1.900
+    },
+    "-MJyLj7i9SuORoHBexUq" : {
+      "codigo" : "31",
+      "descripcion" : "Salame Picado Grueso",
+      "id" : 139,
+      "marca" : "La Tirolesa",
+      "precio" : "328.00",
+      "stock" : 1,
+      "peso" : 2.100
+    },
+    "-MJyLqWaXM3lBmnIU_og" : {
+      "codigo" : "32",
+      "descripcion" : "Jamon Cocido Tradicional",
+      "id" : 140,
+      "marca" : "Grassetto",
+      "precio" : "437.00",
+      "stock" : 1,
+      "peso" : 4.00
+    },
+    "-MJyLv62hRtI2ODIDEqu" : {
+      "codigo" : "33",
+      "descripcion" : "Jamon Cocido Natural c/cuero",
+      "id" : 141,
+      "marca" : "Grassetto",
+      "precio" : "460.00",
+      "stock" : 1,
+      "peso" : 4.00
+    },
+    "-MJyM-EZSpvd8iwErUYC" : {
+      "codigo" : "34",
+      "descripcion" : "Fiambre cocido de pata de cerdo c/cuero",
+      "id" : 142,
+      "marca" : "Grassetto",
+      "precio" : "422.40",
+      "stock" : 1,
+      "peso" : 1
+    }
+  }
+  

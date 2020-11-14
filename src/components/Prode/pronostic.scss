@@ -1,0 +1,52 @@
+.container__cruce {
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+  text-align: center;
+}
+
+.first-cruce {
+  display: inline-block;
+  width: calc(100% / 2 - 10px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90px;
+}
+
+.second-cruce {
+  display: inline-block;
+  width: calc(100% / 2 - 10px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90px;
+  margin-left: 5px;
+  text-align: left;
+}
+
+.buttons-select {
+  display: inline-block;
+}
+
+.image-logo {
+  width: 15%;
+}
+
+.MuiRadio-colorPrimary.radio-option.MuiIconButton-colorPrimary {
+  padding: 3px;
+}
+
+.title-results {
+  margin: 0 11px;
+}
+
+@media (min-width: 700px) {
+  .first-cruce {
+    margin-left: 15px;
+  }
+
+  .second-cruce {
+    margin-left: 15px;
+  }
+}

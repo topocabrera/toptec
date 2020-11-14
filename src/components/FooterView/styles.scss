@@ -1,0 +1,45 @@
+.footer {
+  display: block;
+}
+
+.footer_made {
+  display: block;
+}
+
+.footer .copy-right_text {
+  padding-bottom: 30px;
+  background: #001D38;
+}
+
+.footer .copy-right_text .footer_border {
+  padding-bottom: 30px;
+}
+
+.footer .copy-right_text .copy_right {
+  font-size: 13px;
+  color: #C7C7C7;
+  margin-bottom: 0;
+  font-weight: 400;
+}
+
+.footer .copy-right_text .copy_right {
+  font-size: 13px;
+}
+
+.footer .copy-right_text .copy_right a {
+  color: #ED1B1B;
+}
+
+@media (min-width: 700px) {
+  .footer {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: unset;
+  }
+
+  .footer_made {
+    display: inline-block;
+  }
+}

@@ -1,0 +1,98 @@
+[
+  {
+    "id": 1,
+    "equipo": "Talleres de Córdoba"
+  },
+  {
+    "id": 2,
+    "equipo": "Newell's"
+  },
+  {
+    "id": 3,
+    "equipo": "Gimnasia y Esgrima LP"
+  },
+  {
+    "id": 4,
+    "equipo": "Patronato"
+  },
+  {
+    "id": 5,
+    "equipo": "Aldosivi"
+  },
+  {
+    "id": 6,
+    "equipo": "Estudiantes LP"
+  },
+  {
+    "id": 7,
+    "equipo": "Vélez"
+  },
+  {
+    "id": 8,
+    "equipo": "Huracán"
+  },
+  {
+    "id": 9,
+    "equipo": "Argentinos Juniors"
+  },
+  {
+    "id": 10,
+    "equipo": "San Lorenzo"
+  },
+  {
+    "id": 11,
+    "equipo": "Lanús"
+  },
+  {
+    "id": 12,
+    "equipo": "Boca"
+  },
+  {
+    "id": 13,
+    "equipo": "Defensa y Justicia"
+  },
+  {
+    "id": 14,
+    "equipo": "Colón"
+  },
+  {
+    "id": 15,
+    "equipo": "Unión"
+  },
+  {
+    "id": 16,
+    "equipo": "Racing Club"
+  },
+  {
+    "id": 17,
+    "equipo": "Atlético Tucumán"
+  },
+  {
+    "id": 18,
+    "equipo": "Central Córdoba"
+  },
+  {
+    "id": 19,
+    "equipo": "Independiente"
+  },
+  {
+    "id": 20,
+    "equipo": "Banfield"
+  },
+  {
+    "id": 21,
+    "equipo": "River"
+  },
+  {
+    "id": 22,
+    "equipo": "Rosario Central"
+  },
+  {
+    "id": 23,
+    "equipo": "Godoy Cruz"
+  },
+  {
+    "id": 24,
+    "equipo": "Arsenal"
+  }
+]

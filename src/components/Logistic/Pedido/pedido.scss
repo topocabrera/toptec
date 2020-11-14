@@ -1,0 +1,188 @@
+@import './factura.scss';
+
+.prod__codigo-container {
+  display: inline-block;
+  vertical-align: top;
+  width: 25%;
+}
+
+.prod__description-container {
+  display: inline-block;
+  width: 75%;
+}
+
+.prod__description {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.prod__codigo-text {
+  font-size: 14px;
+}
+
+.prod__stock-text {
+  display: block;
+  font-size: 15px;
+}
+
+.am-list-extra.precio {
+  margin-left: 10px;
+}
+
+.MuiFormControl-root.MuiTextField-root.prod__subtotal {
+  width: 50%;
+  display: block;
+}
+
+label.MuiFormControlLabel-root {
+  margin-bottom: 0;
+}
+
+.MuiFormControl-root.MuiTextField-root {
+  margin-top: 5px;
+}
+
+.prod__button-container {
+  margin: 15px 10px;
+}
+
+.prod__button-add {
+  width: 100%;
+}
+
+.am-list-brief {
+  margin-top: 0 !important;
+}
+
+.am-list-line::after {
+  background-color: unset !important;
+}
+
+.am-list-line-multiple {
+  padding: 6px !important;
+}
+
+.total-banner {
+  background: #333;
+  border-radius: .375em .375em 0 0;
+  box-shadow: 0 1px 2px 0 rgba(0,0,0,.12);
+  padding: 17px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: -webkit-fill-available;
+  z-index: 9999;
+}
+
+.total__text {
+  color: #fff;
+  font-size: 20px;
+  margin: 0 0 12px;
+  font-weight: 400;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.total__button {
+  width: 100%;
+}
+
+.table-container.pedido {
+  margin-bottom: 125px;
+  margin-top: 10px;
+}
+
+.MuiFormControl-root.MuiTextField-root.input-dto {
+  display: block;
+}
+
+.color__status.creado {
+  color: #0000ff;
+  font-weight: 600;
+}
+
+.color__status.confirmado {
+  color: #008000;
+  font-weight: 600;
+}
+
+.color__status.rechazado {
+  color: #ff0000;
+  font-weight: 600;
+}
+
+.table-products__container {
+  margin-bottom: 15px;
+}
+
+.open-products {
+  color: #007bff;
+  text-decoration: none;
+  outline: none;
+}
+
+a.MuiButtonBase-root.MuiIconButton-root.action__link {
+  padding: 0px 12px;
+}
+
+.info__pedidos {
+  margin-bottom: 10px;
+}
+
+.text__info {
+  color: #000000a1;
+}
+
+p.text__dato {
+  display: inline;
+  color: #000;
+  font-weight: 600;
+}
+
+.text__info-right {
+  color: #000000a1;
+  display: block;
+  margin: 6px 0;
+}
+
+.container__info {
+  padding: 10px;
+  display: inline-grid;
+}
+
+.fecha-text {
+  margin-top: 7px;
+  display: block;
+}
+
+.title-list {
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.select__day.MuiInputBase-formControl.MuiInput-formControl {
+  font-size: 19px;
+  margin-left: 5px;
+}
+
+.status-client {
+  text-transform: capitalize;
+}
+
+.MuiButton-outlined.button-register.MuiButton-outlinedPrimary.MuiButton-outlinedSizeSmall.MuiButton-sizeSmall {
+  font-size: 11px;
+}
+
+.MuiButton-contained.inform-button {
+  margin-left: 15px;
+}
+
+a.am-modal-button:last-child {
+  color: #000;
+}
+
+.button-reset.MuiButton-outlinedPrimary.MuiButton-outlinedSizeSmall.MuiButton-sizeSmall {
+  display: block;
+}
+
+@media (min-width: 700px) {}

@@ -1,0 +1,22 @@
+{
+    "fecha1": {
+      "cruces": [
+        { "cruce": "1,2", "result": "" },
+        { "cruce": "3,4", "result": "" },
+        { "cruce": "5,6", "result": "" },
+        { "cruce": "7,8", "result": "" },
+        { "cruce": "9,10", "result": "" },
+        { "cruce": "11,12", "result": "" },
+        { "cruce": "13,14", "result": "" },
+        { "cruce": "15,24", "result": "" },
+        { "cruce": "16,17", "result": "" },
+        { "cruce": "18,19", "result": "" },
+        { "cruce": "20,21", "result": "" },
+        { "cruce": "22,23", "result": "" }
+      ],
+      "fecha": {
+        "date_start": "30-10-20",
+        "date_end": "02-11-20"
+      }
+    }
+}
