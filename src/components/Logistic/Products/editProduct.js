@@ -120,7 +120,7 @@ export default class EditProduct extends Component {
       stock: parseInt(this.state.currentProduct.stock, 10),
       marca: this.state.currentProduct.marca,
       precio: this.state.currentProduct.precio,
-      peso: parseInt(this.state.currentProduct.peso, 10),
+      peso: this.state.currentProduct.peso,
     };
 
     ProductosDataService.update(this.state.currentProduct.key, data)

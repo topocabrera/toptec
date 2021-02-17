@@ -240,6 +240,7 @@ h1{
 .price,
 .sum,
 .tax,
+.subtotal_price,
 #total_price,
 #total_tax{
   &:before{
@@ -339,7 +340,7 @@ h1{
     .total_price{
       //font-weight: bold;
       font-size: 20px;
-      color: $primary;
+      color: #000;
     }
   }
 }

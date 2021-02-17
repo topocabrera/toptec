@@ -470,7 +470,7 @@ export default class PedidoList extends Component {
                             ${pedido.total.toFixed(2)}
                           </TableCell>
                           <TableCell
-                            className={`color__status ${pedido.status.toLowerCase()}`}
+                            className={`color__status ${pedido.status.toLowerCase().split(" ")[0]}`}
                             onClick={(e) => {
                               e.preventDefault();
                               this.setOpen(index);

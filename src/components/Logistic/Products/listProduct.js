@@ -46,6 +46,7 @@ export default class listProduct extends Component {
         id: data.id,
         codigo: data.codigo,
         descripcion: data.descripcion,
+        peso: data.peso,
         marca: data.marca,
         stock: data.stock,
         precio: data.precio,
@@ -157,6 +158,7 @@ export default class listProduct extends Component {
                 <tr>
                   <th scope="col">Código</th>
                   <th scope="col">Descripción</th>
+                  <th scope="col">Peso</th>
                   <th scope="col">Marca</th>
                   <th scope="col">Stock</th>
                   <th scope="col">Precio</th>
@@ -170,6 +172,7 @@ export default class listProduct extends Component {
                       <tr key={index}>
                         <td>{producto.codigo}</td>
                         <td>{producto.descripcion}</td>
+                        <td>{producto.peso}</td>
                         <td>{producto.marca}</td>
                         <td>{producto.stock}</td>
                         <td>${producto.precio}</td>

@@ -7,6 +7,7 @@ import "antd-mobile/dist/antd-mobile.css";
 
 import AddTutorial from "./components/add-tutorial.component";
 import TutorialsList from "./components/tutorials-list.component";
+import DeleteReservas from "./components/admin/adminReservations";
 
 //Login
 import SignIn from "./components/Login/SignIn";
@@ -17,6 +18,7 @@ import ReservasList from "./components/Reservation/reservaList";
 import Reservation from "./components/Reservation/add-reservation";
 import EditReserva from "./components/Reservation/editReserva";
 import AddMesa from "./components/Reservation/addMesa";
+import MesasMap from "./components/Reservation/mesasMap";
 // Windy
 import AddClient from "./components/Logistic/Clients/addClient";
 import EditClient from "./components/Logistic/Clients/editClient";
@@ -171,7 +173,7 @@ class App extends Component {
                     </ul>
                   </div>
                 )}
-                {(currentUser.rol === "prode" ||
+                {/* {(currentUser.rol === "prode" ||
                   currentUser.rol === "admin") && (
                   <div className="dropdown-container">
                     <ul className="navbar-nav">
@@ -183,6 +185,17 @@ class App extends Component {
                       <li className="nav-item">
                         <Link to={"/positions"} className="nav-link">
                           Tabla de posiciones
+                        </Link>
+                      </li>
+                    </ul>
+                  </div>
+                )} */}
+                {currentUser.rol === "admin" && (
+                  <div className="dropdown-container">
+                    <ul className="navbar-nav">
+                      <li className="nav-item">
+                        <Link to={"/delete-reservas"} className="nav-link">
+                          Eliminar reservas
                         </Link>
                       </li>
                     </ul>
@@ -205,15 +218,7 @@ class App extends Component {
         <div className="container mt-3">
           <Switch>
             <Route exact path={["/tutorials"]} component={TutorialsList} />
-            <Route
-              exact
-              path={
-                currentUser && currentUser.rol === "admin"
-                  ? ["/", "/add"]
-                  : "add"
-              }
-              component={AddTutorial}
-            />
+
             <Route
               exact
               path={!currentUser ? ["/", "/login"] : "/login"}
@@ -221,55 +226,75 @@ class App extends Component {
             />
             <Route exact path="/register" component={SignUp} />
             <Route exact path="/profile" component={Profile} />
+
             {currentUser ? (
               <React.Fragment>
                 {/* // Forest */}
-                <Route
-                  exact
-                  path={
-                    currentUser && currentUser.rol === "forest"
-                      ? ["/", "/forest/reservas"]
-                      : "/forest/reservas"
-                  }
-                  component={ReservasList}
-                />
-                <Route
-                  exact
-                  path="/forest/reservation"
-                  component={Reservation}
-                />
-                <Route
-                  exact
-                  path="/forest/reserva/:id"
-                  component={EditReserva}
-                />
-                 <Route
-                  exact
-                  path="/forest/mesa/:id"
-                  component={AddMesa}
-                />
+                {(currentUser.rol === "forest" ||
+                  currentUser.rol === "admin") && (
+                  <React.Fragment>
+                    <Route
+                      exact
+                      path={
+                        currentUser && currentUser.rol === "forest"
+                          ? ["/", "/forest/reservas"]
+                          : "/forest/reservas"
+                      }
+                      component={ReservasList}
+                    />
+                    <Route
+                      exact
+                      path="/forest/reservation"
+                      component={Reservation}
+                    />
+                    <Route
+                      exact
+                      path="/forest/reserva/:id"
+                      component={EditReserva}
+                    />
+                    <Route exact path="/forest/mesa/:id" component={AddMesa} />
+                    <Route exact path="/forest/mesas" component={MesasMap} />
+                  </React.Fragment>
+                )}
 
                 {/* // Windy */}
-                <Route
-                  exact
-                  path={
-                    currentUser && currentUser.rol === "windy"
-                      ? ["/", "/list-pedidos"]
-                      : "/list-pedidos"
-                  }
-                  component={PedidoList}
-                />
-                <Route exact path="/pedido/:id" component={Pedido} />
-                <Route exact path="/edit-pedido/:id" component={EditPedido} />
-                <Route exact path="/list-client" component={ListClient} />
-                <Route exact path="/client" component={AddClient} />
-                <Route exact path="/client/:id" component={EditClient} />
-                <Route exact path="/products" component={AddProduct} />
-                <Route exact path="/product/:id" component={EditProduct} />
-                <Route exact path="/list-products" component={ListProduct} />
-                <Route exact path="/change-price" component={ChangePriceProduct} />
-                <Route exact path="/imprimir/:id" component={Factura} />
-                <Route exact path="/new-visit" component={Visita} />
+                {(currentUser.rol === "windy" ||
+                  currentUser.rol === "admin") && (
+                  <React.Fragment>
+                    <Route
+                      exact
+                      path={
+                        currentUser && currentUser.rol === "windy"
+                          ? ["/", "/list-pedidos"]
+                          : "/list-pedidos"
+                      }
+                      component={PedidoList}
+                    />
+                    <Route exact path="/pedido/:id" component={Pedido} />
+                    <Route
+                      exact
+                      path="/edit-pedido/:id"
+                      component={EditPedido}
+                    />
+                    <Route exact path="/list-client" component={ListClient} />
+                    <Route exact path="/client" component={AddClient} />
+                    <Route exact path="/client/:id" component={EditClient} />
+                    <Route exact path="/products" component={AddProduct} />
+                    <Route exact path="/product/:id" component={EditProduct} />
+                    <Route
+                      exact
+                      path="/list-products"
+                      component={ListProduct}
+                    />
+                    <Route
+                      exact
+                      path="/change-price"
+                      component={ChangePriceProduct}
+                    />
+                    <Route exact path="/imprimir/:id" component={Factura} />
+                    <Route exact path="/new-visit" component={Visita} />
+                  </React.Fragment>
+                )}
                 {/* // Prode */}
 
                 <Route
@@ -282,6 +307,27 @@ class App extends Component {
                   component={Pronostic}
                 />
                 <Route exact path="/positions" component={Positions} />
+
+
+                {/* // Admin */}
+                {currentUser.rol === "admin" && (
+                  <React.Fragment>
+                    <Route
+                      exact
+                      path={
+                        currentUser && currentUser.rol === "admin"
+                          ? ["/", "/add"]
+                          : "add"
+                      }
+                      component={AddTutorial}
+                    />
+                    <Route
+                      exact
+                      path="/delete-reservas"
+                      component={DeleteReservas}
+                    />
+                  </React.Fragment>
+                )}
               </React.Fragment>
             ) : (
               <Redirect to="/login" />

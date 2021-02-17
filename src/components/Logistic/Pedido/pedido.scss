@@ -97,17 +97,22 @@ label.MuiFormControlLabel-root {
 }
 
 .color__status.creado {
-  color: #0000ff;
+  color: #f73;
   font-weight: 600;
 }
 
-.color__status.confirmado {
+.color__status.pagado {
   color: #008000;
   font-weight: 600;
 }
 
 .color__status.rechazado {
   color: #ff0000;
+  font-weight: 600;
+}
+
+.color__status.cta {
+  color: #0000ff;
   font-weight: 600;
 }
 

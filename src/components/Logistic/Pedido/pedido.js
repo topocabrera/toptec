@@ -249,6 +249,8 @@ export default class Pedido extends Component {
       },
       cantidad: "",
       descuento: "",
+      // peso: "",
+      indexActive: -1,
       iva: false,
       medioIva: false,
     });
@@ -566,7 +568,9 @@ export default class Pedido extends Component {
                         multipleLine
                         onClick={(e) => {
                           e.preventDefault();
-                          this.setActive(producto.peso, index);
+                          if (!isActive) {
+                            this.setActive(producto.peso, index);
+                          }
                         }}
                         wrap
                       >
@@ -673,7 +677,7 @@ export default class Pedido extends Component {
                               this.addPedido(subtotalDto, producto.id);
                             }}
                             disabled={
-                              !isActive || cantidad === ""
+                              !isActive || cantidad === "" || peso === ""
                             }
                           >
                             Agregar

@@ -159,24 +159,24 @@ export default class AddReservation extends Component {
   }
 
   validationLugar(mesa) {
-    if (this.state.currentReserva.adentro && mesa > 10) {
-      this.setState({
-        error: {
-          value: true,
-          message: "Número de mesa no corresponde para Adentro",
-        },
-      });
-      return false;
-    }
-    if (!this.state.currentReserva.adentro && (mesa > 55 || mesa < 11)) {
-      this.setState({
-        error: {
-          value: true,
-          message: "Número de mesa no corresponde para Afuera",
-        },
-      });
-      return false;
-    }
+    // if (this.state.currentReserva.adentro && mesa > 10) {
+    //   this.setState({
+    //     error: {
+    //       value: true,
+    //       message: "Número de mesa no corresponde para Adentro",
+    //     },
+    //   });
+    //   return false;
+    // }
+    // if (!this.state.currentReserva.adentro && (mesa > 55 || mesa < 11)) {
+    //   this.setState({
+    //     error: {
+    //       value: true,
+    //       message: "Número de mesa no corresponde para Afuera",
+    //     },
+    //   });
+    //   return false;
+    // }
     if (
       this.state.reservas.filter(
         (res) => res.mesa === mesa && res.id !== this.state.currentReserva.id
@@ -249,13 +249,13 @@ export default class AddReservation extends Component {
             >
               Nueva Reserva
             </a>
-            <a
+            {/* <a
               className="btn btn-primary go-listado"
               href="/forest/reservas"
               role="button"
             >
               Listado
-            </a>
+            </a> */}
           </div>
         ) : (
           <div className="form-container">

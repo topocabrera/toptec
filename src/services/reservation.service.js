@@ -2,10 +2,10 @@ import firebase from "../firebase";
 
 const db = firebase.ref("/reservation");
 const a = firebase.ref("/clients")
+const totalPeople = firebase.ref("/totalPersonas")
 
 class ReservationDataService {
   getAll() {
-    // console.log(a.orderByChild("id").limitToLast(1));
     return db;
   }
 
@@ -33,6 +33,18 @@ class ReservationDataService {
 
   deleteAll() {
     return db.remove();
+  }
+
+  createTotal(value) {
+    return totalPeople.push(value);
+  }
+
+  getTotal() {
+    return totalPeople;
+  }
+
+  updateTotal(key, value) {
+    return totalPeople.child(key).update(value);
   }
 }
 

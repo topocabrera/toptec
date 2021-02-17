@@ -96,7 +96,7 @@ export default class AddProduct extends Component {
       stock: parseInt(this.state.stock, 10),
       marca: this.state.marca,
       precio: this.state.precio,
-      peso: parseInt(this.state.peso, 10),
+      peso: this.state.peso,
     };
 
     ProductosDataService.create(data)

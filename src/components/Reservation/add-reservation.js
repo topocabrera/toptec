@@ -175,7 +175,7 @@ export default class AddReservation extends Component {
         //   ? this.state.lastMesaAdentro + i
         //   : this.state.lastMesaAfuera + i,
         mesa: '',
-        cantidad: quantity,
+        cantidad: parseInt(quantity, 10),
         date: this.state.date,
         turno: this.state.turno,
         asistio: false,

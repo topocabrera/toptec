@@ -33,6 +33,7 @@ import EditIcon from "@material-ui/icons/Edit";
 
 const alert = Modal.alert;
 const prompt = Modal.prompt;
+const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
 const Item = List.Item;
 const Brief = Item.Brief;
@@ -65,7 +66,7 @@ export default class EditPedido extends Component {
       peso: "1",
       cantidad: "",
       descuento: "",
-      indexActive: 0,
+      indexActive: -1,
       pedido: {
         key: null,
         id: 0,
@@ -119,6 +120,7 @@ export default class EditPedido extends Component {
         descripcion: data.descripcion,
         marca: data.marca,
         stock: data.stock,
+        peso: data.peso,
         precio: data.precio,
       });
     });
@@ -159,8 +161,8 @@ export default class EditPedido extends Component {
     }, 500);
   }
 
-  setActive(index) {
-    this.setState({ indexActive: index });
+  setActive(peso, index) {
+    this.setState({ indexActive: index, peso });
   }
 
   onChangeCantidad(e) {
@@ -204,6 +206,7 @@ export default class EditPedido extends Component {
       codigo: produc[0].codigo,
       descripcion: produc[0].descripcion,
       marca: produc[0].marca,
+      precio: produc[0].precio,
       peso,
       cantidad,
       descuento,
@@ -218,10 +221,11 @@ export default class EditPedido extends Component {
         ...this.state.pedido,
         total,
       },
-      peso: "1",
+      // peso: "1",
       cantidad: "",
       descuento: "",
       iva: false,
+      indexActive: -1,
       medioIva: false,
     });
     Toast.success("Cargado correctamente!!", 1);
@@ -299,7 +303,7 @@ export default class EditPedido extends Component {
       editProd: false,
       indexProdOpen: -1,
       producto: {
-        peso: "",
+        // peso: "1",
         cantidad: "",
         descuento: "",
         iva: "",
@@ -398,7 +402,7 @@ export default class EditPedido extends Component {
                 </div>
               </div>
             </div>
-            <h4>Pedido - {pedido.clienteName}</h4>
+            <h4>Editar Pedido - {pedido.clienteName}</h4>
 
             <div className="form-group">
               <label htmlFor="fecha">Fecha de entrega de pedido</label>
@@ -492,6 +496,7 @@ export default class EditPedido extends Component {
                                 margin="dense"
                                 name="peso"
                                 label="Peso"
+                                // disabled={currentUser.userName !== 'NicoV01'}
                                 value={producto.peso}
                                 onChange={this.onChangeValueProduct}
                               />
@@ -551,6 +556,7 @@ export default class EditPedido extends Component {
                                   e.preventDefault();
                                   this.editProduct(row);
                                 }}
+                                disabled={producto.cantidad === '' || producto.peso === ''}
                               >
                                 Aceptar
                               </Button>
@@ -593,7 +599,9 @@ export default class EditPedido extends Component {
                         multipleLine
                         onClick={(e) => {
                           e.preventDefault();
-                          this.setActive(index);
+                          if (!isActive) {
+                            this.setActive(producto.peso, index);
+                          }
                         }}
                         wrap
                       >
@@ -659,6 +667,7 @@ export default class EditPedido extends Component {
                               type="number"
                               onChange={this.onChangePeso}
                               value={isActive ? peso : ""}
+                              // disabled={currentUser.userName !== 'NicoV01'}
                               InputProps={{
                                 endAdornment: (
                                   <InputAdornment position="end">

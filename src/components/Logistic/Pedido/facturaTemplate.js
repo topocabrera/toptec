@@ -1,9 +1,9 @@
-import React, { Component } from "react";
-import moment from "moment";
-import { Button } from "@material-ui/core";
-import PrintOutlinedIcon from "@material-ui/icons/PrintOutlined";
-import PedidosDataService from "../../../services/pedidos.service";
-import ClientesDataService from "../../../services/clients.service";
+import React, { Component } from 'react';
+import moment from 'moment';
+import { Button } from '@material-ui/core';
+import PrintOutlinedIcon from '@material-ui/icons/PrintOutlined';
+import PedidosDataService from '../../../services/pedidos.service';
+import ClientesDataService from '../../../services/clients.service';
 
 export default class Pedido extends Component {
   constructor(props) {
@@ -12,15 +12,15 @@ export default class Pedido extends Component {
       pedido: {
         id: 0,
         idCliente: 0,
-        clienteName: "",
-        clienteDomicilio: "",
+        clienteName: '',
+        clienteDomicilio: '',
         productos: [],
-        fecha: moment(new Date().getTime()).format("DD-MM-YYYY hh:mm"),
+        fecha: moment(new Date().getTime()).format('DD-MM-YYYY hh:mm'),
         total: 0,
-        status: "Creado",
+        status: 'Creado',
         fechaEntrega: moment(new Date().getTime())
-          .add(1, "days")
-          .format("DD-MM-YYYY"),
+          .add(1, 'days')
+          .format('DD-MM-YYYY'),
       },
       currentClient: [],
     };
@@ -32,14 +32,14 @@ export default class Pedido extends Component {
   componentDidMount() {
     const id = parseInt(this.props.match.params.id, 10);
     PedidosDataService.getAll()
-      .orderByChild("id")
+      .orderByChild('id')
       .equalTo(id)
-      .once("child_added", this.getPedido);
+      .once('child_added', this.getPedido);
   }
 
   componentWillUnmount() {
-    PedidosDataService.getAll().off("child_added", this.getPedido);
-    ClientesDataService.getAll().off("value", this.getClient);
+    PedidosDataService.getAll().off('child_added', this.getPedido);
+    ClientesDataService.getAll().off('value', this.getClient);
   }
 
   getPedido(item) {
@@ -47,9 +47,9 @@ export default class Pedido extends Component {
       pedido: item.val(),
     });
     ClientesDataService.getAll()
-    .orderByChild("id")
-    .equalTo(item.val().idCliente)
-    .once("value", this.getClient);
+      .orderByChild('id')
+      .equalTo(item.val().idCliente)
+      .once('value', this.getClient);
   }
 
   getClient(items) {
@@ -61,7 +61,7 @@ export default class Pedido extends Component {
   }
 
   print() {
-    var printContents = document.getElementById("printContent").innerHTML;
+    var printContents = document.getElementById('printContent').innerHTML;
     var originalContents = document.body.innerHTML;
     document.body.innerHTML = printContents;
 
@@ -73,6 +73,7 @@ export default class Pedido extends Component {
   render() {
     const { pedido, currentClient } = this.state;
     // console.log(pedido)
+    let totalSinDto = 0;
     return (
       <div id="printContent">
         {/* <div className="control-bar">
@@ -152,13 +153,18 @@ export default class Pedido extends Component {
             <div className="col-6">
               <span className="client">
                 <strong>
-                  Cliente: {pedido.idCliente.toString().padStart(5, "0")} - {pedido.clienteName}
+                  Cliente: {pedido.idCliente.toString().padStart(5, '0')} -{' '}
+                  {pedido.clienteName}
                 </strong>
                 <br />
-                <p className="client-detail">Domicilio: {pedido.clienteDomicilio}</p>
+                <p className="client-detail">
+                  Domicilio: {pedido.clienteDomicilio}
+                </p>
                 <br />
                 <p className="client-cuit">CUIT: {currentClient.dni}</p>
-                <p className="client-detail right">Condición IVA: {currentClient.condicionIva}</p>
+                <p className="client-detail right">
+                  Condición IVA: {currentClient.condicionIva || '-'}
+                </p>
               </span>
               <p className="vendedor">
                 <strong>Vendedor</strong>
@@ -169,9 +175,10 @@ export default class Pedido extends Component {
 
             <div className="col-4 details">
               <p>
-                Fecha: {moment(pedido.fecha, "DD-MM-YYYY hh:mm").format("DD/MM/YYYY")}
+                Fecha:{' '}
+                {moment(pedido.fecha, 'DD-MM-YYYY hh:mm').format('DD/MM/YYYY')}
                 <br />
-                Factura #: 001 - {pedido.id.toString().padStart(5, "0")}
+                Factura #: 001 - {pedido.id.toString().padStart(5, '0')}
                 <br />
                 {pedido.condPago ? `Cond. de pago: ${pedido.condPago}` : ''}
               </p>
@@ -226,39 +233,42 @@ export default class Pedido extends Component {
                   <th width="10%">Peso</th>
                   <th width="15%">Precio</th>
                   <th>Bonif.</th>
-                  <th width="10%">Subtotal</th>
+                  <th width="10%">Importe</th>
                 </tr>
               </thead>
               <tbody>
-                {pedido.productos.map((prod, index) => (
-                  <tr key={index}>
-                    <td width="5%">
-                      <span>{prod.codigo}</span>
-                    </td>
-                    <td width="60%">
-                      <span>{prod.descripcion}</span>
-                    </td>
-                    <td className="amount">
-                      <span>{prod.cantidad}</span>
-                    </td>
-                    <td className="amount">
-                      <span>{prod.peso}</span>
-                    </td>
-                    <td className="rate">
-                      <span>{prod.precio}</span>
-                    </td>
-                    <td>
-                      <span>
-                        {prod.descuento !== ""
-                          ? `${parseInt(prod.descuento, 10).toFixed(2)}%`
-                          : "0.00%"}
-                      </span>
-                    </td>
-                    <td className="rate">
-                      <span>{prod.subtotal.toFixed(2)}</span>
-                    </td>
-                  </tr>
-                ))}
+                {pedido.productos.map((prod, index) => {
+                  totalSinDto += prod.cantidad * prod.peso * prod.precio;
+                  return (
+                    <tr key={index}>
+                      <td width="5%">
+                        <span>{prod.codigo}</span>
+                      </td>
+                      <td width="60%">
+                        <span>{prod.descripcion}</span>
+                      </td>
+                      <td className="amount">
+                        <span>{prod.cantidad}</span>
+                      </td>
+                      <td className="amount">
+                        <span>{prod.peso}</span>
+                      </td>
+                      <td className="rate">
+                        <span>{prod.precio}</span>
+                      </td>
+                      <td>
+                        <span>
+                          {prod.descuento !== ''
+                            ? `${parseInt(prod.descuento, 10).toFixed(2)}%`
+                            : '0.00%'}
+                        </span>
+                      </td>
+                      <td className="rate">
+                        <span>{prod.subtotal.toFixed(2)}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -270,6 +280,20 @@ export default class Pedido extends Component {
               <td id="total_tax"></td>
             </tr> */}
               <tbody>
+                <tr>
+                  <td>
+                    <span>Subtotal:</span>
+                  </td>
+                  <td className="subtotal_price">{totalSinDto.toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td>
+                    <span>Descuentos:</span>
+                  </td>
+                  <td className="subtotal_price">
+                    {(totalSinDto - pedido.total).toFixed(2)}
+                  </td>
+                </tr>
                 <tr>
                   <td>
                     <strong>Total:</strong>
@@ -300,13 +324,18 @@ export default class Pedido extends Component {
             <div className="col-6">
               <span className="client">
                 <strong>
-                  Cliente: {pedido.idCliente.toString().padStart(5, "0")} - {pedido.clienteName}
+                  Cliente: {pedido.idCliente.toString().padStart(5, '0')} -{' '}
+                  {pedido.clienteName}
                 </strong>
                 <br />
-                <p className="client-detail">Domicilio: {pedido.clienteDomicilio}</p>
+                <p className="client-detail">
+                  Domicilio: {pedido.clienteDomicilio}
+                </p>
                 <br />
                 <p className="client-cuit">CUIT: {currentClient.dni}</p>
-                <p className="client-detail right">Condición IVA: {currentClient.condicionIva}</p>
+                <p className="client-detail right">
+                  Condición IVA: {currentClient.condicionIva || '-'}
+                </p>
               </span>
               <p className="vendedor">
                 <strong>Vendedor</strong>
@@ -317,9 +346,10 @@ export default class Pedido extends Component {
 
             <div className="col-4 details">
               <p>
-                Fecha: {moment(pedido.fecha, "DD-MM-YYYY hh:mm").format("DD/MM/YYYY")}
+                Fecha:{' '}
+                {moment(pedido.fecha, 'DD-MM-YYYY hh:mm').format('DD/MM/YYYY')}
                 <br />
-                Factura #: 001 - {pedido.id.toString().padStart(5, "0")}
+                Factura #: 001 - {pedido.id.toString().padStart(5, '0')}
                 <br />
                 {pedido.condPago ? `Cond. de pago: ${pedido.condPago}` : ''}
               </p>
@@ -337,7 +367,7 @@ export default class Pedido extends Component {
                   <th width="10%">Peso</th>
                   <th width="15%">Precio</th>
                   <th>Bonif.</th>
-                  <th width="10%">Subtotal</th>
+                  <th width="10%">Importe</th>
                 </tr>
               </thead>
               <tbody>
@@ -360,9 +390,9 @@ export default class Pedido extends Component {
                     </td>
                     <td>
                       <span>
-                        {prod.descuento !== ""
+                        {prod.descuento !== ''
                           ? `${parseInt(prod.descuento, 10).toFixed(2)}%`
-                          : "0.00%"}
+                          : '0.00%'}
                       </span>
                     </td>
                     <td className="rate">
@@ -377,6 +407,20 @@ export default class Pedido extends Component {
           <div className="invoicelist-footer">
             <table>
               <tbody>
+                <tr>
+                  <td>
+                    <span>Subtotal:</span>
+                  </td>
+                  <td className="subtotal_price">{totalSinDto.toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td>
+                    <span>Descuentos:</span>
+                  </td>
+                  <td className="subtotal_price">
+                    {(totalSinDto - pedido.total).toFixed(2)}
+                  </td>
+                </tr>
                 <tr>
                   <td>
                     <strong>Total:</strong>

@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import clsx from "clsx";
 import moment from "moment";
 import { lighten, makeStyles } from "@material-ui/core/styles";
-import { Toast } from "antd-mobile";
+import { Toast, Modal } from "antd-mobile";
 import {
   Button,
   Tooltip,
@@ -30,6 +30,7 @@ import FilterListIcon from "@material-ui/icons/FilterList";
 import SaveIcon from "@material-ui/icons/Save";
 import DoneOutlineRoundedIcon from "@material-ui/icons/DoneOutlineRounded";
 import PedidoService from "../../services/pedidos.service";
+const alert = Modal.alert;
 
 function createData(codigo, peso, cantidad, descripcion, marca, subtotal) {
   return { codigo, peso, cantidad, descripcion, marca, subtotal };
@@ -210,7 +211,32 @@ const EnhancedTableToolbar = (props) => {
           // color="primary"
           // size="small"
           disabled={pedido.status === "Confirmado"}
-          onClick={updatePedido}
+          onClick={() =>
+            alert(
+              "Asentar visita",
+              <div>Registrar pedido</div>,
+              [
+                {
+                  text: "Pagado / Entregado",
+                  onPress: () =>
+                    updatePedido("Pagado / Entregado"),
+                },
+                {
+                  text: "Cta Corriente / Entregado",
+                  onPress: () =>
+                    updatePedido("Cta Corriente / Entregado"),
+                },
+                {
+                  text: "Rechazado",
+                  onPress: () =>
+                    updatePedido("Rechazado"),
+                },
+                {
+                  text: "Cancelar",
+                },
+              ]
+            )
+          }
           className={classes.button}
           endIcon={<DoneOutlineRoundedIcon />}
         >
@@ -321,9 +347,9 @@ export default function EnhancedTable(props) {
     setSelected([]);
   };
 
-  const updatePedido = () => {
+  const updatePedido = (status) => {
     let newTotal = 0;
-    const statusPrd = products.length === 0 ? 'Rechazado' : 'Confirmado';
+    let statusPrd = status;
     products.forEach((prd) => {
       newTotal += prd.subtotal;
     });
