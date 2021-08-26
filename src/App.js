@@ -36,6 +36,12 @@ import Visita from "./components/Logistic/Pedido/visita";
 import Pronostic from "./components/Prode/addPronostic";
 import Positions from "./components/Prode/positions";
 
+//Gym
+import AddMembers from "./components/Members/addMember";
+import ListMember from "./components/Members/listMember";
+import ValidateMember from "./components/Members/validateMember";
+import EditMember from "./components/Members/editMember";
+
 import FooterView from "./components/FooterView";
 
 // const [setAnchorEl] = React.useState(null);
@@ -173,24 +179,30 @@ class App extends Component {
                     </ul>
                   </div>
                 )}
-                {/* {(currentUser.rol === "prode" ||
+                {(currentUser.rol === "gym" ||
                   currentUser.rol === "admin") && (
                   <div className="dropdown-container">
                     <ul className="navbar-nav">
                       <li className="nav-item">
-                        <Link to={"/pronostico"} className="nav-link">
-                          Nuevo pronóstico
+                        <Link to={"/members"} className="nav-link">
+                          Inicio
                         </Link>
                       </li>
                       <li className="nav-item">
-                        <Link to={"/positions"} className="nav-link">
-                          Tabla de posiciones
+                        <Link to={"/add-member"} className="nav-link">
+                          Nuevo Socio
+                        </Link>
+                      </li>
+                      <li className="nav-item">
+                        <Link to={"/member-list"} className="nav-link">
+                          Listado de Socios
                         </Link>
                       </li>
                     </ul>
                   </div>
-                )} */}
-                {currentUser.rol === "admin" && (
+                )}
+                {(currentUser.rol === "forest" ||
+                currentUser.rol === "admin") && (
                   <div className="dropdown-container">
                     <ul className="navbar-nav">
                       <li className="nav-item">
@@ -307,6 +319,23 @@ class App extends Component {
                   component={Pronostic}
                 />
                 <Route exact path="/positions" component={Positions} />
+
+                 {/* // Gym */}
+
+                 <Route
+                  exact
+                  path={
+                    currentUser && currentUser.rol === "gym"
+                      ? ["/", "/members"]
+                      : "/members"
+                  }
+                  component={ValidateMember}
+                />
+                <Route exact path="/member-list" component={ListMember} />
+                {currentUser && (currentUser.rol === "admin" || currentUser.userName === 'lucasnovach') &&
+                 <Route exact path="/members/:id" component={EditMember} />
+                }
+                <Route exact path="/add-member" component={AddMembers} />
 
 
                 {/* // Admin */}

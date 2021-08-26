@@ -23,7 +23,7 @@ export default class SignUp extends Component {
       userName: "",
       password: "",
       email: "",
-      rol: "windy",
+      rol: "gym",
     };
     this.onSaveUser = this.onSaveUser.bind(this);
     this.onChangeValues = this.onChangeValues.bind(this);

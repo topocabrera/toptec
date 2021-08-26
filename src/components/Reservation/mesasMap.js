@@ -10,8 +10,6 @@ import { mesasArray } from "../../utils/default";
 const queryString = require("query-string");
 const alert = Modal.alert;
 
-const limitePorMesa = 6;
-
 export default class MesaMap extends Component {
   constructor(props) {
     super(props);

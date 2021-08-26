@@ -1,0 +1,93 @@
+.color__status.vencido {
+  font-weight: 600;
+  color: #ff0000;
+}
+
+.color__status.habilitado {
+  font-weight: 600;
+  color: #008000;
+}
+
+.empty-message {
+  font-weight: 600;
+  font-size: 30px;
+  text-align: center;
+}
+
+.cards {
+  position: relative;
+  list-style-type: none;
+  padding: 0;
+  max-width: 34em;
+  margin: 20% auto 0;
+}
+
+.card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: 420px;
+  border-radius: 30px;
+  padding: 25px 40px;
+  box-shadow: 0 0 40px #000;
+  transform-origin: 0 0;
+  // cursor: pointer;
+}
+
+.card.habilitado {
+  background: green;
+}
+
+.card.vencido {
+  background: #d40707bf;
+}
+
+.status {
+  font-weight: 600;
+  font-size: 30px;
+  text-align: center;
+  color: #000;
+  margin-top: 10px;
+}
+
+.card__name {
+  color: #fff;
+  margin-bottom: 5px;
+}
+
+.card__vigencia {
+  color: #fff;
+  margin-top: 14px;
+  margin-bottom: 0;
+  font-size: 20px;
+}
+
+.card__dni{
+  color: #fff;
+  margin-bottom: 0;
+}
+
+.img-logo {
+  max-width: 75%;
+}
+
+.image-container {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  .card__name {
+    font-size: 22px;
+  }
+
+  .card__vigencia {
+    font-size: 13px;
+    margin-top: 0px;
+  }
+
+  .card { 
+    width: 250px;
+  }
+}
