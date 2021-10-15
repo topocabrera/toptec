@@ -7,11 +7,12 @@ import {
   Link,
   Button,
   TextField,
-  Grid,
+  IconButton,
   Input,
 } from '@material-ui/core';
 import HomeIcon from '@material-ui/icons/Home';
 import moment from 'moment';
+import SearchIcon from '@material-ui/icons/Search';
 
 const alert = Modal.alert;
 
@@ -32,6 +33,7 @@ export default class validateMember extends Component {
       searchTitle: '',
       statusMember: '',
       submitted: false,
+      memberSearch: '',
     };
   }
 
@@ -76,31 +78,50 @@ export default class validateMember extends Component {
   }
 
   searchTitle(e) {
-    const { members } = this.state;
-    clearTimeout(this.timer);
+    // clearTimeout(this.timer);
     const value = e.target.value;
-    this.timer = setTimeout(() => {
-      if (value) {
-        const filter = members.filter(
-          (data) =>
-            data.nombre.toLowerCase().match(value.toLowerCase()) ||
-            data.dni.toLowerCase().match(value.toLowerCase())
-        );
-        this.setState({
-          memberFilter: filter,
-          searchTitle: value,
-        });
-      } else {
-        this.setState({ searchTitle: '' });
-      }
-    }, 500);
+    this.setState({
+      memberSearch: value,
+    });
+
+    // this.timer = setTimeout(() => {
+    //   if (value) {
+    //     const filter = members.filter(
+    //       (data) =>
+    //         data.nombre.toLowerCase().match(value.toLowerCase()) ||
+    //         data.dni.toLowerCase().match(value.toLowerCase())
+    //     );
+    //     this.setState({
+    //       memberFilter: filter,
+    //       searchTitle: value,
+    //     });
+    //   } else {
+    //     this.setState({ searchTitle: '' });
+    //   }
+    // }, 500);
   }
 
-  onSubmit() {
-    const { memberFilter, searchTitle } = this.state;
+  onSubmit(e) {
+    e.preventDefault();
+    const { memberFilter, searchTitle, memberSearch, members } = this.state;
+    if (memberSearch) {
+      const filter = members.filter(
+        (data) =>
+          data.nombre.toLowerCase().match(memberSearch.toLowerCase()) ||
+          data.dni.toLowerCase().match(memberSearch.toLowerCase())
+      );
+      this.setState({
+        memberFilter: filter,
+        searchTitle: memberSearch,
+      });
+    } else {
+      this.setState({ searchTitle: '' });
+    }
     const isNotEmptySearch = searchTitle !== '' && memberFilter.length > 0;
     var actualDate = new Date();
-    var dateMember = isNotEmptySearch && new Date(moment(memberFilter[0].dateVenc, 'DD-MM-YYYY'));
+    var dateMember =
+      isNotEmptySearch &&
+      new Date(moment(memberFilter[0].dateVenc, 'DD-MM-YYYY'));
     const statusMember =
       isNotEmptySearch && dateMember.getTime() < actualDate.getTime()
         ? 'Vencido'
@@ -127,7 +148,7 @@ export default class validateMember extends Component {
     const displayTable = searchTitle !== '' ? memberFilter : members;
 
     return (
-      <Container component="main" maxWidth="xs">
+      <Container component="main" maxWidth="md">
         {submitted ? (
           <div className="col-md-12">
             <Breadcrumbs aria-label="breadcrumb">
@@ -136,10 +157,38 @@ export default class validateMember extends Component {
                 Inicio
               </Link>
             </Breadcrumbs>
-            <div className="col-md-6">
+            <div className="col-md-6 medium-width">
+              <form className="form">
+                <TextField
+                  label="Ingrese DNI"
+                  variant="outlined"
+                  fullWidth
+                  id="dni"
+                  onChange={this.searchTitle}
+                  // type="text"
+                  className="text__search"
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+                <IconButton
+                  type="submit"
+                  color="primary"
+                  fullWidth
+                  variant="contained"
+                  className="button__search"
+                  onClick={this.onSubmit}
+                >
+                  <SearchIcon />
+                </IconButton>
+              </form>
               <ul className="cards">
-                <li 
-                className={memberFilter.length !== 0 ? `card ${statusMember.toLowerCase()}` : 'card'}>
+                <li
+                  className={
+                    memberFilter.length !== 0
+                      ? `card ${statusMember.toLowerCase()}`
+                      : 'card'
+                  }
+                >
                   {memberFilter.length !== 0 ? (
                     <>
                       <h1 className="card__name">
@@ -166,9 +215,9 @@ export default class validateMember extends Component {
         ) : (
           <div className="col-md-12">
             <div className="image-container">
-              <img className="img-logo" src={require('./factory.jpeg')} />
+              <img className="img-logo" src={require('./factory.jpg')} />
             </div>
-            <div className="col-md-6">
+            <div className="col-md-6 medium-width">
               <form className="form">
                 <TextField
                   label="Ingrese DNI"
@@ -177,19 +226,18 @@ export default class validateMember extends Component {
                   id="dni"
                   onChange={this.searchTitle}
                   type="text"
+                  className="text__search"
                 />
-
-                <Button
+                <IconButton
                   type="submit"
                   color="primary"
                   fullWidth
                   variant="contained"
-                  className="button__save"
+                  className="button__search"
                   onClick={this.onSubmit}
-                  // disabled={searchTitle === ''}
                 >
-                  Validar
-                </Button>
+                  <SearchIcon />
+                </IconButton>
               </form>
             </div>
           </div>

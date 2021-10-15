@@ -19,7 +19,7 @@
   list-style-type: none;
   padding: 0;
   max-width: 34em;
-  margin: 20% auto 0;
+  margin: 10% auto 0;
 }
 
 .card {
@@ -77,6 +77,23 @@
   text-align: center;
 }
 
+button.MuiButtonBase-root.MuiIconButton-root.button__search.MuiIconButton-colorPrimary {
+  display: inline-block;
+  background-color: #0064e0;
+  color: white;
+  margin-top: 8px;
+  margin-left: 5px;
+}
+
+.MuiFormControl-root.MuiTextField-root.text__search.MuiFormControl-fullWidth {
+  width: 84%;
+}
+
+.col-md-6.medium-width {
+  max-width: 75%;
+  margin: auto;
+}
+
 @media (max-width: 700px) {
   .card__name {
     font-size: 22px;
@@ -89,5 +106,12 @@
 
   .card { 
     width: 250px;
+  }
+  button.MuiButtonBase-root.MuiIconButton-root.button__search.MuiIconButton-colorPrimary {
+    display: none;
+  }
+  
+  .MuiFormControl-root.MuiTextField-root.text__search.MuiFormControl-fullWidth {
+    width: 100%;
   }
 }
