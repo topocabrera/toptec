@@ -72,6 +72,7 @@ export default class ReservaList extends Component {
     const { date, reservas } = this.state;
 
     const filerReserva = reservas.filter(
+      // (reserv) => moment(reserv.date, "DD-MM-YYYY").isSameOrBefore(moment(date, "DD-MM-YYYY"))
       (reserv) => moment(reserv.date, "DD-MM-YYYY").isSame(moment(date, "DD-MM-YYYY"))
     );
     console.log(filerReserva);

@@ -115,7 +115,7 @@ class App extends Component {
         >
           <div className="container-fluid">
             <a className="navbar-brand" href="/">
-            {currentUser.rol === "gym" ? "FactoryGYM" : "TopTec"}
+            {currentUser && currentUser.rol === "gym" ? "FactoryGYM" : "TopTec"}
             </a>
             {currentUser && (
               <button

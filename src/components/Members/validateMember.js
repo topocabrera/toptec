@@ -13,6 +13,7 @@ import {
 import HomeIcon from '@material-ui/icons/Home';
 import moment from 'moment';
 import SearchIcon from '@material-ui/icons/Search';
+import { FilterTiltShift } from '@material-ui/icons';
 
 const alert = Modal.alert;
 
@@ -104,8 +105,9 @@ export default class validateMember extends Component {
   onSubmit(e) {
     e.preventDefault();
     const { memberFilter, searchTitle, memberSearch, members } = this.state;
+    let filter = [];
     if (memberSearch) {
-      const filter = members.filter(
+      filter = members.filter(
         (data) =>
           data.nombre.toLowerCase().match(memberSearch.toLowerCase()) ||
           data.dni.toLowerCase().match(memberSearch.toLowerCase())
@@ -117,18 +119,18 @@ export default class validateMember extends Component {
     } else {
       this.setState({ searchTitle: '' });
     }
-    const isNotEmptySearch = searchTitle !== '' && memberFilter.length > 0;
+    const isNotEmptySearch = memberSearch !== '' && filter.length > 0;
     var actualDate = new Date();
-    var dateMember =
-      isNotEmptySearch &&
-      new Date(moment(memberFilter[0].dateVenc, 'DD-MM-YYYY'));
-    const statusMember =
-      isNotEmptySearch && dateMember.getTime() < actualDate.getTime()
-        ? 'Vencido'
-        : 'Habilitado';
+    var dateMember = isNotEmptySearch ?
+      new Date(moment(filter[0].dateVenc, 'DD-MM-YYYY')) : actualDate;
+      const statusMember =
+      isNotEmptySearch && moment(dateMember, "DD-MM-YYYY").isSameOrBefore(moment(actualDate, "DD-MM-YYYY"))
+      ? 'Vencido'
+      : 'Habilitado';
     this.setState({
       statusMember,
       submitted: true,
+      memberSearch: '',
     });
   }
 
@@ -165,10 +167,12 @@ export default class validateMember extends Component {
                   fullWidth
                   id="dni"
                   onChange={this.searchTitle}
+                  autoFocus
                   // type="text"
                   className="text__search"
                   autocomplete="off"
                   spellcheck="false"
+                  value={this.state.memberSearch}
                 />
                 <IconButton
                   type="submit"
@@ -227,6 +231,7 @@ export default class validateMember extends Component {
                   onChange={this.searchTitle}
                   type="text"
                   className="text__search"
+                  autoFocus
                 />
                 <IconButton
                   type="submit"
