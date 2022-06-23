@@ -30,6 +30,25 @@ export const turnos = [
   },
 ];
 
+export const canchas = [
+  {
+    value: 1,
+    name: "Cancha 1",
+  },
+  {
+    value: 2,
+    name: "Cancha 2",
+  },
+  {
+    value: 3,
+    name: "Cancha 3",
+  },
+  {
+    value: 0,
+    name: "Cancha 0 (socios)",
+  },
+]
+
 export const mesasArray = [
   1,
   2,

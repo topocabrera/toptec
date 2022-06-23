@@ -42,6 +42,21 @@ import ListMember from "./components/Members/listMember";
 import ValidateMember from "./components/Members/validateMember";
 import EditMember from "./components/Members/editMember";
 
+// MP
+// import AddClient from "./components/Logistic/Clients/addClient";
+// import EditClient from "./components/Logistic/Clients/editClient";
+// import ListClient from "./components/Logistic/Clients/listClient";
+// import AddProduct from "./components/Paddle/Products/addProduct";
+// import ListProduct from "./components/Paddle/Products/listProduct";
+// import EditProduct from "./components/Paddle/Products/editProduct";
+// import ChangePriceProduct from "./components/Logistic/Products/changePrice";
+import AddTurno from "./components/Paddle/Turnos/addTurno";
+import TurnoList from "./components/Paddle/Turnos/pedidoList";
+// import Pedido from "./components/Paddle/Pedido/pedido";
+// import PedidoList from "./components/Paddle/Pedido/pedidoList";
+// import EditPedido from "./components/Paddle/Pedido/editPedido";
+// import Factura from "./components/Paddle/Pedido/facturaTemplate";
+
 import FooterView from "./components/FooterView";
 
 // const [setAnchorEl] = React.useState(null);
@@ -116,6 +131,7 @@ class App extends Component {
           <div className="container-fluid">
             <a className="navbar-brand" href="/">
             {currentUser && currentUser.rol === "gym" ? "FactoryGYM" : "TopTec"}
+            {currentUser && currentUser.rol === "paddle" && "Mundo Padel"}
             </a>
             {currentUser && (
               <button
@@ -196,6 +212,28 @@ class App extends Component {
                       <li className="nav-item">
                         <Link to={"/member-list"} className="nav-link">
                           Listado de Socios
+                        </Link>
+                      </li>
+                    </ul>
+                  </div>
+                )}
+                 {(currentUser.rol === "paddle" ||
+                  currentUser.rol === "admin") && (
+                  <div className="dropdown-container">
+                    <ul className="navbar-nav">
+                      <li className="nav-item">
+                        <Link to={"/mp/clients"} className="nav-link">
+                          Clientes
+                        </Link>
+                      </li>
+                      <li className="nav-item">
+                        <Link to={"/mp/products"} className="nav-link">
+                          Productos
+                        </Link>
+                      </li>
+                      <li className="nav-item">
+                        <Link to={"/mp/turno-list"} className="nav-link">
+                          Turnos
                         </Link>
                       </li>
                     </ul>
@@ -307,7 +345,46 @@ class App extends Component {
                     <Route exact path="/new-visit" component={Visita} />
                   </React.Fragment>
                 )}
-                {/* // Prode */}
+
+                {/* // MP */}
+                {(currentUser.rol === "paddle" ||
+                  currentUser.rol === "admin") && (
+                  <React.Fragment>
+                    <Route
+                      exact
+                      path={
+                        currentUser && currentUser.rol === "paddle"
+                          ? ["/", "/mp/turno-list"]
+                          : "/mp/turno-list"
+                      }
+                      component={TurnoList}
+                    />
+                    <Route exact path="/mp/turno" component={AddTurno} />
+                    {/* <Route exact path="/mp/turnos/:id" component={EditTurno} />
+                    <Route
+                      exact
+                      path="/mp/edit-turno/:id"
+                      component={EditTurnoConsumo}
+                    /> */}
+                    <Route exact path="/mp/list-client" component={ListClient} />
+                    <Route exact path="/mp/clients" component={AddClient} />
+                    <Route exact path="/mp/client/:id" component={EditClient} />
+                    <Route exact path="/mp/products" component={AddProduct} />
+                    <Route exact path="/mp/product/:id" component={EditProduct} />
+                    <Route
+                      exact
+                      path="/mp/list-products"
+                      component={ListProduct}
+                    />
+                    {/* <Route
+                      exact
+                      path="/change-price"
+                      component={ChangePriceProduct}
+                    /> */}
+                    {/* <Route exact path="/imprimir/:id" component={Factura} />
+                    <Route exact path="/new-visit" component={Visita} /> */}
+                  </React.Fragment>
+                )}
 
                 <Route
                   exact
