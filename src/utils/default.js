@@ -17,6 +17,17 @@ export default [
   "Cluselat",
 ];
 
+export const tipoCliente = [
+  "HOME",
+  "CORPORATIVO"
+]
+
+export const horasTrabajo = [
+  "Normal",
+  "Media Jornada",
+  "Una Jornada"
+]
+
 export const passKey = "passname";
 
 export const turnos = [

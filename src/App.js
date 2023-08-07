@@ -42,11 +42,22 @@ import ListMember from "./components/Members/listMember";
 import ValidateMember from "./components/Members/validateMember";
 import EditMember from "./components/Members/editMember";
 
+//Dental
+import AddClientDental from "./components/DentalLogistic/Clients/addClient";
+import EditClientDental from "./components/DentalLogistic/Clients/editClient";
+import ListClientDental from "./components/DentalLogistic/Clients/ListClient";
+import AddProductDental from "./components/DentalLogistic/Products/addProduct";
+import ListProductDental from "./components/DentalLogistic/Products/ListProduct";
+import EditProductDental from "./components/DentalLogistic/Products/editProduct";
+import ListMarcas from "./components/DentalLogistic/Marcas/ListMarcas";
+import AddMarca from "./components/DentalLogistic/Marcas/AddMarca";
+import EditMarca from "./components/DentalLogistic/Marcas/EditMarca";
+
 // MP
 // import AddClient from "./components/Logistic/Clients/addClient";
 // import EditClient from "./components/Logistic/Clients/editClient";
-// import ListClient from "./components/Logistic/Clients/listClient";
-// import AddProduct from "./components/Paddle/Products/addProduct";
+import ListVisit from "./components/Paddle/Products/listProduct";
+import AddItem from "./components/Paddle/Products/addProduct";
 // import ListProduct from "./components/Paddle/Products/listProduct";
 // import EditProduct from "./components/Paddle/Products/editProduct";
 // import ChangePriceProduct from "./components/Logistic/Products/changePrice";
@@ -56,6 +67,8 @@ import TurnoList from "./components/Paddle/Turnos/pedidoList";
 // import PedidoList from "./components/Paddle/Pedido/pedidoList";
 // import EditPedido from "./components/Paddle/Pedido/editPedido";
 // import Factura from "./components/Paddle/Pedido/facturaTemplate";
+
+import NavBar from "./components/NavBar/NavBar";
 
 import FooterView from "./components/FooterView";
 
@@ -124,6 +137,9 @@ class App extends Component {
     </div>
   </div>
 </nav> */}
+        {currentUser?.rol === "dental" ? (
+          <NavBar />
+        ) : (
         <nav
           className="navbar navbar-expand-md navbar-dark bg-dark"
           role="navigation"
@@ -264,6 +280,7 @@ class App extends Component {
             )}
           </div>
         </nav>
+        )}
 
         <div className="container mt-3">
           <Switch>
@@ -346,36 +363,27 @@ class App extends Component {
                   </React.Fragment>
                 )}
 
-                {/* // MP */}
-                {(currentUser.rol === "paddle" ||
+                {/* // Dental */}
+                {(currentUser.rol === "dental" ||
                   currentUser.rol === "admin") && (
                   <React.Fragment>
                     <Route
                       exact
                       path={
-                        currentUser && currentUser.rol === "paddle"
-                          ? ["/", "/mp/turno-list"]
-                          : "/mp/turno-list"
+                        currentUser && currentUser.rol === "dental"
+                          ? ["/", "/dental/product-list"]
+                          : "/dental/product-list"
                       }
-                      component={TurnoList}
+                      component={ListProductDental}
                     />
-                    <Route exact path="/mp/turno" component={AddTurno} />
-                    {/* <Route exact path="/mp/turnos/:id" component={EditTurno} />
-                    <Route
-                      exact
-                      path="/mp/edit-turno/:id"
-                      component={EditTurnoConsumo}
-                    /> */}
-                    <Route exact path="/mp/list-client" component={ListClient} />
-                    <Route exact path="/mp/clients" component={AddClient} />
-                    <Route exact path="/mp/client/:id" component={EditClient} />
-                    <Route exact path="/mp/products" component={AddProduct} />
-                    <Route exact path="/mp/product/:id" component={EditProduct} />
-                    <Route
-                      exact
-                      path="/mp/list-products"
-                      component={ListProduct}
-                    />
+                    <Route exact path="/dental/list-client" component={ListClientDental} />
+                    <Route exact path="/dental/clients" component={AddClientDental} />
+                    <Route exact path="/dental/client/:id" component={EditClientDental} />
+                    <Route exact path="/dental/products" component={AddProductDental} />
+                    <Route exact path="/dental/product/:id" component={EditProductDental} />
+                    <Route exact path="/dental/marcas" component={ListMarcas} />
+                    <Route exact path="/dental/marca" component={AddMarca} />
+                    <Route exact path="/dental/marca/:id" component={EditMarca} />
                     {/* <Route
                       exact
                       path="/change-price"

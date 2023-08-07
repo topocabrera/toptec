@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import ProductosDataService from "../../../services/productos.service";
+import ProductosDataService from "../../../services/tutorial.service";
 import { Toast, Modal } from "antd-mobile";
 import { IconButton } from '@material-ui/core';
 import SearchIcon from "@material-ui/icons/Search";
@@ -47,12 +47,18 @@ export default class listProduct extends Component {
       products.push({
         key,
         id: data.id,
+        item: data.item,
+        depto: data.depto,
         codigo: data.codigo,
-        descripcion: data.descripcion,
-        peso: data.peso,
-        marca: data.marca,
-        stock: data.stock,
-        precio: data.precio,
+        contrato: data.contrato,
+        cliente: data.cliente,
+        recibido: data.recibido,
+        direccion: data.direccion,
+        latitud: data.latitud,
+        longitud: data.longitud,
+        tipoCliente: data.tipoCliente,
+        horasTrabajo: data.horasTrabajo,
+        date: data.date,
       });
     });
 
@@ -128,14 +134,14 @@ export default class listProduct extends Component {
     return (
       <div className="list row">
         <div className="col-md-6">
-          <div className="new-reservation">
+          {/* <div className="new-reservation">
             <a className="btn btn-primary" href="/products" role="button">
               Nuevo producto
             </a>
             <a className="btn btn-primary change-price-button" href="/change-price" role="button">
               Cambiar precios masivamente
             </a>
-          </div>
+          </div> */}
           <div className="col-md-8">
             <div className="input-group mb-3">
               <input
@@ -154,17 +160,23 @@ export default class listProduct extends Component {
               </div>
             </div>
           </div>
-          <h4>Listado de productos</h4>
+          <h4>Listado de Visitas</h4>
           <div className="table-container">
             <table className="table">
               <thead className="thead-dark">
                 <tr>
+                  <th scope="col">Item</th>
+                  <th scope="col">Depto</th>
                   <th scope="col">Código</th>
-                  <th scope="col">Descripción</th>
-                  <th scope="col">Peso</th>
-                  <th scope="col">Marca</th>
-                  <th scope="col">Stock</th>
-                  <th scope="col">Precio</th>
+                  <th scope="col">Contrato</th>
+                  <th scope="col">Cliente</th>
+                  <th scope="col">Recibido Por</th>
+                  <th scope="col">Dirección</th>
+                  <th scope="col">Latitud</th>
+                  <th scope="col">Longitud</th>
+                  <th scope="col">Tipo Cliente</th>
+                  <th scope="col">Horas Trabajo</th>
+                  <th scope="col">Fecha</th>
                   <th scope="col">Acciones</th>
                 </tr>
               </thead>
@@ -173,12 +185,19 @@ export default class listProduct extends Component {
                   displayTable.map((producto, index) => {
                     return (
                       <tr key={index}>
+                        <td>{producto.item}</td>
+                        <td>{producto.depto}</td>
                         <td>{producto.codigo}</td>
-                        <td>{producto.descripcion}</td>
-                        <td>{producto.peso}</td>
-                        <td>{producto.marca}</td>
-                        <td>{producto.stock}</td>
-                        <td>${producto.precio}</td>
+                        <td>{producto.contrato}</td>
+                        <td>{producto.cliente}</td>
+                        <td>{producto.recibido}</td>
+                        <td>{producto.direccion}</td>
+                        <td>{producto.latitud}</td>
+                        <td>{producto.longitud}</td>
+                        <td>{producto.tipoCliente}</td>
+                        <td>{producto.horasTrabajo}</td>
+                        <td>{producto.date}</td>
+                        
                         <td className="column-actions">
                         <IconButton
                           aria-label="delete"

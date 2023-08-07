@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import Datetime from "react-datetime";
 import {
   Button,
   TextField,
@@ -9,15 +10,17 @@ import {
   MenuItem,
   Select,
 } from "@material-ui/core";
-import ProductosDataService from "../../../services/productos.service";
-import marcas from "../../../utils/default";
+import ProductosDataService from "../../../services/tutorial.service";
+import { tipoCliente, horasTrabajo } from "../../../utils/default";
+import moment from "moment";
 
 export default class AddProduct extends Component {
   constructor(props) {
     super(props);
-    this.onChangeCodigo = this.onChangeCodigo.bind(this);
-    this.onChangeDescripcion = this.onChangeDescripcion.bind(this);
-    this.onChangeMarca = this.onChangeMarca.bind(this);
+    this.onChangeItem = this.onChangeItem.bind(this);
+    this.onChangeDepto = this.onChangeDepto.bind(this);
+    this.onChangeTipoCliente = this.onChangeTipoCliente.bind(this);
+    this.onChangeHoras = this.onChangeHoras.bind(this);
     this.onChangeStock = this.onChangeStock.bind(this);
     this.onChangePrecio = this.onChangePrecio.bind(this);
     this.onDataChange = this.onDataChange.bind(this);
@@ -26,13 +29,18 @@ export default class AddProduct extends Component {
     this.onChangeValues = this.onChangeValues.bind(this);
 
     this.state = {
+      item: "",
+      depto: "",
       codigo: "",
-      descripcion: "",
-      marca: "Windy",
-      precio: "",
-      stock: 0,
-      lastId: 0,
-      peso: 1,
+      contrato: "",
+      cliente: "",
+      recibido: "",
+      direccion: "",
+      latitud: "",
+      longitud: "",
+      tipoCliente: "",
+      horasTrabajo: "",
+      date: moment(new Date().getTime()).format("DD-MM-YYYY"),
 
       submitted: false,
     };
@@ -56,20 +64,24 @@ export default class AddProduct extends Component {
     console.log(items.val().id);
   }
 
-  onChangeCodigo(e) {
+  onChangeItem(e) {
     this.setState({
-      codigo: e.target.value,
+      item: e.target.value,
     });
   }
 
-  onChangeDescripcion(e) {
+  onChangeDepto(e) {
     this.setState({
       descripcion: e.target.value,
     });
   }
 
-  onChangeMarca(e) {
-    this.setState({ marca: e.target.value });
+  onChangeTipoCliente(e) {
+    this.setState({ tipoCliente: e.target.value });
+  }
+
+  onChangeHoras(e) {
+    this.setState({ horasTrabajo: e.target.value });
   }
 
   onChangePrecio(e) {
@@ -88,15 +100,27 @@ export default class AddProduct extends Component {
     this.setState({ [name]: value });
   }
 
+  onChangeDate(e) {
+    const dateFormat = e.format("DD-MM-YYYY");
+    this.setState({ date: dateFormat });
+    this.obtainLastMesa(dateFormat, "");
+  }
+
   saveProduct() {
     let data = {
       id: this.state.lastId + 1,
+      item: this.state.item,
+      depto: this.state.depto,
       codigo: this.state.codigo,
-      descripcion: this.state.descripcion,
-      stock: parseInt(this.state.stock, 10),
-      marca: this.state.marca,
-      precio: this.state.precio,
-      peso: this.state.peso,
+      contrato: this.state.contrato,
+      cliente: this.state.cliente,
+      recibido: this.state.recibido,
+      direccion: this.state.direccion,
+      latitud: this.state.latitud,
+      longitud: this.state.longitud,
+      tipoCliente: this.state.tipoCliente,
+      horasTrabajo: this.state.horasTrabajo,
+      date: this.state.date,
     };
 
     ProductosDataService.create(data)
@@ -113,11 +137,18 @@ export default class AddProduct extends Component {
 
   newProduct() {
     this.setState({
+      item: "",
+      depto: "",
       codigo: "",
-      descripcion: "",
-      stock: 0,
-      marca: "Windy",
-      precio: "",
+      contrato: "",
+      cliente: "",
+      recibido: "",
+      direccion: "",
+      latitud: "",
+      longitud: "",
+      tipoCliente: "",
+      horasTrabajo: "",
+      date: moment(new Date().getTime()).format("DD-MM-YYYY"),
       lastId: this.state.lastId,
 
       submitted: false,
@@ -144,10 +175,36 @@ export default class AddProduct extends Component {
         ) : (
           <div className="form-container">
             <Typography component="h1" variant="h5">
-              Nuevo Producto
+              Nueva Visita
             </Typography>
             <div className="login-container">
               <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    className="default__textfield"
+                    id="item"
+                    label="Item"
+                    value={this.state.item}
+                    name="item"
+                    onChange={this.onChangeValues}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    className="default__textfield"
+                    id="depto"
+                    label="Depto"
+                    value={this.state.depto}
+                    name="depto"
+                    onChange={this.onChangeValues}
+                  />
+                </Grid>
                 <Grid item xs={12}>
                   <TextField
                     variant="outlined"
@@ -158,47 +215,6 @@ export default class AddProduct extends Component {
                     label="Código"
                     value={this.state.codigo}
                     name="codigo"
-                    onChange={this.onChangeCodigo}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    variant="outlined"
-                    required
-                    fullWidth
-                    className="default__textfield"
-                    id="descripcion"
-                    label="Descripción"
-                    value={this.state.descripcion}
-                    name="descripcion"
-                    onChange={this.onChangeDescripcion}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <InputLabel>Marca</InputLabel>
-                  <Select
-                    onChange={this.onChangeMarca}
-                    value={this.state.marca}
-                    className="select__form"
-                    fullWidth
-                  >
-                    {marcas.map((marca) => (
-                      <MenuItem key={marca} value={marca}>
-                        {marca}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    variant="outlined"
-                    required
-                    fullWidth
-                    className="default__textfield"
-                    id="peso"
-                    label="Peso"
-                    value={this.state.peso}
-                    name="peso"
                     onChange={this.onChangeValues}
                   />
                 </Grid>
@@ -208,11 +224,11 @@ export default class AddProduct extends Component {
                     required
                     fullWidth
                     className="default__textfield"
-                    id="precio"
-                    label="Precio"
-                    value={this.state.precio}
-                    name="precio"
-                    onChange={this.onChangePrecio}
+                    id="contrato"
+                    label="Contrato"
+                    value={this.state.contrato}
+                    name="contrato"
+                    onChange={this.onChangeValues}
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -221,11 +237,103 @@ export default class AddProduct extends Component {
                     required
                     fullWidth
                     className="default__textfield"
-                    id="stock"
-                    label="Stock"
-                    value={this.state.stock}
-                    name="stock"
-                    onChange={this.onChangeStock}
+                    id="cliente"
+                    label="Cliente"
+                    value={this.state.cliente}
+                    name="cliente"
+                    onChange={this.onChangeValues}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    fullWidth
+                    className="default__textfield"
+                    id="recibido"
+                    label="Persona que recibió"
+                    value={this.state.recibido}
+                    name="recibido"
+                    onChange={this.onChangeValues}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    className="default__textfield"
+                    id="direccion"
+                    label="Dirección"
+                    value={this.state.direccion}
+                    name="direccion"
+                    onChange={this.onChangeValues}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    fullWidth
+                    className="default__textfield"
+                    id="latitud"
+                    label="latitud"
+                    value={this.state.latitud}
+                    name="latitud"
+                    onChange={this.onChangeValues}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    fullWidth
+                    className="default__textfield"
+                    id="longitud"
+                    label="longitud"
+                    value={this.state.longitud}
+                    name="longitud"
+                    onChange={this.onChangeValues}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <InputLabel>Tipo Cliente</InputLabel>
+                  <Select
+                    onChange={this.onChangeTipoCliente}
+                    value={this.state.tipoCliente}
+                    className="select__form"
+                    fullWidth
+                  >
+                    {tipoCliente.map((tipo) => (
+                      <MenuItem key={tipo} value={tipo}>
+                        {tipo}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Grid>
+                <Grid item xs={12}>
+                  <InputLabel>Hora de trabajo</InputLabel>
+                  <Select
+                    onChange={this.onChangeHoras}
+                    value={this.state.horasTrabajo}
+                    className="select__form"
+                    fullWidth
+                  >
+                    {horasTrabajo.map((horas) => (
+                      <MenuItem key={horas} value={horas}>
+                        {horas}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Grid>
+                <Grid item xs={12}>
+                  <InputLabel>Fecha</InputLabel>
+                  <Datetime
+                    className="post-input  post-input__event"
+                    dateFormat="DD-MM-YYYY"
+                    timeFormat={false}
+                    name="eventDate"
+                    utc
+                    closeOnSelect
+                    value={this.state.date}
+                    onChange={this.onChangeDate}
                   />
                 </Grid>
               </Grid>
