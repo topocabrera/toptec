@@ -36,7 +36,7 @@ $primary: #343a40;
 
 /**
 * Small Grid
-**/ 
+**/
 .row{
   @extend .group;
   position: relative;
@@ -88,18 +88,18 @@ $primary: #343a40;
   color: white;
   line-height: 4rem;
   height: 4rem;
-  
+
   .slogan{
     font-weight: bold;
     font-size: 1.2rem;
     display: inline-block;
     margin-right: 2rem;
   }
-  
+
   label{
     margin-right: 1rem;
   }
-  
+
   a{
     margin: 0;
     padding: .5em 1em;
@@ -114,7 +114,7 @@ $primary: #343a40;
     padding: .5rem 0;
     max-width: 30px;
     text-align: center;
-    
+
     &:hover{
       background: rgba(white,.3);
     }
@@ -153,11 +153,11 @@ header{
   margin: 1rem 0 0;
   padding: 0;
   border-bottom: 3pt solid $primary;
-  
+
   p{
     font-size: .9rem;
   }
-  
+
   a{
     color: #000;
   }
@@ -209,7 +209,7 @@ h1{
   margin: 0;
   padding: 0;
   font-size: 2rem;
-  //font-weight: normal;  
+  //font-weight: normal;
   //text-transform: uppercase;
   color: $primary;
   //border-top: 3pt solid #999;
@@ -276,7 +276,7 @@ h1{
       }
     }
   }
-  
+
   input{
     display: inline;
     margin: 0;
@@ -321,13 +321,13 @@ h1{
   border-top: 1pt solid #343a40;
   @extend .group;
   margin: 1rem;
-  
+
   table{
     //border-top: 2pt solid #666;
     float: right;
     //background: #ccc;
     width: 25%;
-    
+
     td{
       padding: 1rem 2rem 0 1rem;
       text-align: right;
@@ -350,7 +350,7 @@ h1{
  */
 .note{
   margin: 1rem;
-  
+
   .hidenote & {
     display: none;
   }
@@ -373,7 +373,7 @@ footer{
   display: block;
   margin: 1rem 0;
   padding: 1rem 0 0;
-  
+
   p{
     font-size: .8rem;
   }
@@ -401,7 +401,7 @@ footer{
   .factura__container {
     width: 100%;
   }
-  
+
   .control,
   .control-bar{
     display: none !important;
