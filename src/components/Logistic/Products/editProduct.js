@@ -1,6 +1,7 @@
-import React, { Component } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import ProductosDataService from "../../../services/productos.service";
-import marcas from "../../../utils/default";
+import { marcasLogistic as marcas } from "../../../utils/default";
 import {
   Button,
   TextField,
@@ -10,246 +11,212 @@ import {
   InputLabel,
   MenuItem,
   Select,
-} from "@material-ui/core";
+} from "@mui/material";
 
-export default class EditProduct extends Component {
-  constructor(props) {
-    super(props);
-    this.onChangeCodigo = this.onChangeCodigo.bind(this);
-    this.onChangeDescripcion = this.onChangeDescripcion.bind(this);
-    this.onChangeMarca = this.onChangeMarca.bind(this);
-    this.onChangeStock = this.onChangeStock.bind(this);
-    this.onChangePrecio = this.onChangePrecio.bind(this);
-    this.onDataChange = this.onDataChange.bind(this);
-    this.updateProduct = this.updateProduct.bind(this);
-    this.onChangeValues = this.onChangeValues.bind(this);
-    
-    this.state = {
-      currentProduct: {
-        key: null,
-        id: 0,
-        codigo: "",
-        descripcion: "",
-        marca: "",
-        precio: "",
-        stock: 0,
-        peso: 1,
-      },
+const EditProduct = () => {
+  const { id } = useParams();
+  const [currentProduct, setCurrentProduct] = useState({
+    key: null,
+    id: 0,
+    codigo: "",
+    descripcion: "",
+    marca: "",
+    precio: "",
+    precioCosto: "",
+    precioMayorista: "",
+    stock: 0,
+    peso: 1,
+  });
 
-      submitted: false,
-    };
-  }
+  const [submitted, setSubmitted] = useState(false);
 
-  componentDidMount() {
-    const id = parseInt(this.props.match.params.id, 10);
+  useEffect(() => {
+    const productId = parseInt(id, 10);
     ProductosDataService.getAll()
       .orderByChild("id")
-      .equalTo(id)
-      .once("value", this.onDataChange);
-  }
+      .equalTo(productId)
+      .once("value", onDataChange);
+  }, [id]);
 
-  onDataChange(items) {
-    let key = Object.keys(items.val());
-    let data = items.val();
-    const currentProduct = data[key];
-    currentProduct.key = key[0];
-    this.setState({ currentProduct });
-  }
+  const onDataChange = (items) => {
+    const key = Object.keys(items.val())[0];
+    const data = items.val()[key];
+    setCurrentProduct({ ...data, key });
+  };
 
-  onChangeCodigo(e) {
-    this.setState({
-      currentProduct: {
-        ...this.state.currentProduct,
-        codigo: e.target.value,
-      },
-    });
-  }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setCurrentProduct((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+  };
 
-  onChangeDescripcion(e) {
-    this.setState({
-      currentProduct: {
-        ...this.state.currentProduct,
-        descripcion: e.target.value,
-      },
-    });
-  }
-
-  onChangeMarca(e) {
-    this.setState({
-      currentProduct: {
-        ...this.state.currentProduct,
-        marca: e.target.value,
-      },
-    });
-  }
-
-  onChangePrecio(e) {
-    this.setState({
-      currentProduct: {
-        ...this.state.currentProduct,
-        precio: e.target.value,
-      },
-    });
-  }
-
-  onChangeStock(e) {
-    this.setState({
-      currentProduct: {
-        ...this.state.currentProduct,
-        stock: e.target.value,
-      },
-    });
-  }
-
-  onChangeValues(e) {
-    const name = e.target.name;
-    const value = e.target.value;
-    this.setState({
-      currentProduct: {
-        ...this.state.currentProduct,
-        [name]: value,
-      },
-    });
-  }
-
-  updateProduct() {
+  const updateProduct = () => {
     const data = {
-      id: this.state.currentProduct.id,
-      codigo: this.state.currentProduct.codigo,
-      descripcion: this.state.currentProduct.descripcion,
-      stock: parseInt(this.state.currentProduct.stock, 10),
-      marca: this.state.currentProduct.marca,
-      precio: this.state.currentProduct.precio,
-      peso: this.state.currentProduct.peso,
+      id: currentProduct.id,
+      codigo: currentProduct.codigo,
+      descripcion: currentProduct.descripcion,
+      stock: parseInt(currentProduct.stock, 10),
+      marca: currentProduct.marca,
+      precio: currentProduct.precio,
+      precioCosto: currentProduct.precioCosto,
+      precioMayorista: currentProduct.precioMayorista,
+      peso: currentProduct.peso,
     };
 
-    ProductosDataService.update(this.state.currentProduct.key, data)
+    ProductosDataService.update(currentProduct.key, data)
       .then(() => {
-        this.setState({
-          submitted: true,
-        });
+        setSubmitted(true);
       })
       .catch((e) => {
         console.log(e);
       });
-  }
+  };
 
-  render() {
-    return (
-      <Container component="main" maxWidth="xs">
-        {this.state.submitted ? (
-          <div>
-            <h4>Producto editado correctamente!</h4>
-            <a
-              className="btn btn-primary go-listado"
-              href="/list-products"
-              role="button"
-            >
-              Listado
-            </a>
-          </div>
-        ) : (
-          <div className="form-container">
-            <Typography component="h1" variant="h5">
-              Editar producto
-            </Typography>
-            <div className="login-container">
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <TextField
-                    variant="outlined"
-                    required
-                    fullWidth
-                    className="default__textfield"
-                    id="codigo"
-                    label="Código"
-                    value={this.state.currentProduct.codigo}
-                    name="codigo"
-                    onChange={this.onChangeCodigo}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    variant="outlined"
-                    required
-                    fullWidth
-                    className="default__textfield"
-                    id="descripcion"
-                    label="Descripción"
-                    value={this.state.currentProduct.descripcion}
-                    name="descripcion"
-                    onChange={this.onChangeDescripcion}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <InputLabel>Marca</InputLabel>
-                  <Select
-                    onChange={this.onChangeMarca}
-                    value={this.state.currentProduct.marca}
-                    className="select__form"
-                    fullWidth
-                  >
-                    {marcas.map((marca) => (
-                      <MenuItem key={marca} value={marca}>
-                        {marca}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    variant="outlined"
-                    required
-                    fullWidth
-                    className="default__textfield"
-                    id="peso"
-                    label="Peso"
-                    value={this.state.currentProduct.peso}
-                    name="peso"
-                    onChange={this.onChangeValues}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    variant="outlined"
-                    required
-                    fullWidth
-                    className="default__textfield"
-                    id="precio"
-                    label="Precio"
-                    value={this.state.currentProduct.precio}
-                    name="precio"
-                    onChange={this.onChangePrecio}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    variant="outlined"
-                    required
-                    fullWidth
-                    className="default__textfield"
-                    id="stock"
-                    label="Stock"
-                    value={this.state.currentProduct.stock}
-                    name="stock"
-                    onChange={this.onChangeStock}
-                  />
-                </Grid>
+  return (
+    <Container component="main" maxWidth="xs">
+      {submitted ? (
+        <div>
+          <h4>Producto editado correctamente!</h4>
+          <a
+            className="btn btn-primary go-listado"
+            href="/logistic/list-products"
+            role="button"
+          >
+            Listado
+          </a>
+        </div>
+      ) : (
+        <div className="form-container">
+          <Typography component="h1" variant="h5">
+            Editar producto
+          </Typography>
+          <div className="login-container">
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  variant="outlined"
+                  required
+                  fullWidth
+                  className="default__textfield"
+                  id="codigo"
+                  label="Código"
+                  value={currentProduct.codigo}
+                  name="codigo"
+                  onChange={handleChange}
+                />
               </Grid>
-              <Button
-                type="button"
-                fullWidth
-                variant="contained"
-                color="primary"
-                className="button__save"
-                onClick={this.updateProduct}
-              >
-                Aceptar
-              </Button>
-            </div>
+              <Grid item xs={12}>
+                <TextField
+                  variant="outlined"
+                  required
+                  fullWidth
+                  className="default__textfield"
+                  id="descripcion"
+                  label="Descripción"
+                  value={currentProduct.descripcion}
+                  name="descripcion"
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <InputLabel>Marca</InputLabel>
+                <Select
+                  onChange={handleChange}
+                  value={currentProduct.marca}
+                  className="select__form"
+                  name="marca"
+                  fullWidth
+                >
+                  {marcas.map((marca) => (
+                    <MenuItem key={marca} value={marca}>
+                      {marca}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  variant="outlined"
+                  required
+                  fullWidth
+                  className="default__textfield"
+                  id="peso"
+                  label="Peso (Kg)"
+                  value={currentProduct.peso}
+                  name="peso"
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  variant="outlined"
+                  required
+                  fullWidth
+                  className="default__textfield"
+                  id="precioCosto"
+                  label="Precio Costo"
+                  value={currentProduct.precioCosto}
+                  name="precioCosto"
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  variant="outlined"
+                  required
+                  fullWidth
+                  className="default__textfield"
+                  id="precio"
+                  label="Precio Venta Minorista"
+                  value={currentProduct.precio}
+                  name="precio"
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  variant="outlined"
+                  required
+                  fullWidth
+                  className="default__textfield"
+                  id="precioMayorista"
+                  label="Precio Venta Mayorista"
+                  value={currentProduct.precioMayorista}
+                  name="precioMayorista"
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  variant="outlined"
+                  required
+                  fullWidth
+                  className="default__textfield"
+                  id="stock"
+                  label="Stock"
+                  value={currentProduct.stock}
+                  name="stock"
+                  onChange={handleChange}
+                />
+              </Grid>
+            </Grid>
+            <Button
+              type="button"
+              fullWidth
+              variant="contained"
+              color="primary"
+              className="button__save"
+              onClick={updateProduct}
+            >
+              Aceptar
+            </Button>
           </div>
-        )}
-      </Container>
-    );
-  }
-}
+        </div>
+      )}
+    </Container>
+  );
+};
+
+export default EditProduct;

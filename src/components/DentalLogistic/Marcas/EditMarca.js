@@ -6,7 +6,8 @@ import {
   Typography,
   Grid,
   Container,
-} from "@material-ui/core";
+  InputAdornment,
+} from "@mui/material";
 import MarcaService from "../../../services/marcas.service";
 
 export default class EditMarca extends Component {
@@ -19,6 +20,7 @@ export default class EditMarca extends Component {
         id: 0,
         nombre: "",
         descripcion: "",
+        porcentaje: "",
       },
 
       submitted: false,
@@ -60,6 +62,7 @@ export default class EditMarca extends Component {
       id: this.state.currentClient.id,
       nombre: this.state.currentClient.nombre,
       descripcion: this.state.currentClient.descripcion,
+      porcentaje: this.state.currentClient.porcentaje,
     };
 
     MarcaService.update(this.state.currentClient.key, data)
@@ -134,6 +137,26 @@ export default class EditMarca extends Component {
                     value={this.state.currentClient.descripcion}
                     name="descripcion"
                     onChange={this.onChangeValues}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    type="number"
+                    required
+                    fullWidth
+                    id="porcentaje"
+                    label="Porcentaje ganancia"
+                    value={this.state.currentClient.porcentaje}
+                    name="porcentaje"
+                    onChange={this.onChangeValues}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          %
+                        </InputAdornment>
+                      ),
+                    }}
                   />
                 </Grid>
               </Grid>

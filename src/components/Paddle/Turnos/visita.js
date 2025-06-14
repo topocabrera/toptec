@@ -1,8 +1,8 @@
 import React, { Component } from "react";
 import { Toast, Modal } from "antd-mobile";
 import ClientsDataService from "../../../services/clients.service";
-import { MenuItem, Select, Button, FormControl } from "@material-ui/core";
-import SearchIcon from "@material-ui/icons/Search";
+import { MenuItem, Select, Button, FormControl } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import moment from "moment";
 import { dias } from "../../../utils/default";
 

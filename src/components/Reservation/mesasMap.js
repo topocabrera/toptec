@@ -1,9 +1,9 @@
 import React, { Component } from "react";
-import Datetime from "react-datetime";
+import { DatePicker as Datetime } from '@mui/x-date-pickers/DatePicker';
 import { Toast, Modal } from "antd-mobile";
-import { Breadcrumbs, Typography, Link, Container } from "@material-ui/core";
-import NavigateNextIcon from "@material-ui/icons/NavigateNext";
-import FiberManualRecordIcon from "@material-ui/icons/FiberManualRecord";
+import { Breadcrumbs, Typography, Link, Container } from "@mui/material";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import moment from "moment";
 import ReservationDataService from "../../services/reservation.service";
 import { mesasArray } from "../../utils/default";
@@ -17,7 +17,7 @@ export default class MesaMap extends Component {
     this.getMesas = this.getMesas.bind(this);
     this.changeMesa = this.changeMesa.bind(this);
     this.resetValues = this.resetValues.bind(this);
-    
+
     this.state = {
       currentReserva: {
         key: null,

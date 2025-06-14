@@ -1,8 +1,8 @@
 import React, { Component } from "react";
 import { Toast, Modal } from "antd-mobile";
 import ClientsDataService from "../../../services/clients.service";
-import { MenuItem, Select, Button, FormControl } from "@material-ui/core";
-import SearchIcon from "@material-ui/icons/Search";
+import { MenuItem, Select, Button, FormControl } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import moment from "moment";
 import { dias } from "../../../utils/default";
 
@@ -143,7 +143,7 @@ export default class Visita extends Component {
     this.timer = setTimeout(() => {
       this.state.clientesPorDia.forEach((client) => {
         ClientsDataService.update(client.key, data)
-          .then(() => {})
+          .then(() => { })
           .catch((e) => {
             Toast.fail("Ocurrió un error al resetear algun estado!", 2);
           });
@@ -218,7 +218,7 @@ export default class Visita extends Component {
                       <tr key={index}>
                         <td>{cliente.id}</td>
                         <td>
-                          <a href={`/pedido/${cliente.id}`}>
+                          <a href={`/logistic/pedido/${cliente.id}`}>
                             {cliente.razonSocial}
                           </a>
                         </td>

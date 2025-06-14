@@ -11,7 +11,7 @@ import {
   MenuItem,
   Select,
   InputAdornment,
-} from "@material-ui/core";
+} from "@mui/material";
 
 export default class EditProduct extends Component {
   constructor(props) {
@@ -20,7 +20,7 @@ export default class EditProduct extends Component {
     this.onChangeMarca = this.onChangeMarca.bind(this);
     this.onDataChange = this.onDataChange.bind(this);
     this.updateProduct = this.updateProduct.bind(this);
-    
+
     this.state = {
       products: [],
       submitted: false,

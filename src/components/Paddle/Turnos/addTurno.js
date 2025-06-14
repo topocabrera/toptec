@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import Datetime from "react-datetime";
+import { DatePicker as Datetime } from '@mui/x-date-pickers/DatePicker';
 import { Toast } from "antd-mobile";
 import {
   Button,
@@ -14,10 +14,10 @@ import {
   FormControlLabel,
   Tooltip,
   IconButton,
-} from "@material-ui/core";
+} from "@mui/material";
 import { DesktopDateTimePicker, MobileDateTimePicker } from '@mui/lab';
 
-import HelpOutlineIcon from "@material-ui/icons/HelpOutline";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import moment from "moment";
 import ReservationDataService from "../../../services/reservation.service";
 import { canchas } from "../../../utils/default";
@@ -185,7 +185,7 @@ export default class AddTurno extends Component {
       };
       restoMesas = restoMesas - limitePorMesa;
       // if (this.validationLugar(data.mesa)) {
-        promises.push(data);
+      promises.push(data);
       // } else {
       //   this.setState({ error: true });
       // }
@@ -270,11 +270,11 @@ export default class AddTurno extends Component {
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <InputLabel>Fecha</InputLabel>
-                  <DesktopDateTimePicker
+                  {/* <DesktopDateTimePicker
                     value={this.state.date}
                     onChange={this.onChangeDate}
                     renderInput={(params) => <TextField {...params} />}
-                  />
+                  /> */}
                   {/* <Datetime
                     className="post-input  post-input__event"
                     dateFormat="DD-MM-YYYY"

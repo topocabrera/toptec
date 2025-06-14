@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import Datetime from "react-datetime";
+import { DatePicker as Datetime } from '@mui/x-date-pickers/DatePicker';
 import { Toast } from "antd-mobile";
 import {
   Button,
@@ -14,8 +14,8 @@ import {
   FormControlLabel,
   Tooltip,
   IconButton,
-} from "@material-ui/core";
-import HelpOutlineIcon from "@material-ui/icons/HelpOutline";
+} from "@mui/material";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import moment from "moment";
 import ReservationDataService from "../../services/reservation.service";
 import { turnos } from "../../utils/default";

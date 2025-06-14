@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { Toast } from "antd-mobile";
 import ClientsDataService from "../../../services/clients.service";
 import { Modal } from "antd-mobile";
-import SearchIcon from "@material-ui/icons/Search";
+import SearchIcon from "@mui/icons-material/Search";
 
 const alert = Modal.alert;
 
@@ -119,7 +119,7 @@ export default class listClient extends Component {
       <div className="list row">
         <div className="col-md-6">
           <div className="new-reservation">
-            <a className="btn btn-primary" href="/client" role="button">
+            <a className="btn btn-primary" href="/logistic/client" role="button">
               Nuevo cliente
             </a>
           </div>
@@ -158,7 +158,7 @@ export default class listClient extends Component {
                       <tr key={index}>
                         <td>{cliente.id}</td>
                         <td>
-                          <a href={`/pedido/${cliente.id}`}>
+                          <a href={`/logistic/pedido/${cliente.id}`}>
                             {cliente.razonSocial}
                           </a>
                         </td>
@@ -168,7 +168,7 @@ export default class listClient extends Component {
                         <td className="column-actions">
                           <a
                             className="btn btn-light"
-                            href={`/client/${cliente.id}`}
+                            href={`/logistic/client/${cliente.id}`}
                             role="button"
                           >
                             Editar

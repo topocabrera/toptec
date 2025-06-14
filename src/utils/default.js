@@ -17,6 +17,14 @@ export default [
   "Cluselat",
 ];
 
+export const marcasLogistic = [
+  "Baldo",
+  "Rei Verde",
+  "Canarias",
+  "Pindaré",
+  "Candela"
+]
+
 export const tipoCliente = [
   "HOME",
   "CORPORATIVO"

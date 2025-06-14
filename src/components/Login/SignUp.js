@@ -10,8 +10,8 @@ import {
   Link,
   Grid,
   Container,
-} from "@material-ui/core";
-import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
+} from "@mui/material";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import LoginService from "../../services/users.service";
 import { passKey } from "../../utils/default";
 

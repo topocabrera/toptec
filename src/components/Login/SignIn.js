@@ -12,8 +12,8 @@ import {
   Container,
   Checkbox,
   FormControlLabel,
-} from "@material-ui/core";
-import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
+} from "@mui/material";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import LoginService from "../../services/users.service";
 import { passKey } from "../../utils/default";
 
@@ -38,7 +38,7 @@ export default class SignIn extends Component {
   onChangeValues(e) {
     const name = e.target.name;
     const value = e.target.value;
-    this.setState({ 
+    this.setState({
       [name]: value,
       error: false,
     });

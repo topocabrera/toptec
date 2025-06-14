@@ -21,12 +21,12 @@ export default class ChangePrice extends Component {
     this.onDataChange = this.onDataChange.bind(this);
     this.updateProduct = this.updateProduct.bind(this);
     this.onDataChangeMarca = this.onDataChangeMarca.bind(this);
-    
+
     this.state = {
       products: [],
       submitted: false,
       porcentaje: 0,
-      marca: '',
+      marca: 'Sin marca',
       marcas: [],
     };
   }
@@ -41,7 +41,7 @@ export default class ChangePrice extends Component {
   }
 
   onDataChangeMarca(items) {
-    this.setState({ marcas: items.val() });
+    this.setState({ marcas: Object.values(items.val()) });
   }
 
   onDataChange(items) {
@@ -91,7 +91,7 @@ export default class ChangePrice extends Component {
     })
     if (porcentaje > 0) {
       promises.forEach(promise => {
-        const data = { 
+        const data = {
           precio_costo: promise.precio_costo,
           precio_contado: promise.precio_contado,
         }
@@ -116,7 +116,7 @@ export default class ChangePrice extends Component {
             <h4>Precios editados correctamente!</h4>
           </div>
         ) : (
-          <div className="form-container">
+          <div className="form-container change-price">
             <div className="login-container">
               <Grid container spacing={2}>
                 <Grid item xs={12}>
@@ -148,7 +148,7 @@ export default class ChangePrice extends Component {
                     className="select__form"
                     fullWidth
                   >
-                    {this.state.marcas.map((marca) => (
+                    {this.state.marcas?.map((marca) => (
                       <MenuItem key={marca.id} value={marca.nombre}>
                         {marca.nombre}
                       </MenuItem>

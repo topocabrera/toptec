@@ -20,16 +20,17 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-} from "@material-ui/core";
-import Datetime from "react-datetime";
+} from "@mui/material";
+import MuiAlert from '@mui/material/Alert';
+import { DatePicker as Datetime } from '@mui/x-date-pickers/DatePicker';
 import ProductosDataService from "../../../services/productos.service";
 import PedidosDataService from "../../../services/pedidos.service";
 import ClientesDataService from "../../../services/clients.service";
-import SearchIcon from "@material-ui/icons/Search";
-import HighlightOffIcon from "@material-ui/icons/HighlightOff";
-import EditIcon from "@material-ui/icons/Edit";
-import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
+import SearchIcon from "@mui/icons-material/Search";
+import HighlightOffIcon from "@mui/icons-material/HighlightOff";
+import EditIcon from "@mui/icons-material/Edit";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
 const alert = Modal.alert;
 const Item = List.Item;
@@ -55,7 +56,7 @@ export default class Pedido extends Component {
     this.onChangeDate = this.onChangeDate.bind(this);
     this.setOpen = this.setOpen.bind(this);
     this.deleteProduct = this.deleteProduct.bind(this);
-    
+
     this.state = {
       products: [],
       currentProduct: null,
@@ -85,6 +86,7 @@ export default class Pedido extends Component {
       open: false,
       editProd: false,
       indexProdOpen: -1,
+      alertValidationFormulario: '',
     };
   }
 
@@ -115,12 +117,13 @@ export default class Pedido extends Component {
       let data = item.val();
       products.push({
         id: data.id,
-        codigo: data.codigo,
+        codigo: data.id,
         descripcion: data.descripcion,
         marca: data.marca,
         stock: data.stock,
-        precio: data.precio,
-        peso: data.peso,
+        precio: data.precio_costo,
+        precioDolar: data.precio_dolar,
+        precioContado: data.precio_contado,
       });
     });
     this.setState({ products });
@@ -191,7 +194,13 @@ export default class Pedido extends Component {
     this.setState({ indexActive: index, peso });
   }
 
-  onChangeCantidad(e) {
+  onChangeCantidad(e, stock) {
+    const value = e.target.value;
+    if (value > stock) {
+      this.setState({ alertValidationFormulario: 'La cantidad supera al stock' });
+    } else {
+      this.setState({ alertValidationFormulario: '' });
+    }
     this.setState({ cantidad: e.target.value });
   }
 
@@ -393,6 +402,7 @@ export default class Pedido extends Component {
               variant="body2"
               className="open-products"
               onClick={this.setOpen}
+              sx={{ textDecoration: 'none' }}
             >
               Mostrar productos del pedido
               {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
@@ -408,12 +418,10 @@ export default class Pedido extends Component {
                       <TableCell></TableCell>
                       <TableCell>Código</TableCell>
                       <TableCell>Precio</TableCell>
-                      <TableCell>Peso</TableCell>
                       <TableCell>Cant.</TableCell>
                       <TableCell>Descripción</TableCell>
                       <TableCell>Marca</TableCell>
                       <TableCell>Descuento</TableCell>
-                      <TableCell>IVA</TableCell>
                       <TableCell align="right">Subtotal</TableCell>
                     </TableRow>
                   </TableHead>
@@ -438,109 +446,15 @@ export default class Pedido extends Component {
                           >
                             <HighlightOffIcon />
                           </IconButton>
-                          {/* <IconButton
-                            className="action__link"
-                            size="small"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              this.handleOpenModal(index);
-                            }}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <Dialog
-                            open={editProd && indexProdOpen === index}
-                            aria-labelledby="form-dialog-title"
-                          >
-                            <DialogTitle
-                              id="form-dialog-title"
-                              onClose={this.handleClose}
-                            >
-                              Editar producto
-                            </DialogTitle>
-                            <DialogContent>
-                              <TextField
-                                className="prod-input"
-                                autoFocus
-                                fullWidth
-                                margin="dense"
-                                name="peso"
-                                label="Peso"
-                                value={producto.peso}
-                                onChange={this.onChangeValueProduct}
-                              />
-                              <TextField
-                                className="prod-input"
-                                fullWidth
-                                margin="dense"
-                                name="cantidad"
-                                label="Cant."
-                                value={producto.cantidad}
-                                onChange={this.onChangeValueProduct}
-                              />
-                              <TextField
-                                className="prod-input"
-                                // margin="dense"
-                                fullWidth
-                                name="descuento"
-                                label="Desc."
-                                value={producto.descuento}
-                                onChange={this.onChangeValueProduct}
-                              /> */}
-                              {/* <div>
-                                <FormControlLabel
-                                  control={
-                                    <Checkbox
-                                      color="default"
-                                      checked={iva}
-                                      onChange={this.onChangeIvaProd}
-                                      value="iva"
-                                    />
-                                  }
-                                  label="IVA"
-                                />
-                                <FormControlLabel
-                                  control={
-                                    <Checkbox
-                                      color="default"
-                                      checked={medioIva}
-                                      onChange={this.onChangeIvaProd}
-                                      value="medioIva"
-                                    />
-                                  }
-                                  label="1/2 IVA"
-                                />
-                              </div>
-                            </DialogContent>
-                            <DialogActions>
-                              <Button
-                                color="primary"
-                                onClick={this.handleClose}
-                              >
-                                Cancelar
-                              </Button>
-                              <Button
-                                color="primary"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  this.editProduct(row);
-                                }}
-                              >
-                                Aceptar
-                              </Button>
-                            </DialogActions>
-                          </Dialog> */}
                         </TableCell>
                         <TableCell component="th" scope="row">
                           {row.codigo}
                         </TableCell>
                         <TableCell>${row.precio}</TableCell>
-                        <TableCell>{row.peso}</TableCell>
                         <TableCell>{row.cantidad}</TableCell>
                         <TableCell>{row.descripcion}</TableCell>
                         <TableCell>{row.marca}</TableCell>
                         <TableCell>{row.descuento}</TableCell>
-                        <TableCell>{row.iva}</TableCell>
                         <TableCell align="right">
                           ${row.subtotal.toFixed(2)}
                         </TableCell>
@@ -556,11 +470,10 @@ export default class Pedido extends Component {
                 displayTable.map((producto, index) => {
                   const isActive = indexActive === index;
                   if (isActive) {
-                    const subtotal = producto.precio * peso * cantidad;
+                    const subtotal = parseFloat(producto.precio) * cantidad;
                     subtotalDto =
                       subtotal -
-                      (subtotal * descuento) / 100 +
-                      (iva || medioIva ? subtotal * valorIva : 0);
+                      (subtotal * descuento) / 100;
                   }
                   return (
                     <List className="my-list" key={index}>
@@ -579,18 +492,18 @@ export default class Pedido extends Component {
                             {producto.descripcion}{" "}
                           </span>
                           <Brief>{producto.marca}</Brief>
-                          <span className="prod__codigo-text">
+                          {/* <span className="prod__codigo-text">
                             #{producto.codigo}
-                          </span>
-                          <span className="am-list-extra precio">
-                            ${producto.precio}
+                          </span> */}
+                          <span className="prod__precio">
+                          ${new Intl.NumberFormat("es-AR").format(producto.precio)}
                           </span>
                           <span className="prod__stock-text">
-                            S: {producto.stock}
+                            Stock: {producto.stock}
                           </span>
                           {isActive && (
                             <div>
-                              <FormControlLabel
+                              {/* <FormControlLabel
                                 control={
                                   <Checkbox
                                     color="default"
@@ -611,12 +524,14 @@ export default class Pedido extends Component {
                                   />
                                 }
                                 label="1/2 IVA"
-                              />
+                              /> */}
                               <TextField
                                 id="standard-read-only-input"
                                 className="prod__subtotal"
                                 label="Subtotal"
+                                variant="standard"
                                 value={subtotalDto.toFixed(2)}
+                                sx={{ marginTop: '15px' }}
                                 InputProps={{
                                   readOnly: true,
                                   startAdornment: (
@@ -632,25 +547,18 @@ export default class Pedido extends Component {
                         {isActive && (
                           <div className="prod__codigo-container">
                             <TextField
-                              id="standard-start-adornment"
-                              type="number"
-                              onChange={this.onChangePeso}
-                              value={isActive ? peso : ""}
-                              InputProps={{
-                                endAdornment: (
-                                  <InputAdornment position="end">
-                                    Kg
-                                  </InputAdornment>
-                                ),
-                              }}
-                            />
-                            <TextField
                               id="standard-basic"
                               label="Cantidad"
                               type="number"
                               value={isActive ? cantidad : ""}
-                              onChange={this.onChangeCantidad}
+                              onChange={(e) => this.onChangeCantidad(e, producto.stock)}
+                              sx={{width: '62%'}}
                             />
+                            {this.state.alertValidationFormulario !== '' &&
+                              <MuiAlert severity="error" sx={{width: '75%'}}>
+                                {this.state.alertValidationFormulario}
+                              </MuiAlert>
+                            }
                             <TextField
                               id="standard-basic"
                               label="Dto"

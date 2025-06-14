@@ -8,7 +8,8 @@ import {
   InputLabel,
   MenuItem,
   Select,
-} from "@material-ui/core";
+  InputAdornment,
+} from "@mui/material";
 import ProductosDataService from "../../../services/productos.service";
 import MarcasDataService from "../../../services/marcas.service";
 // import marcas from "../../../utils/default";
@@ -30,6 +31,7 @@ export default class AddProduct extends Component {
       precioCosto: 0,
       precioContado: 0,
       precio_credito_1_cuota: 0,
+      porcentaje: 0,
       stock: 0,
       lastId: 0,
       marcas: [],
@@ -43,7 +45,7 @@ export default class AddProduct extends Component {
       .orderByChild("id")
       .limitToLast(1)
       .once("child_added", this.onDataChange);
-      MarcasDataService.getAll()
+    MarcasDataService.getAll()
       .orderByChild("id")
       .on("value", this.onDataChangeMarca);
   }
@@ -73,11 +75,12 @@ export default class AddProduct extends Component {
       id: this.state.lastId + 1,
       descripcion: this.state.descripcion,
       stock: parseInt(this.state.stock, 10),
+      porcentaje: this.state.porcentaje,
       marca: this.state.marca,
-      precio_dolar: parseInt(this.state.precioDolar, 10),
-      precio_costo: parseInt(this.state.precioCosto, 10),
-      precio_contado: parseInt(this.state.precioContado, 10),
-      precio_credito_1_cuota: parseInt(this.state.precio_credito_1_cuota, 10),
+      precio_dolar: this.state.precioDolar,
+      precio_costo: this.state.precioCosto,
+      precio_contado: this.state.precioContado,
+      precio_credito_1_cuota: this.state.precio_credito_1_cuota,
     };
 
     ProductosDataService.create(data)
@@ -102,6 +105,7 @@ export default class AddProduct extends Component {
       precioContado: 0,
       precio_credito_1_cuota: 0,
       stock: 0,
+      porcentaje: 0,
       lastId: this.state.lastId,
 
       submitted: false,
@@ -193,6 +197,40 @@ export default class AddProduct extends Component {
                     required
                     fullWidth
                     className="default__textfield"
+                    id="stock"
+                    label="Stock"
+                    value={this.state.stock}
+                    name="stock"
+                    onChange={this.onChangeValues}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    className="default__textfield"
+                    id="porcentaje"
+                    label="% ganancia"
+                    value={this.state.porcentaje}
+                    name="porcentaje"
+                    onChange={this.onChangeValues}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          %
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                {/*
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    className="default__textfield"
                     id="precioContado"
                     label="Precio Contado"
                     value={this.state.precioContado}
@@ -211,20 +249,7 @@ export default class AddProduct extends Component {
                     name="precio_credito_1_cuota"
                     onChange={this.onChangeValues}
                   />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    variant="outlined"
-                    required
-                    fullWidth
-                    className="default__textfield"
-                    id="stock"
-                    label="Stock"
-                    value={this.state.stock}
-                    name="stock"
-                    onChange={this.onChangeValues}
-                  />
-                </Grid>
+                </Grid> */}
               </Grid>
               <Button
                 type="button"

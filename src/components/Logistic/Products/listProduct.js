@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import ProductosDataService from "../../../services/productos.service";
 import { Toast, Modal } from "antd-mobile";
-import SearchIcon from "@material-ui/icons/Search";
+import SearchIcon from "@mui/icons-material/Search";
 
 const alert = Modal.alert;
 
@@ -50,6 +50,8 @@ export default class listProduct extends Component {
         marca: data.marca,
         stock: data.stock,
         precio: data.precio,
+        precioCosto: data.precioCosto,
+        precioMayorista: data.precioMayorista,
       });
     });
 
@@ -126,10 +128,10 @@ export default class listProduct extends Component {
       <div className="list row">
         <div className="col-md-6">
           <div className="new-reservation">
-            <a className="btn btn-primary" href="/products" role="button">
+            <a className="btn btn-primary" href="/logistic/products" role="button">
               Nuevo producto
             </a>
-            <a className="btn btn-primary change-price-button" href="/change-price" role="button">
+            <a className="btn btn-primary change-price-button" href="/logistic/change-price" role="button">
               Cambiar precios masivamente
             </a>
           </div>
@@ -161,13 +163,20 @@ export default class listProduct extends Component {
                   <th scope="col">Peso</th>
                   <th scope="col">Marca</th>
                   <th scope="col">Stock</th>
-                  <th scope="col">Precio</th>
+                  <th scope="col">Precio Costo</th>
+                  <th scope="col">Precio Venta Minorista</th>
+                  <th scope="col">Precio Venta Mayorista</th>
+                  <th scope="col">Dif. con P. Costo</th>
                   <th scope="col">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {products &&
                   displayTable.map((producto, index) => {
+                    const difPMayorista = producto.precioMayorista
+                      ? parseFloat((producto.precioMayorista - producto.precioCosto).toFixed(2))
+                      : 0;
+                    const difCosto = parseFloat((producto.precio - producto.precioCosto).toFixed(2));
                     return (
                       <tr key={index}>
                         <td>{producto.codigo}</td>
@@ -175,11 +184,23 @@ export default class listProduct extends Component {
                         <td>{producto.peso}</td>
                         <td>{producto.marca}</td>
                         <td>{producto.stock}</td>
+                        <td>${producto.precioCosto}</td>
                         <td>${producto.precio}</td>
+                        <td>${producto.precioMayorista || '-'}</td>
+                        <td>
+                          <div>
+                            <div>
+                              <strong>P. Minorista:</strong> ${difCosto}
+                            </div>
+                            <div>
+                              <strong>P. Mayorista:</strong> ${difPMayorista}
+                            </div>
+                          </div>
+                        </td>
                         <td className="column-actions">
                           <a
                             className="btn btn-light"
-                            href={`/product/${producto.id}`}
+                            href={`/logistic/product/${producto.id}`}
                             role="button"
                           >
                             Editar

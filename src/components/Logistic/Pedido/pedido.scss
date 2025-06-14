@@ -1,4 +1,4 @@
-@import './factura.scss';
+@import "./factura.scss";
 
 .prod__codigo-container {
   display: inline-block;
@@ -14,10 +14,13 @@
 .prod__description {
   font-size: 17px;
   font-weight: 600;
+  display: inline-block;
 }
 
 .prod__codigo-text {
   font-size: 14px;
+  display: inline-block;
+  margin-right: 10px;
 }
 
 .prod__stock-text {
@@ -25,8 +28,8 @@
   font-size: 15px;
 }
 
-.am-list-extra.precio {
-  margin-left: 10px;
+.MuiFormControl-root.MuiTextField-root.prod__precio {
+  width: 50%;
 }
 
 .MuiFormControl-root.MuiTextField-root.prod__subtotal {
@@ -64,8 +67,8 @@ label.MuiFormControlLabel-root {
 
 .total-banner {
   background: #333;
-  border-radius: .375em .375em 0 0;
-  box-shadow: 0 1px 2px 0 rgba(0,0,0,.12);
+  border-radius: 0.375em 0.375em 0 0;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.12);
   padding: 17px;
   position: fixed;
   bottom: 0;
@@ -190,4 +193,5 @@ a.am-modal-button:last-child {
   display: block;
 }
 
-@media (min-width: 700px) {}
+@media (min-width: 700px) {
+}

@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import Datetime from "react-datetime";
+import { DatePicker as Datetime } from '@mui/x-date-pickers/DatePicker';
 import { Toast, Modal } from "antd-mobile";
 import {
   Breadcrumbs,
@@ -11,9 +11,9 @@ import {
   FormControlLabel,
   Tooltip,
   IconButton,
-} from "@material-ui/core";
-import NavigateNextIcon from "@material-ui/icons/NavigateNext";
-import FiberManualRecordIcon from "@material-ui/icons/FiberManualRecord";
+} from "@mui/material";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import moment from "moment";
 import { mesasArray } from "../../utils/default";
 import ReservationDataService from "../../services/reservation.service";

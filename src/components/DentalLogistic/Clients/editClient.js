@@ -9,7 +9,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
-} from "@material-ui/core";
+} from "@mui/material";
 import ClientService from "../../../services/clients.service";
 import { dias } from "../../../utils/default";
 

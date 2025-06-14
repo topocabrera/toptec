@@ -9,7 +9,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
-} from "@material-ui/core";
+} from "@mui/material";
 import { dias } from "../../../utils/default";
 
 export default class AddClient extends Component {
@@ -20,7 +20,7 @@ export default class AddClient extends Component {
     this.saveClient = this.saveClient.bind(this);
     this.newClient = this.newClient.bind(this);
     this.onChangeDay = this.onChangeDay.bind(this);
-    
+
     this.state = {
       barrio: "",
       domicilio: "",

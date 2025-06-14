@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import axios from 'axios';
 import ProductosDataService from "../../../services/productos.service";
+import MarcasDataService from "../../../services/marcas.service";
 import { Toast, Modal } from "antd-mobile";
-import SearchIcon from "@material-ui/icons/Search";
+import SearchIcon from "@mui/icons-material/Search";
 import Container from '@mui/material/Container';
 import Snackbar from '@mui/material/Snackbar';
 import Table from '@mui/material/Table';
@@ -29,13 +31,19 @@ function ListProduct() {
     productoFilter: [],
     searchTitle: "",
   });
+  const [marcas, setMarcas] = useState([]);
+  const [dolarCotization, setDolarCotization] = useState(0.0);
+  const [dolarCotization21, setDolarCotization21] = useState(0.0);
   const [openChangePriceModal, setOpenChangePriceModal] = useState(false);
 
 
   useEffect(() => {
     ProductosDataService.getAll()
-      .orderByChild("id")
+      .orderByChild("marca")
       .on("value", onDataChange);
+    MarcasDataService.getAll()
+      .orderByChild("id")
+      .on("value", onDataChangeMarca)
   }, []);
 
   const onDataChange = (items) => {
@@ -53,10 +61,24 @@ function ListProduct() {
         stock: data.stock,
         precio_costo: data.precio_costo,
         precio_contado: data.precio_contado,
+        porcentaje: data.porcentaje,
       });
     });
 
+    const getData = async () => {
+      const response = await axios.get('https://api.bluelytics.com.ar/v2/latest');
+      const dolarOficial = response?.data?.oficial?.value_sell || 0;
+      setDolarCotization(dolarOficial);
+      setDolarCotization21(dolarOficial + dolarOficial * 0.21);
+    };
+
+    getData();
+
     setState(prevState => ({ ...prevState, products }));
+  }
+
+  const onDataChangeMarca = (items) => {
+    setMarcas(Object.values(items.val()));
   }
 
   const updatePrices = (e) => {
@@ -109,6 +131,8 @@ function ListProduct() {
           >
             Cambiar precios masivamente
           </Button>
+          <Typography variant="h6" sx={{ marginLeft: '50px', display: 'inline' }}>Cotización dolar: ${dolarCotization} </Typography>
+          <Typography variant="h6" sx={{ marginLeft: '50px', display: 'inline' }}>Cotización dolar + 21%: ${dolarCotization21} </Typography>
         </div>
         <div className="col-md-8 search-container">
           <div className="input-group mb-3">
@@ -146,16 +170,21 @@ function ListProduct() {
             <TableBody>
               {products &&
                 displayTable.map((producto, index) => {
-                  const precioTarjeta = parseInt(producto.precio_contado, 10) + parseInt(producto.precio_contado, 10) * 0.2;
+                  const porcentajeVal = producto?.porcentaje || marcas.filter(marca => marca.nombre === producto.marca)[0]?.porcentaje || 20;
+                  const porcentajeGanancia = porcentajeVal / 100
+                  const gananciaTarjeta = 0.45
+                  const precioCosto = producto.precio_costo > 0 ? producto.precio_costo : producto.precio_dolar * dolarCotization21;
+                  const precioContado = (parseFloat(precioCosto) + parseFloat(precioCosto) * porcentajeGanancia)?.toFixed(2);
+                  const precioTarjeta = (parseFloat(precioCosto) + parseFloat(precioCosto) * gananciaTarjeta)?.toFixed(2);
                   return (
                     <StyledTableRow key={index}>
                       <StyledTableCell>{producto.id}</StyledTableCell>
                       <StyledTableCell>{producto.marca}</StyledTableCell>
                       <StyledTableCell>{producto.descripcion}</StyledTableCell>
-                      <StyledTableCell>${producto.precio_dolar}</StyledTableCell>
-                      <StyledTableCell>${producto.precio_costo}</StyledTableCell>
-                      <StyledTableCell>${producto.precio_contado}</StyledTableCell>
-                      <StyledTableCell>${precioTarjeta}</StyledTableCell>
+                      <StyledTableCell>${new Intl.NumberFormat("es-AR").format(producto.precio_dolar)}</StyledTableCell>
+                      <StyledTableCell>${new Intl.NumberFormat("es-AR").format(precioCosto)}</StyledTableCell>
+                      <StyledTableCell>${new Intl.NumberFormat("es-AR").format(precioContado)}</StyledTableCell>
+                      <StyledTableCell>${new Intl.NumberFormat("es-AR").format(precioTarjeta)}</StyledTableCell>
                       <StyledTableCell>{producto.stock}</StyledTableCell>
                       <StyledTableCell className="column-actions" sx={{ display: 'inline-flex', border: 'none' }}>
                         <IconButton
@@ -204,7 +233,7 @@ function ListProduct() {
               position: 'absolute',
               right: 8,
               top: 8,
-              color: (theme) => theme.palette.grey[500],
+              color: (theme) => theme?.palette.grey[500],
             }}
           >
             <CloseIcon />

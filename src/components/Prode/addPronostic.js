@@ -8,7 +8,7 @@ import {
   Paper,
   Radio,
   Select,
-} from "@material-ui/core";
+} from "@mui/material";
 import PronosticDataService from "../../services/pronostic.service";
 // import marcas from "../../../utils/default";
 

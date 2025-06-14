@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import ProductosDataService from "../../../services/productos.service";
-import marcas from "../../../utils/default";
+import { marcasLogistic } from "../../../utils/default";
 import {
   Button,
   TextField,
@@ -11,7 +11,10 @@ import {
   MenuItem,
   Select,
   InputAdornment,
-} from "@material-ui/core";
+  Checkbox,
+  FormGroup,
+  FormControlLabel,
+} from "@mui/material";
 
 export default class EditProduct extends Component {
   constructor(props) {
@@ -20,11 +23,15 @@ export default class EditProduct extends Component {
     this.onChangeMarca = this.onChangeMarca.bind(this);
     this.onDataChange = this.onDataChange.bind(this);
     this.updateProduct = this.updateProduct.bind(this);
-    
+    this.onCheckPrice = this.onCheckPrice.bind(this);
+
     this.state = {
       products: [],
       submitted: false,
       porcentaje: 0,
+      precio: true,
+      precioMayorista: true,
+      precioCosto: true,
       marca: '',
     };
   }
@@ -48,6 +55,8 @@ export default class EditProduct extends Component {
         marca: data.marca,
         stock: data.stock,
         precio: data.precio,
+        precioMayorista: data.precioMayorista,
+        precioCosto: data.precioCosto,
       });
     });
 
@@ -62,7 +71,7 @@ export default class EditProduct extends Component {
 
   onChangeMarca(e) {
     this.setState({
-        marca: e.target.value,
+      marca: e.target.value,
     });
   }
 
@@ -74,7 +83,9 @@ export default class EditProduct extends Component {
     prodFilter.forEach(product => {
       let data = {
         key: product.key,
-        precio:  parseInt(product.precio, 10) + (porcentaje * parseInt(product.precio, 10)) / 100
+        precio: this.state.precio ? parseInt(product.precio, 10) + (porcentaje * parseInt(product.precio, 10)) / 100 : product.precio,
+        precioMayorista: this.state.precioMayorista ? parseInt(product.precio, 10) + (porcentaje * parseInt(product.precio, 10)) / 100 : product.precioMayorista,
+        precioCosto: this.state.precioCosto ? parseInt(product.precio, 10) + (porcentaje * parseInt(product.precio, 10)) / 100 : product.precioCosto
       }
       promises.push(data)
     })
@@ -82,16 +93,23 @@ export default class EditProduct extends Component {
       promises.forEach(promise => {
         const data = { precio: promise.precio }
         ProductosDataService.update(promise.key, data)
-        .then(() => {
-          this.setState({
-            submitted: true,
+          .then(() => {
+            this.setState({
+              submitted: true,
+            });
+          })
+          .catch((e) => {
+            console.log(e);
           });
-        })
-        .catch((e) => {
-          console.log(e);
-        });
       })
     }
+  }
+
+  onCheckPrice(e, type) {
+    const check = e.target.checked;
+    this.setState({
+      [type]: check,
+    });
   }
 
   render() {
@@ -102,14 +120,14 @@ export default class EditProduct extends Component {
             <h4>Precios editados correctamente!</h4>
             <a
               className="btn btn-primary go-listado"
-              href="/list-products"
+              href="/logistic/list-products"
               role="button"
             >
               Listado
             </a>
             <a
               className="btn btn-primary go-listado"
-              href="/change-price"
+              href="/logistic/change-price"
               role="button"
             >
               Editar nuevamente
@@ -150,12 +168,31 @@ export default class EditProduct extends Component {
                     className="select__form"
                     fullWidth
                   >
-                    {marcas.map((marca) => (
+                    {marcasLogistic.map((marca) => (
                       <MenuItem key={marca} value={marca}>
                         {marca}
                       </MenuItem>
                     ))}
                   </Select>
+                </Grid>
+                <Grid item xs={12}>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Checkbox defaultChecked value={this.state.precioCosto} onChange={(e) => this.onCheckPrice(e, 'precioCosto')} />
+                      }
+                      label="Precio Costo" />
+                    <FormControlLabel
+                      control={
+                        <Checkbox defaultChecked value={this.state.precio} onChange={(e) => this.onCheckPrice(e, 'precio')} />
+                      }
+                      label="Precio minorista" />
+                    <FormControlLabel
+                      control={
+                        <Checkbox defaultChecked value={this.state.precioMayorista} onChange={(e) => this.onCheckPrice(e, 'precioMayorista')} />
+                      }
+                      label="Precio mayorista" />
+                  </FormGroup>
                 </Grid>
               </Grid>
               <Button

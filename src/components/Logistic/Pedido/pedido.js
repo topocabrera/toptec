@@ -20,16 +20,23 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-} from "@material-ui/core";
-import Datetime from "react-datetime";
+  Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from "@mui/material";
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import ProductosDataService from "../../../services/productos.service";
 import PedidosDataService from "../../../services/pedidos.service";
 import ClientesDataService from "../../../services/clients.service";
-import SearchIcon from "@material-ui/icons/Search";
-import HighlightOffIcon from "@material-ui/icons/HighlightOff";
-import EditIcon from "@material-ui/icons/Edit";
-import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
+import SearchIcon from "@mui/icons-material/Search";
+import HighlightOffIcon from "@mui/icons-material/HighlightOff";
+import EditIcon from "@mui/icons-material/Edit";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
 const alert = Modal.alert;
 const Item = List.Item;
@@ -55,7 +62,9 @@ export default class Pedido extends Component {
     this.onChangeDate = this.onChangeDate.bind(this);
     this.setOpen = this.setOpen.bind(this);
     this.deleteProduct = this.deleteProduct.bind(this);
-    
+    this.onChangePrecio = this.onChangePrecio.bind(this);
+    this.onChangeTipo = this.onChangeTipo.bind(this);
+
     this.state = {
       products: [],
       currentProduct: null,
@@ -64,6 +73,7 @@ export default class Pedido extends Component {
       cantidad: "",
       descuento: "",
       indexActive: -1,
+      precio: 0,
       pedido: {
         id: 0,
         idCliente: 0,
@@ -72,6 +82,7 @@ export default class Pedido extends Component {
         productos: [],
         fecha: moment(new Date().getTime()).format("DD-MM-YYYY hh:mm"),
         total: 0,
+        totalCosto: 0,
         status: "Creado",
         fechaEntrega: moment(new Date().getTime()).add(1, 'days').format("DD-MM-YYYY"),
         user: currentUser.userName
@@ -85,6 +96,9 @@ export default class Pedido extends Component {
       open: false,
       editProd: false,
       indexProdOpen: -1,
+      tipoPrecio: "precio",
+      precioMayorista: 0,
+      precioMinorista: 0
     };
   }
 
@@ -120,6 +134,8 @@ export default class Pedido extends Component {
         marca: data.marca,
         stock: data.stock,
         precio: data.precio,
+        precioMayorista: data.precioMayorista,
+        precioCosto: data.precioCosto,
         peso: data.peso,
       });
     });
@@ -144,6 +160,7 @@ export default class Pedido extends Component {
         productos: [],
         fecha: moment(new Date().getTime()).format("DD-MM-YYYY hh:mm"),
         total: 0,
+        totalCosto: 0,
         fechaEntrega: moment(new Date().getTime()).add(1, 'days').format("DD-MM-YYYY"),
         user: currentUser.userName,
       },
@@ -178,7 +195,7 @@ export default class Pedido extends Component {
         const filter = products.filter(
           (prod) =>
             prod.descripcion.toLowerCase().match(value.toLowerCase()) ||
-            prod.codigo.toLowerCase().match(value.toLowerCase())
+            prod.codigo?.toString()?.toLowerCase().match(value.toLowerCase())
         );
         this.setState({ productoFilter: filter, searchTitle: value });
       } else {
@@ -187,8 +204,8 @@ export default class Pedido extends Component {
     }, 500);
   }
 
-  setActive(peso, index) {
-    this.setState({ indexActive: index, peso });
+  setActive(peso, index, precio, precioMayorista) {
+    this.setState({ indexActive: index, peso, precio, precioMayorista, precioMinorista: precio });
   }
 
   onChangeCantidad(e) {
@@ -201,6 +218,10 @@ export default class Pedido extends Component {
 
   onChangePeso(e) {
     this.setState({ peso: e.target.value });
+  }
+
+  onChangePrecio(e) {
+    this.setState({ precio: e.target.value });
   }
 
   onChangeIva(e) {
@@ -218,8 +239,26 @@ export default class Pedido extends Component {
     });
   }
 
-  addPedido(subtotal, idProducto) {
-    const { products, cantidad, peso, descuento, iva, medioIva } = this.state;
+  onChangeTipo(e) {
+    const tipoPrecio = e.target.value;
+    let nuevoPrecio = "";
+
+    if (tipoPrecio === "precio") {
+      nuevoPrecio = this.state.precioMinorista || "";
+    } else if (tipoPrecio === "precioMayorista") {
+      nuevoPrecio = this.state.precioMayorista || "";
+    }
+
+    this.setState({
+      tipoPrecio,
+      precio: tipoPrecio === "otro" ? "" : nuevoPrecio,
+    });
+  }
+
+  addPedido(subtotal, idProducto, subtotalCosto) {
+    const { products, cantidad, peso, descuento, iva, medioIva, precio } = this.state;
+    console.log('subtotalCosto', subtotalCosto);
+
     const produc = products.filter((prod) => prod.id === idProducto);
     let isIva = "No";
     if (iva) {
@@ -229,23 +268,30 @@ export default class Pedido extends Component {
       isIva = "medioIva";
     }
     const prodPedido = {
+      id: produc[0].id,
       codigo: produc[0].codigo,
       descripcion: produc[0].descripcion,
       marca: produc[0].marca,
-      precio: produc[0].precio,
+      precioCosto: produc[0].precioCosto,
+      precio,
       peso,
       cantidad,
       descuento,
       iva: isIva,
       subtotal,
+      subtotalCosto
     };
     this.state.pedido.productos.push(prodPedido);
     const total = this.state.pedido.total + subtotal;
+    console.log('this.state.pedido.totalCosto', this.state.pedido.totalCosto, subtotalCosto);
+
+    const totalCosto = this.state.pedido.totalCosto + subtotalCosto;
 
     this.setState({
       pedido: {
         ...this.state.pedido,
         total,
+        totalCosto
       },
       cantidad: "",
       descuento: "",
@@ -270,13 +316,14 @@ export default class Pedido extends Component {
       user: currentUser.userName,
       condPago,
       total: this.state.pedido.total,
+      totalCosto: this.state.pedido.totalCosto,
     };
     const estado = { estado: "visitado" }
     ClientesDataService.update(this.state.keyClient, estado)
-    .then(() => {})
-    .catch((e) => {
-      Toast.fail("Ocurrió un error !!!", 2);
-    });
+      .then(() => { })
+      .catch((e) => {
+        Toast.fail("Ocurrió un error !!!", 2);
+      });
     PedidosDataService.create(data)
       .then(() => {
         Toast.loading("Loading...", 1, () => {
@@ -300,13 +347,16 @@ export default class Pedido extends Component {
     var index = pedido.productos.findIndex((prd) => prd.codigo === codigo);
     pedido.productos.splice(index, 1);
     let newTotal = 0;
+    let newTotalCosto = 0;
     pedido.productos.forEach((prd) => {
       newTotal += prd.subtotal;
+      newTotalCosto += prd.subtotalCosto;
     });
     this.setState({
       pedido: {
         ...this.state.pedido,
         total: newTotal,
+        totalCosto: newTotalCosto,
       },
     });
   }
@@ -325,11 +375,14 @@ export default class Pedido extends Component {
       peso,
       pedido,
       open,
+      precio,
+      tipoPrecio,
       editProd,
       indexProdOpen,
     } = this.state;
     const displayTable = searchTitle !== "" ? productoFilter : products;
     let subtotalDto = 0.0;
+    let subtotalCosto = 0.0;
     const valorIva = iva ? 0.21 : 0.105;
     return (
       <div className="list row">
@@ -338,14 +391,14 @@ export default class Pedido extends Component {
             <h4>Pedido creado correctamente!</h4>
             <a
               className="btn btn-primary go-listado"
-              href="/new-visit"
+              href="/logistic/new-visit"
               role="button"
             >
               Nuevo Pedido
             </a>
             <a
               className="btn btn-primary go-listado"
-              href="/list-pedidos"
+              href="/logistic/list-pedidos"
               role="button"
             >
               Listado
@@ -375,8 +428,7 @@ export default class Pedido extends Component {
             <h4>Pedido - {pedido.clienteName}</h4>
 
             <div className="form-group">
-              <label htmlFor="fecha">Fecha de entrega de pedido</label>
-              <Datetime
+              {/* <Datetime
                 className="post-input  post-input__event"
                 dateFormat="DD-MM-YYYY"
                 timeFormat={false}
@@ -385,7 +437,22 @@ export default class Pedido extends Component {
                 closeOnSelect
                 value={pedido.fechaEntrega}
                 onChange={this.onChangeDate}
-              />
+              /> */}
+              <LocalizationProvider dateAdapter={AdapterMoment}>
+                <DatePicker
+                  label="Fecha entrega pedido"
+                  value={pedido.fechaEntrega}
+                  onChange={this.onChangeDate}
+                  inputFormat="DD-MM-YYYY" // en v5 es "inputFormat", no "format"
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      className="post-input post-input__event"
+                      name="eventDate"
+                    />
+                  )}
+                />
+              </LocalizationProvider>
             </div>
 
             <Link
@@ -487,7 +554,7 @@ export default class Pedido extends Component {
                                 value={producto.descuento}
                                 onChange={this.onChangeValueProduct}
                               /> */}
-                              {/* <div>
+                          {/* <div>
                                 <FormControlLabel
                                   control={
                                     <Checkbox
@@ -556,7 +623,8 @@ export default class Pedido extends Component {
                 displayTable.map((producto, index) => {
                   const isActive = indexActive === index;
                   if (isActive) {
-                    const subtotal = producto.precio * peso * cantidad;
+                    subtotalCosto = producto?.precioCosto * peso * cantidad;
+                    const subtotal = precio * peso * cantidad;
                     subtotalDto =
                       subtotal -
                       (subtotal * descuento) / 100 +
@@ -569,22 +637,53 @@ export default class Pedido extends Component {
                         onClick={(e) => {
                           e.preventDefault();
                           if (!isActive) {
-                            this.setActive(producto.peso, index);
+                            this.setActive(producto.peso, index, producto.precio, producto.precioMayorista);
                           }
                         }}
                         wrap
                       >
                         <div className="prod__description-container">
+                          <span className="prod__codigo-text">
+                            #{producto.codigo}
+                          </span>
                           <span className="prod__description">
                             {producto.descripcion}{" "}
                           </span>
                           <Brief>{producto.marca}</Brief>
-                          <span className="prod__codigo-text">
-                            #{producto.codigo}
-                          </span>
-                          <span className="am-list-extra precio">
-                            ${producto.precio}
-                          </span>
+                          {isActive ? (
+                            <Box display="flex" gap={2} alignItems="center">
+                              <FormControl variant="standard">
+                                <Select
+                                  labelId="tipo-precio-label"
+                                  value={tipoPrecio}
+                                  onChange={this.onChangeTipo}
+                                  sx={{ minWidth: 110 }}
+                                >
+                                  <MenuItem value="precio">P. Minorista</MenuItem>
+                                  <MenuItem value="precioMayorista">P. Mayorista</MenuItem>
+                                  <MenuItem value="otro">Otro</MenuItem>
+                                </Select>
+                              </FormControl>
+
+                              <TextField
+                                id="standard-start-adornment"
+                                className="prod__precio"
+                                type="number"
+                                disabled={tipoPrecio !== "otro"}
+                                onChange={this.onChangePrecio}
+                                value={precio}
+                                sx={{ maxWidth: 150, marginBottom: '4px' }}
+                                InputProps={{
+                                  startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                                }}
+                                variant="standard"
+                              />
+                            </Box>
+                          ) : (
+                            <span className="am-list-extra precio">
+                              ${producto.precio}
+                            </span>
+                          )}
                           <span className="prod__stock-text">
                             S: {producto.stock}
                           </span>
@@ -674,7 +773,7 @@ export default class Pedido extends Component {
                             variant="contained"
                             onClick={(e) => {
                               e.preventDefault();
-                              this.addPedido(subtotalDto, producto.id);
+                              this.addPedido(subtotalDto, producto.id, subtotalCosto);
                             }}
                             disabled={
                               !isActive || cantidad === "" || peso === ""

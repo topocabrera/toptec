@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Toast } from "antd-mobile";
 import ClientsDataService from "../../../services/clients.service";
 import { Modal } from "antd-mobile";
-import SearchIcon from "@material-ui/icons/Search";
+import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Button, Typography, Container, TableBody, TableContainer, Table, TableHead, TableRow, IconButton } from "@mui/material";
@@ -120,9 +120,9 @@ function ListClient() {
                     <StyledTableRow key={index}>
                       <StyledTableCell>{cliente.id}</StyledTableCell>
                       <StyledTableCell>
-                        {/* <a href={`/dental/pedido/${cliente.id}`}> */}
+                        <a href={`/dental/pedido/${cliente.id}`}>
                           {cliente.razonSocial}
-                        {/* </a> */}
+                        </a>
                       </StyledTableCell>
                       <StyledTableCell>{cliente.domicilio}</StyledTableCell>
                       <StyledTableCell>{cliente.dni}</StyledTableCell>

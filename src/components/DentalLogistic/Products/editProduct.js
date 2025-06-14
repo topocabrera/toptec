@@ -10,7 +10,8 @@ import {
   InputLabel,
   MenuItem,
   Select,
-} from "@material-ui/core";
+  InputAdornment,
+} from "@mui/material";
 
 export default class EditProduct extends Component {
   constructor(props) {
@@ -18,13 +19,11 @@ export default class EditProduct extends Component {
     this.onChangeCodigo = this.onChangeCodigo.bind(this);
     this.onChangeDescripcion = this.onChangeDescripcion.bind(this);
     this.onChangeMarca = this.onChangeMarca.bind(this);
-    this.onChangeStock = this.onChangeStock.bind(this);
-    this.onChangePrecio = this.onChangePrecio.bind(this);
     this.onDataChange = this.onDataChange.bind(this);
     this.updateProduct = this.updateProduct.bind(this);
     this.onChangeValues = this.onChangeValues.bind(this);
     this.onDataChangeMarca = this.onDataChangeMarca.bind(this);
-    
+
     this.state = {
       currentProduct: {
         key: null,
@@ -44,13 +43,13 @@ export default class EditProduct extends Component {
 
   componentDidMount() {
     const id = parseInt(this.props.match.params.id, 10);
+    MarcasDataService.getAll()
+      .orderByChild("id")
+      .on("value", this.onDataChangeMarca);
     ProductosDataService.getAll()
       .orderByChild("id")
       .equalTo(id)
       .once("value", this.onDataChange);
-    MarcasDataService.getAll()
-      .orderByChild("id")
-      .on("value", this.onDataChangeMarca);
   }
 
   onDataChange(items) {
@@ -58,6 +57,8 @@ export default class EditProduct extends Component {
     let data = items.val();
     const currentProduct = data[key];
     currentProduct.key = key[0];
+    const porcentajeMarca = this.state.marcas.filter(marca => marca.nombre === currentProduct.marca)[0]?.porcentaje;
+    currentProduct.porcentaje = currentProduct.porcentaje || porcentajeMarca || 0
     this.setState({ currentProduct });
   }
 
@@ -92,24 +93,6 @@ export default class EditProduct extends Component {
     });
   }
 
-  onChangePrecio(e) {
-    this.setState({
-      currentProduct: {
-        ...this.state.currentProduct,
-        precio: e.target.value,
-      },
-    });
-  }
-
-  onChangeStock(e) {
-    this.setState({
-      currentProduct: {
-        ...this.state.currentProduct,
-        stock: e.target.value,
-      },
-    });
-  }
-
   onChangeValues(e) {
     const name = e.target.name;
     const value = e.target.value;
@@ -127,9 +110,10 @@ export default class EditProduct extends Component {
       descripcion: this.state.currentProduct.descripcion,
       stock: parseInt(this.state.currentProduct.stock, 10),
       marca: this.state.currentProduct.marca,
-      precio_dolar: parseInt(this.state.currentProduct.precio_dolar, 10),
-      precio_costo: parseInt(this.state.currentProduct.precio_costo, 10),
-      precio_contado: parseInt(this.state.currentProduct.precio_contado, 10),
+      porcentaje: this.state.currentProduct.porcentaje,
+      precio_dolar: this.state.currentProduct.precio_dolar,
+      precio_costo: this.state.currentProduct.precio_costo,
+      precio_contado: this.state.currentProduct.precio_contado,
     };
 
     ProductosDataService.update(this.state.currentProduct.key, data)
@@ -224,11 +208,31 @@ export default class EditProduct extends Component {
                     required
                     fullWidth
                     className="default__textfield"
-                    id="precio_contado"
-                    label="Precio Contado"
-                    value={this.state.currentProduct.precio_contado}
-                    name="precio_contado"
+                    id="stock"
+                    label="Stock"
+                    value={this.state.currentProduct.stock}
+                    name="stock"
                     onChange={this.onChangeValues}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    className="default__textfield"
+                    id="porcentaje"
+                    label="% ganancia"
+                    value={this.state.currentProduct.porcentaje}
+                    name="porcentaje"
+                    onChange={this.onChangeValues}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          %
+                        </InputAdornment>
+                      ),
+                    }}
                   />
                 </Grid>
                 {/* <Grid item xs={12}>
@@ -243,19 +247,6 @@ export default class EditProduct extends Component {
                     onChange={this.onChangeValues}
                   />
                 </Grid> */}
-                <Grid item xs={12}>
-                  <TextField
-                    variant="outlined"
-                    required
-                    fullWidth
-                    className="default__textfield"
-                    id="stock"
-                    label="Stock"
-                    value={this.state.currentProduct.stock}
-                    name="stock"
-                    onChange={this.onChangeValues}
-                  />
-                </Grid>
               </Grid>
               <Button
                 type="button"

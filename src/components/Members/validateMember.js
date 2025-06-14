@@ -9,11 +9,10 @@ import {
   TextField,
   IconButton,
   Input,
-} from '@material-ui/core';
-import HomeIcon from '@material-ui/icons/Home';
+} from '@mui/material';
+import HomeIcon from '@mui/icons-material/Home';
 import moment from 'moment';
-import SearchIcon from '@material-ui/icons/Search';
-import { FilterTiltShift } from '@material-ui/icons';
+import SearchIcon from '@mui/icons-material/Search';
 
 const alert = Modal.alert;
 

@@ -1,10 +1,10 @@
 import React, { Component } from "react";
 import ProductosDataService from "../../../services/tutorial.service";
 import { Toast, Modal } from "antd-mobile";
-import { IconButton } from '@material-ui/core';
-import SearchIcon from "@material-ui/icons/Search";
-import DeleteIcon from '@material-ui/icons/Delete';
-import EditIcon from '@material-ui/icons/Edit';
+import { IconButton } from '@mui/material';
+import SearchIcon from "@mui/icons-material/Search";
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 
 const alert = Modal.alert;
 
@@ -197,7 +197,7 @@ export default class listProduct extends Component {
                         <td>{producto.tipoCliente}</td>
                         <td>{producto.horasTrabajo}</td>
                         <td>{producto.date}</td>
-                        
+
                         <td className="column-actions">
                         <IconButton
                           aria-label="delete"

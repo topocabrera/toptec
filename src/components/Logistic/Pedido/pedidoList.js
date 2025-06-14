@@ -1,8 +1,11 @@
 import React, { Component } from "react";
-import Datetime from "react-datetime";
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { Toast, Modal } from "antd-mobile";
 import {
   Box,
+  TextField,
   Collapse,
   Table,
   TableBody,
@@ -19,17 +22,19 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-} from "@material-ui/core";
-import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
-import ArrowDropUpIcon from "@material-ui/icons/ArrowDropUp";
-import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
-import ReceiptIcon from "@material-ui/icons/Receipt";
+} from "@mui/material";
+// import Button from '@mui/material/Button';
+
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import ReceiptIcon from "@mui/icons-material/Receipt";
 import moment from "moment";
 import ListCheckbox from "../../../components/ListCheckbox";
-import PrintOutlinedIcon from "@material-ui/icons/PrintOutlined";
-import DeleteIcon from "@material-ui/icons/Delete";
-import EditIcon from "@material-ui/icons/Edit";
+import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import PedidosDataService from "../../../services/pedidos.service";
 import ClientsDataService from "../../../services/clients.service";
 const queryString = require("query-string");
@@ -76,7 +81,7 @@ export default class PedidoList extends Component {
     const today = moment(new Date().getTime()).get("day");
     const dateFormat = moment(new Date().getTime()).format("DD-MM-YYYY");
     if (!this.props.location.search) {
-      window.location.href = `/list-pedidos?date=${dateFormat}`;
+      window.location.href = `/logistic/list-pedidos?date=${dateFormat}`;
       this.getClients(today);
     } else {
       const params = queryString.parse(this.props.location.search);
@@ -125,7 +130,7 @@ export default class PedidoList extends Component {
     pedidos.forEach((item) => {
       const fechaFormat = entregaPedido
         ? item.fechaEntrega
-        : item.fecha.slice(0, 10);
+        : item.fecha?.slice(0, 10);
       if (fechaFormat === fechaComp) {
         pedido.push(item);
       }
@@ -160,8 +165,8 @@ export default class PedidoList extends Component {
   onChangeDate(e) {
     const dateFormat = e.format("DD-MM-YYYY");
     window.location.href = this.state.entregaPedido
-      ? `/list-pedidos?date=${dateFormat}&entrega=true`
-      : `/list-pedidos?date=${dateFormat}`;
+      ? `/logistic/list-pedidos?date=${dateFormat}&entrega=true`
+      : `/logistic/list-pedidos?date=${dateFormat}`;
   }
 
   setOpen(index) {
@@ -204,9 +209,9 @@ export default class PedidoList extends Component {
 
   changeEntrega() {
     if (this.state.entregaPedido) {
-      window.location.href = `/list-pedidos?date=${this.state.date}`;
+      window.location.href = `/logistic/list-pedidos?date=${this.state.date}`;
     } else {
-      window.location.href = `/list-pedidos?date=${this.state.date}&entrega=true`;
+      window.location.href = `/logistic/list-pedidos?date=${this.state.date}&entrega=true`;
     }
   }
 
@@ -258,19 +263,21 @@ export default class PedidoList extends Component {
       prodDesc,
     } = this.state;
     let totalPorDia = 0;
+    let totalPorDiaCosto = 0;
 
     pedidoFilter.forEach((prd) => (totalPorDia += prd.total));
+    pedidoFilter.forEach((prd) => (prd?.totalCosto ? totalPorDiaCosto += prd.totalCosto : 0));
+    const totalDif = totalPorDia - totalPorDiaCosto;
     const keyCodigos = Object.keys(quantityProd);
     return (
       <div className="list row">
         <div className="col-md-6">
           <div className="new-reservation">
-            <a className="btn btn-primary" href="/new-visit" role="button">
+            <a className="btn btn-primary" href="/logistic/list-client" role="button">
               Nuevo pedido
             </a>
             <Button
               variant="contained"
-              color="default"
               className="inform-button"
               endIcon={<ReceiptIcon />}
               onClick={this.getQuantity}
@@ -340,10 +347,14 @@ export default class PedidoList extends Component {
               <span className="text__info-right">
                 Cant. clientes: <p className="text__dato">{clients.length}</p>
               </span>
+              <span className="text__info-right">
+                Total (P.Venta - P.Costo): ${" "} <p className="text__dato">{totalDif.toFixed(2)}</p>
+              </span>
             </div>
           </Paper>
           <div className="form-group">
             <FormControlLabel
+              sx={{ marginRight: '15px', marginTop: '20px' }}
               control={
                 <Switch
                   checked={entregaPedido}
@@ -360,19 +371,38 @@ export default class PedidoList extends Component {
                   : "Cambiar a fecha entrega pedido"
               }
             />
-            <label className="fecha-text">
+            {/* <label className="fecha-text">
               {entregaPedido ? "Fecha entrega pedido" : "Fecha creación pedido"}
-            </label>
-            <Datetime
-              className="post-input  post-input__event"
-              dateFormat="DD-MM-YYYY"
-              timeFormat={false}
-              name="eventDate"
-              utc
-              closeOnSelect
-              value={this.state.date}
-              onChange={this.onChangeDate}
-            />
+            </label> */}
+            {/* <LocalizationProvider dateAdapter={AdapterMoment}>
+              <DatePicker
+                label="Fecha del evento"
+                // value={this.state.date ? moment(this.state.date, "DD-MM-YYYY") : null}
+                // onChange={(newValue) => this.onChangeDate(newValue)}
+                format="DD-MM-YYYY"
+                slotProps={{
+                  textField: {
+                    className: "post-input post-input__event",
+                    name: "eventDate",
+                  }
+                }}
+              />
+            </LocalizationProvider> */}
+            <LocalizationProvider dateAdapter={AdapterMoment}>
+              <DatePicker
+                label={entregaPedido ? "Fecha entrega pedido" : "Fecha creación pedido"}
+                value={this.state.date ? moment(this.state.date, "DD-MM-YYYY") : null}
+                onChange={(newValue) => this.onChangeDate(newValue)}
+                inputFormat="DD-MM-YYYY"
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    className="post-input post-input__event"
+                    name="eventDate"
+                  />
+                )}
+              />
+            </LocalizationProvider>
           </div>
           <div className="table-container">
             <TableContainer component={Paper}>
@@ -482,7 +512,7 @@ export default class PedidoList extends Component {
                             <IconButton
                               aria-label="delete"
                               className="action__link"
-                              href={`/edit-pedido/${pedido.id}`}
+                              href={`/logistic/edit-pedido/${pedido.id}`}
                               role="button"
                             >
                               <EditIcon />
@@ -505,7 +535,7 @@ export default class PedidoList extends Component {
                               <DeleteIcon color="secondary" />
                             </IconButton>
                             <IconButton
-                              href={`/imprimir/${pedido.id}`}
+                              href={`/logistic/imprimir/${pedido.id}`}
                               role="button"
                               aria-label="imprimir"
                               className="action__link"

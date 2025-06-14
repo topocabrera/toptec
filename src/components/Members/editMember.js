@@ -9,8 +9,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-} from '@material-ui/core';
-import Datetime from 'react-datetime';
+} from '@mui/material';
+import { DatePicker as Datetime } from '@mui/x-date-pickers/DatePicker';
 import MemberService from '../../services/member.service';
 import LoginService from '../../services/users.service';
 import moment from 'moment';

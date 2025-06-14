@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import Datetime from "react-datetime";
+import { DatePicker as Datetime } from '@mui/x-date-pickers/DatePicker';
 import {
   Button,
   TextField,
@@ -9,7 +9,7 @@ import {
   InputLabel,
   MenuItem,
   Select,
-} from "@material-ui/core";
+} from "@mui/material";
 import ProductosDataService from "../../../services/tutorial.service";
 import { tipoCliente, horasTrabajo } from "../../../utils/default";
 import moment from "moment";

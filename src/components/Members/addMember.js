@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import MemberDataService from "../../services/member.service";
-import Datetime from "react-datetime";
+import { DatePicker as Datetime } from '@mui/x-date-pickers/DatePicker';
 import {
   Button,
   TextField,
@@ -8,7 +8,7 @@ import {
   Grid,
   Container,
   InputLabel,
-} from "@material-ui/core";
+} from "@mui/material";
 import moment from "moment";
 
 export default class AddMember extends Component {
@@ -20,7 +20,7 @@ export default class AddMember extends Component {
     this.newClient = this.newClient.bind(this);
     this.onChangeDate = this.onChangeDate.bind(this);
     this.onChangeDateVenc = this.onChangeDateVenc.bind(this);
-    
+
     this.state = {
       nombre: "",
       dni: "",

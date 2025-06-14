@@ -24,7 +24,7 @@ const pages = [
     },
     {
         name: 'Productos',
-        url: '/dental/products'
+        url: '/dental/product-list'
     },
     {
         name: 'Marcas',
@@ -35,6 +35,39 @@ const pages = [
     //     url: '/dental/stock'
     // },
 ];
+
+const pageSeguros = [
+    {
+        name: 'Alta Clientes',
+        url: '/cseguros/create'
+    },
+    {
+        name: 'Listado Clientes',
+        url: '/cseguros/list-clients'
+    },
+]
+const pageWindy = [
+    {
+        name: 'Listado Clientes',
+        url: "/logistic/list-client"
+    },
+    {
+        name: 'Listado Productos',
+        url: "/logistic/list-products"
+    },
+    {
+        name: 'Nueva Visita',
+        url: "/logistic/new-visit"
+    },
+    {
+        name: 'Cambiar precios',
+        url: "/logistic/change-price"
+    },
+    {
+        name: 'Listado Pedidos',
+        url: "/logistic/list-pedidos"
+    },
+]
 
 const pageAdmin = [
     {
@@ -108,25 +141,32 @@ function NavBar() {
                                 display: { xs: 'block', md: 'none' },
                             }}
                         >
-                            {pages.map((page) => (
-                                <MenuItem key={page.name}>
-                                    <Typography textAlign="center">{page.name}</Typography>
-                                    <Link to={page.url}>{page.name}</Link>
-                                </MenuItem>
-                            ))}
+                            {currentUser?.rol === "windy" &&
+                                pageWindy.map((page) => (
+                                    <MenuItem key={page.name}>
+                                        <Link href={page.url} sx={{ textDecoration: 'none', color: '#000' }}>{page.name}</Link>
+                                    </MenuItem>
+                                ))}
+                            {currentUser?.rol === "seguros" &&
+                                pageSeguros.map((page) => (
+                                    <MenuItem key={page.name}>
+                                        <Link href={page.url} sx={{ textDecoration: 'none', color: '#000' }}>{page.name}</Link>
+                                    </MenuItem>
+                                ))}
                         </Menu>
                     </Box>
                     <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-                        {pages.map((page) => (
-                            <Button
-                                key={page.name}
-                                href={page.url}
-                                onClick={handleCloseNavMenu}
-                                sx={{ my: 2, color: 'black', display: 'block', marginLeft: '10px' }}
-                            >
-                                {page.name}
-                            </Button>
-                        ))}
+                        {currentUser?.rol === "windy" &&
+                            pageWindy.map((page) => (
+                                <Button
+                                    key={page.name}
+                                    href={page.url}
+                                    onClick={handleCloseNavMenu}
+                                    sx={{ my: 2, color: 'black', display: 'block', marginLeft: '10px' }}
+                                >
+                                    {page.name}
+                                </Button>
+                            ))}
                         {pageAdmin.map((page) => (
                             currentUser.rol === 'admin' &&
                             <Button
@@ -138,6 +178,17 @@ function NavBar() {
                                 {page.name}
                             </Button>
                         ))}
+                        {(currentUser.rol === 'seguros' || currentUser.rol === 'admin') &&
+                            pageSeguros.map((page) => (
+                                <Button
+                                    key={page.name}
+                                    href={page.url}
+                                    onClick={handleCloseNavMenu}
+                                    sx={{ my: 2, color: 'black', display: 'block', marginLeft: '10px' }}
+                                >
+                                    {page.name}
+                                </Button>
+                            ))}
                     </Box>
 
                     <Box sx={{ flexGrow: 0 }}>

@@ -158,7 +158,7 @@ ul.navbar-nav.ml-auto {
 }
 
 .dropdown-toggle::after {
-   transition: transform 0.15s linear; 
+   transition: transform 0.15s linear;
 }
 
 .show.dropdown .dropdown-toggle::after {
@@ -198,6 +198,10 @@ ul.navbar-nav.ml-auto {
   margin-top: 10px;
 }
 
+.order-container {
+  text-align: center;
+}
+
 @media (min-width: 700px) {
   .col-md-6 {
     max-width: 100%;
@@ -212,7 +216,7 @@ ul.navbar-nav.ml-auto {
     display: inline-block;
     width: 50%;
   }
-  
+
 
   .new-reservation {
     text-align: left;
@@ -230,4 +234,12 @@ ul.navbar-nav.ml-auto {
     margin-top: 0;
     margin-left: 15px;
   }
+}
+
+.col-md-6.list-clients {
+  padding-left: 0;
+}
+
+.MuiFormControl-root.MuiTextField-root.date-selector.css-1u3bzj6-MuiFormControl-root-MuiTextField-root {
+  width: 100%;
 }

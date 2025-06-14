@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import Datetime from "react-datetime";
+import { DatePicker as Datetime } from '@mui/x-date-pickers/DatePicker';
 import { Toast, Modal } from "antd-mobile";
 import {
   Paper,
@@ -8,9 +8,9 @@ import {
   MenuItem,
   Checkbox,
   Button,
-} from "@material-ui/core";
-import DeleteIcon from "@material-ui/icons/Delete";
-import EditIcon from "@material-ui/icons/Edit";
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import moment from "moment";
 import ReservationDataService from "../../services/reservation.service";
 import { turnos } from "../../utils/default";

@@ -8,9 +8,9 @@ import {
   InputLabel,
   MenuItem,
   Select,
-} from "@material-ui/core";
+} from "@mui/material";
 import ProductosDataService from "../../../services/productos.service";
-import marcas from "../../../utils/default";
+import { marcasLogistic } from "../../../utils/default";
 
 export default class AddProduct extends Component {
   constructor(props) {
@@ -30,6 +30,8 @@ export default class AddProduct extends Component {
       descripcion: "",
       marca: "Windy",
       precio: "",
+      precioCosto: "",
+      precioMayorista: "",
       stock: 0,
       lastId: 0,
       peso: 1,
@@ -53,7 +55,6 @@ export default class AddProduct extends Component {
     this.setState({
       lastId: items.val().id || 0,
     });
-    console.log(items.val().id);
   }
 
   onChangeCodigo(e) {
@@ -73,7 +74,9 @@ export default class AddProduct extends Component {
   }
 
   onChangePrecio(e) {
-    this.setState({ precio: e.target.value });
+    const value = e.target.value;
+    const name = e.target.name;
+    this.setState({ [name]: value });
   }
 
   onChangeStock(e) {
@@ -95,7 +98,9 @@ export default class AddProduct extends Component {
       descripcion: this.state.descripcion,
       stock: parseInt(this.state.stock, 10),
       marca: this.state.marca,
+      precioCosto: this.state.precioCosto,
       precio: this.state.precio,
+      precioMayorista: this.state.precioMayorista,
       peso: this.state.peso,
     };
 
@@ -118,6 +123,8 @@ export default class AddProduct extends Component {
       stock: 0,
       marca: "Windy",
       precio: "",
+      precioCosto: "",
+      precioMayorista: "",
       lastId: this.state.lastId,
 
       submitted: false,
@@ -135,7 +142,7 @@ export default class AddProduct extends Component {
             </button>
             <a
               className="btn btn-primary go-listado"
-              href="/list-products"
+              href="/logistic/list-products"
               role="button"
             >
               Listado
@@ -182,7 +189,7 @@ export default class AddProduct extends Component {
                     className="select__form"
                     fullWidth
                   >
-                    {marcas.map((marca) => (
+                    {marcasLogistic.map((marca) => (
                       <MenuItem key={marca} value={marca}>
                         {marca}
                       </MenuItem>
@@ -196,7 +203,7 @@ export default class AddProduct extends Component {
                     fullWidth
                     className="default__textfield"
                     id="peso"
-                    label="Peso"
+                    label="Peso (Kg)"
                     value={this.state.peso}
                     name="peso"
                     onChange={this.onChangeValues}
@@ -208,10 +215,36 @@ export default class AddProduct extends Component {
                     required
                     fullWidth
                     className="default__textfield"
+                    id="precioCosto"
+                    label="Precio Costo"
+                    value={this.state.precioCosto}
+                    name="precioCosto"
+                    onChange={this.onChangePrecio}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    className="default__textfield"
                     id="precio"
-                    label="Precio"
+                    label="Precio Venta Minorista"
                     value={this.state.precio}
                     name="precio"
+                    onChange={this.onChangePrecio}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    className="default__textfield"
+                    id="precioMayorista"
+                    label="Precio Venta Mayorista"
+                    value={this.state.precioMayorista}
+                    name="precioMayorista"
                     onChange={this.onChangePrecio}
                   />
                 </Grid>
@@ -235,6 +268,7 @@ export default class AddProduct extends Component {
                 variant="contained"
                 color="primary"
                 className="button__save"
+                disabled={this.state.codigo === ""}
                 onClick={this.saveProduct}
               >
                 Aceptar

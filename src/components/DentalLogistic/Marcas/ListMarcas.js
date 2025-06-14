@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ProductosDataService from "../../../services/marcas.service";
 import { Toast, Modal } from "antd-mobile";
-import SearchIcon from "@material-ui/icons/Search";
+import SearchIcon from "@mui/icons-material/Search";
 import Container from '@mui/material/Container';
 import Snackbar from '@mui/material/Snackbar';
 import Table from '@mui/material/Table';
@@ -44,9 +44,10 @@ function ListMarcas() {
       let data = item.val();
       products.push({
         key,
-        id: data.id,
-        nombre: data.nombre,
-        descripcion: data.descripcion,
+        id: data?.id,
+        nombre: data?.nombre,
+        descripcion: data?.descripcion,
+        porcentaje: data?.porcentaje || '',
       });
     });
 
@@ -120,6 +121,7 @@ function ListMarcas() {
                 <StyledTableCell scope="col">Código</StyledTableCell>
                 <StyledTableCell scope="col">Nombre</StyledTableCell>
                 <StyledTableCell scope="col">Descripción</StyledTableCell>
+                <StyledTableCell scope="col">% Ganancia</StyledTableCell>
                 <StyledTableCell scope="col">Acciones</StyledTableCell>
               </TableRow>
             </TableHead>
@@ -131,6 +133,7 @@ function ListMarcas() {
                       <StyledTableCell>{producto.id}</StyledTableCell>
                       <StyledTableCell>{producto.nombre}</StyledTableCell>
                       <StyledTableCell>{producto.descripcion}</StyledTableCell>
+                      <StyledTableCell>{producto.porcentaje}</StyledTableCell>
                       <StyledTableCell className="column-actions" sx={{ display: 'inline-flex', border: 'none' }}>
                         <IconButton
                           className="btn btn-light"

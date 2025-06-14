@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import Datetime from "react-datetime";
+import { DatePicker as Datetime } from '@mui/x-date-pickers/DatePicker';
 import { Toast, Modal } from "antd-mobile";
 import {
   Box,
@@ -19,17 +19,17 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-} from "@material-ui/core";
-import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
-import ArrowDropUpIcon from "@material-ui/icons/ArrowDropUp";
-import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
-import ReceiptIcon from "@material-ui/icons/Receipt";
+} from "@mui/material";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import ReceiptIcon from "@mui/icons-material/Receipt";
 import moment from "moment";
 import ListCheckbox from "../../../components/ListCheckbox";
-import PrintOutlinedIcon from "@material-ui/icons/PrintOutlined";
-import DeleteIcon from "@material-ui/icons/Delete";
-import EditIcon from "@material-ui/icons/Edit";
+import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import PedidosDataService from "../../../services/pedidos.service";
 import ClientsDataService from "../../../services/clients.service";
 const queryString = require("query-string");

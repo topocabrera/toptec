@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Datetime from 'react-datetime';
+import { DatePicker as Datetime } from '@mui/x-date-pickers/DatePicker';
 import { Toast, Modal } from 'antd-mobile';
 import {
   Paper,
@@ -14,11 +14,11 @@ import {
   DialogActions,
   Button,
   TextField,
-} from '@material-ui/core';
-import DeleteIcon from '@material-ui/icons/Delete';
-import EditIcon from '@material-ui/icons/Edit';
-import AddIcon from '@material-ui/icons/Add';
-import RemoveIcon from '@material-ui/icons/Remove';
+} from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 import moment from 'moment';
 import ReservationDataService from '../../services/reservation.service';
 import { turnos } from '../../utils/default';
@@ -73,7 +73,7 @@ export default class ReservaList extends Component {
       const params = queryString.parse(this.props.location.search);
       dateFormat = params.date;
     }
-    
+
     ReservationDataService.getTotal()
       .orderByChild('date')
       .equalTo(dateFormat)

@@ -20,16 +20,16 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-} from "@material-ui/core";
-import Datetime from "react-datetime";
+} from "@mui/material";
+import { DatePicker as Datetime } from '@mui/x-date-pickers/DatePicker';
 import ProductosDataService from "../../../services/productos.service";
 import PedidosDataService from "../../../services/pedidos.service";
 import ClientesDataService from "../../../services/clients.service";
-import SearchIcon from "@material-ui/icons/Search";
-import HighlightOffIcon from "@material-ui/icons/HighlightOff";
-import EditIcon from "@material-ui/icons/Edit";
-import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
+import SearchIcon from "@mui/icons-material/Search";
+import HighlightOffIcon from "@mui/icons-material/HighlightOff";
+import EditIcon from "@mui/icons-material/Edit";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
 const alert = Modal.alert;
 const Item = List.Item;
@@ -55,7 +55,7 @@ export default class Pedido extends Component {
     this.onChangeDate = this.onChangeDate.bind(this);
     this.setOpen = this.setOpen.bind(this);
     this.deleteProduct = this.deleteProduct.bind(this);
-    
+
     this.state = {
       products: [],
       currentProduct: null,

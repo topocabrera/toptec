@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import moment from 'moment';
-import { Button } from '@material-ui/core';
-import PrintOutlinedIcon from '@material-ui/icons/PrintOutlined';
+import { Button } from '@mui/material';
+import PrintOutlinedIcon from '@mui/icons-material/PrintOutlined';
 import PedidosDataService from '../../../services/pedidos.service';
 import ClientesDataService from '../../../services/clients.service';
 
@@ -130,7 +130,7 @@ export default class Pedido extends Component {
                 <br />
                 E-mail:{" "}
                 <a href="mailto:info@obedalvarado.pw">info@obedalvarado.pw</a>
-                <br /> 
+                <br />
                 Tel: +456-345-908-559
                  <br />
                 Twitter: @alvarado_obed *
@@ -143,7 +143,7 @@ export default class Pedido extends Component {
               IBAN: <br />
               BIC:
             </p>
-          </div> 
+          </div>
           </header> */}
 
           <div className="row section">

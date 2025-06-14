@@ -2,7 +2,8 @@ import React from "react";
 import PropTypes from "prop-types";
 import clsx from "clsx";
 import moment from "moment";
-import { lighten, makeStyles } from "@material-ui/core/styles";
+// import { lighten, makeStyles } from "@mui/material/styles";
+import { makeStyles } from '@mui/styles';
 import { Toast, Modal } from "antd-mobile";
 import {
   Button,
@@ -20,15 +21,15 @@ import {
   TableRow,
   TableSortLabel,
   Toolbar,
-} from "@material-ui/core";
-import { esES } from "@material-ui/core/locale";
-import { green, purple } from "@material-ui/core/colors";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Switch from "@material-ui/core/Switch";
-import DeleteIcon from "@material-ui/icons/Delete";
-import FilterListIcon from "@material-ui/icons/FilterList";
-import SaveIcon from "@material-ui/icons/Save";
-import DoneOutlineRoundedIcon from "@material-ui/icons/DoneOutlineRounded";
+} from "@mui/material";
+import { esES } from "@mui/material/locale";
+import { green, purple } from "@mui/material/colors";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Switch from "@mui/material/Switch";
+import DeleteIcon from "@mui/icons-material/Delete";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import SaveIcon from "@mui/icons-material/Save";
+import DoneOutlineRoundedIcon from "@mui/icons-material/DoneOutlineRounded";
 import PedidoService from "../../services/pedidos.service";
 const alert = Modal.alert;
 
@@ -138,35 +139,26 @@ EnhancedTableHead.propTypes = {
   rowCount: PropTypes.number.isRequired,
 };
 
-const useToolbarStyles = makeStyles(
-  (theme) => ({
-    root: {
-      paddingLeft: theme.spacing(2),
-      paddingRight: theme.spacing(1),
+const useToolbarStyles = makeStyles((theme) => ({
+  root: {
+    paddingLeft: '16px',
+    paddingRight: '8px',
+  },
+  highlight: {
+    color: "#9c27b0",
+    backgroundColor: "#f3e5f5",
+  },
+  title: {
+    flex: "1 1 100%",
+  },
+  button: {
+    color: "#fff",
+    backgroundColor: "#388e3c",
+    "&:hover": {
+      backgroundColor: "#008000",
     },
-    highlight:
-      theme.palette.type === "light"
-        ? {
-            color: theme.palette.secondary.main,
-            backgroundColor: lighten(theme.palette.secondary.light, 0.85),
-          }
-        : {
-            color: theme.palette.text.primary,
-            backgroundColor: theme.palette.secondary.dark,
-          },
-    title: {
-      flex: "1 1 100%",
-    },
-    button: {
-      color: "#fff",
-      backgroundColor: "#388e3c",
-      "&:hover": {
-        backgroundColor: "#008000",
-      },
-    },
-  }),
-  esES
-);
+  },
+}));
 
 const EnhancedTableToolbar = (props) => {
   const classes = useToolbarStyles();
@@ -258,7 +250,7 @@ const useStyles = makeStyles(
     },
     paper: {
       width: "100%",
-      marginBottom: theme.spacing(2),
+      marginBottom: '16px',
     },
     table: {
       minWidth: 750,

@@ -6,7 +6,8 @@ import {
   Typography,
   Grid,
   Container,
-} from "@material-ui/core";
+  InputAdornment,
+} from "@mui/material";
 
 export default class AddMarca extends Component {
   constructor(props) {
@@ -15,10 +16,11 @@ export default class AddMarca extends Component {
     this.onDataChange = this.onDataChange.bind(this);
     this.saveClient = this.saveClient.bind(this);
     this.newClient = this.newClient.bind(this);
-    
+
     this.state = {
       nombre: "",
       descripcion: "",
+      porcentaje: "",
       lastId: 0,
 
       submitted: false,
@@ -53,6 +55,7 @@ export default class AddMarca extends Component {
       id: this.state.lastId + 1,
       descripcion: this.state.descripcion,
       nombre: this.state.nombre,
+      porcentaje: this.state.porcentaje,
     };
 
     MarcaDataService.create(data)
@@ -71,6 +74,7 @@ export default class AddMarca extends Component {
     this.setState({
       nombre: "",
       descripcion: "",
+      porcentaje: "",
 
       submitted: false,
     });
@@ -119,6 +123,26 @@ export default class AddMarca extends Component {
                     label="Descripción"
                     value={this.state.descripcion}
                     onChange={this.onChangeValues}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    type="number"
+                    required
+                    fullWidth
+                    id="porcentaje"
+                    label="Porcentaje ganancia"
+                    value={this.state.porcentaje}
+                    name="porcentaje"
+                    onChange={this.onChangeValues}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          %
+                        </InputAdornment>
+                      ),
+                    }}
                   />
                 </Grid>
               </Grid>
