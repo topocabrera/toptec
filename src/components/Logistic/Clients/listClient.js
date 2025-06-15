@@ -3,6 +3,10 @@ import { Toast } from "antd-mobile";
 import ClientsDataService from "../../../services/clients.service";
 import { Modal } from "antd-mobile";
 import SearchIcon from "@mui/icons-material/Search";
+import { IconButton, Tooltip } from "@mui/material";
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import SubjectIcon from '@mui/icons-material/Subject';
 
 const alert = Modal.alert;
 
@@ -166,16 +170,26 @@ export default class listClient extends Component {
                         <td>{cliente.dni}</td>
                         <td>{cliente.telefono}</td>
                         <td className="column-actions">
-                          <a
-                            className="btn btn-light"
+                          <Tooltip title="Listado de Pedidos">
+                            <IconButton
+                              className="action__link"
+                              href={`/logistic/client-pedidos/${cliente.id}`}
+                              role="button"
+                            >
+                              <SubjectIcon />
+                            </IconButton>
+
+                          </Tooltip>
+                          <IconButton
+                            className="action__link"
                             href={`/logistic/client/${cliente.id}`}
                             role="button"
                           >
-                            Editar
-                          </a>
-                          <button
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton
                             type="button"
-                            className="btn btn-danger"
+                            className="action__button"
                             onClick={() =>
                               alert("Eliminar", "Estás seguro???", [
                                 { text: "Cancelar" },
@@ -187,8 +201,8 @@ export default class listClient extends Component {
                               ])
                             }
                           >
-                            Eliminar
-                          </button>
+                            <DeleteIcon sx={{ color: 'red' }} />
+                          </IconButton>
                         </td>
                       </tr>
                     );

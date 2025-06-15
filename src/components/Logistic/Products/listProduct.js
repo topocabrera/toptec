@@ -2,6 +2,9 @@ import React, { Component } from "react";
 import ProductosDataService from "../../../services/productos.service";
 import { Toast, Modal } from "antd-mobile";
 import SearchIcon from "@mui/icons-material/Search";
+import { IconButton } from "@mui/material";
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const alert = Modal.alert;
 
@@ -198,16 +201,16 @@ export default class listProduct extends Component {
                           </div>
                         </td>
                         <td className="column-actions">
-                          <a
-                            className="btn btn-light"
+                          <IconButton
+                            className="action__link"
                             href={`/logistic/product/${producto.id}`}
                             role="button"
                           >
-                            Editar
-                          </a>
-                          <button
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton
                             type="button"
-                            className="btn btn-danger"
+                            className="action__button"
                             onClick={() =>
                               alert("Eliminar", "Estás seguro???", [
                                 { text: "Cancelar" },
@@ -219,8 +222,8 @@ export default class listProduct extends Component {
                               ])
                             }
                           >
-                            Eliminar
-                          </button>
+                            <DeleteIcon sx={{ color: 'red' }} />
+                          </IconButton>
                         </td>
                       </tr>
                     );
