@@ -64,6 +64,12 @@ export default class Pedido extends Component {
     this.deleteProduct = this.deleteProduct.bind(this);
     this.onChangePrecio = this.onChangePrecio.bind(this);
     this.onChangeTipo = this.onChangeTipo.bind(this);
+    this.updateProductStock = this.updateProductStock.bind(this);
+    this.procesarAgregarPedido = this.procesarAgregarPedido.bind(this);
+    this.abrirModalFormaPago = this.abrirModalFormaPago.bind(this);
+    this.cerrarModalFormaPago = this.cerrarModalFormaPago.bind(this);
+    this.onChangeDatosPago = this.onChangeDatosPago.bind(this);
+    this.finalizarPedidoConDatos = this.finalizarPedidoConDatos.bind(this);
 
     this.state = {
       products: [],
@@ -98,7 +104,24 @@ export default class Pedido extends Component {
       indexProdOpen: -1,
       tipoPrecio: "precio",
       precioMayorista: 0,
-      precioMinorista: 0
+      precioMinorista: 0,
+      // Estados para el modal de forma de pago
+      modalFormaPago: false,
+      formaPagoSeleccionada: "",
+      datosPago: {
+        // Para Contado
+        comentarios: "",
+        // Para Cheque
+        banco: "",
+        nroCheque: "",
+        fechaCobranza: "",
+        cuit: "",
+        // Para Transferencia
+        nroTransferencia: "",
+        fecha: "",
+        emisor: "",
+        destinatario: ""
+      }
     };
   }
 
@@ -260,6 +283,40 @@ export default class Pedido extends Component {
     console.log('subtotalCosto', subtotalCosto);
 
     const produc = products.filter((prod) => prod.id === idProducto);
+    const producto = produc[0];
+
+    // Validar stock disponible
+    const cantidadSolicitada = parseFloat(cantidad);
+    const stockDisponible = parseFloat(producto.stock) || 0;
+
+    // Verificar si la cantidad solicitada es mayor o igual al stock disponible
+    if (cantidadSolicitada >= stockDisponible) {
+      const mensaje = stockDisponible === 0
+        ? `El producto "${producto.descripcion}" no tiene stock disponible.`
+        : `¡Advertencia! La cantidad solicitada (${cantidadSolicitada}) es mayor o igual al stock disponible (${stockDisponible}) del producto "${producto.descripcion}".`;
+
+      alert(
+        "Stock Insuficiente",
+        mensaje + " ¿Desea continuar de todos modos?",
+        [
+          { text: "Cancelar" },
+          {
+            text: "Continuar",
+            onPress: () => this.procesarAgregarPedido(subtotal, idProducto, subtotalCosto, producto)
+          },
+        ]
+      );
+      return; // Salir del método si hay advertencia
+    }
+
+    // Si el stock es suficiente, continuar normalmente
+    this.procesarAgregarPedido(subtotal, idProducto, subtotalCosto, producto);
+  }
+
+  // Método separado para procesar la adición del pedido
+  procesarAgregarPedido(subtotal, idProducto, subtotalCosto, producto) {
+    const { cantidad, peso, descuento, iva, medioIva, precio } = this.state;
+
     let isIva = "No";
     if (iva) {
       isIva = "iva";
@@ -268,11 +325,11 @@ export default class Pedido extends Component {
       isIva = "medioIva";
     }
     const prodPedido = {
-      id: produc[0].id,
-      codigo: produc[0].codigo,
-      descripcion: produc[0].descripcion,
-      marca: produc[0].marca,
-      precioCosto: produc[0].precioCosto,
+      id: producto.id,
+      codigo: producto.codigo,
+      descripcion: producto.descripcion,
+      marca: producto.marca,
+      precioCosto: producto.precioCosto,
       precio,
       peso,
       cantidad,
@@ -303,7 +360,7 @@ export default class Pedido extends Component {
     Toast.success("Cargado correctamente!!", 1);
   }
 
-  createPedido(condPago) {
+  createPedido(condPago, datosPago = {}) {
     let data = {
       id: this.state.pedido.id,
       idCliente: this.state.pedido.idCliente,
@@ -315,6 +372,7 @@ export default class Pedido extends Component {
       fechaEntrega: this.state.pedido.fechaEntrega,
       user: currentUser.userName,
       condPago,
+      datosPago, // Agregar los datos específicos de la forma de pago
       total: this.state.pedido.total,
       totalCosto: this.state.pedido.totalCosto,
     };
@@ -326,6 +384,8 @@ export default class Pedido extends Component {
       });
     PedidosDataService.create(data)
       .then(() => {
+        // Actualizar el stock de todos los productos del pedido
+        this.updateProductStock();
         Toast.loading("Loading...", 1, () => {
           this.setState({
             submitted: true,
@@ -334,6 +394,60 @@ export default class Pedido extends Component {
       })
       .catch((e) => {
         Toast.fail("Ocurrió un error !!!", 2);
+      });
+  }
+
+  // Nuevo método para actualizar el stock de los productos
+  updateProductStock() {
+    const { pedido } = this.state;
+
+    // Obtener todos los productos de la base de datos para actualizarlos
+    ProductosDataService.getAll()
+      .once("value", (snapshot) => {
+        const productosDB = {};
+        const productKeys = {};
+
+        // Crear un mapa de productos con sus keys para facilitar la búsqueda
+        snapshot.forEach((childSnapshot) => {
+          const producto = childSnapshot.val();
+          const key = childSnapshot.key;
+          productosDB[producto.id] = producto;
+          productKeys[producto.id] = key;
+        });
+
+        // Procesar cada producto del pedido
+        pedido.productos.forEach((productoPedido) => {
+          const productoEnDB = productosDB[productoPedido.id];
+          const productoKey = productKeys[productoPedido.id];
+
+          if (productoEnDB && productoKey) {
+            // Calcular el total de cantidad a descontar (cantidad
+            const cantidadADescontar = parseFloat(productoPedido.cantidad);
+            const stockActual = parseFloat(productoEnDB.stock) || 0;
+            // const nuevoStock = Math.max(0, stockActual - cantidadADescontar); // No permitir stock negativo
+            const nuevoStock = stockActual - cantidadADescontar; // No permitir stock negativo
+
+            // Actualizar el producto con el nuevo stock
+            const datosActualizacion = {
+              stock: nuevoStock
+            };
+
+            ProductosDataService.update(productoKey, datosActualizacion)
+              .then(() => {
+                console.log(`Stock actualizado para producto ${productoPedido.codigo}: ${stockActual} -> ${nuevoStock}`);
+              })
+              .catch((error) => {
+                console.error(`Error actualizando stock del producto ${productoPedido.codigo}:`, error);
+                Toast.fail(`Error actualizando stock del producto ${productoPedido.codigo}`, 2);
+              });
+          } else {
+            console.warn(`Producto no encontrado en la base de datos: ID ${productoPedido.id}`);
+          }
+        });
+      })
+      .catch((error) => {
+        console.error("Error obteniendo productos para actualizar stock:", error);
+        Toast.fail("Error actualizando el stock de los productos", 2);
       });
   }
 
@@ -361,6 +475,74 @@ export default class Pedido extends Component {
     });
   }
 
+  // Métodos para el modal de forma de pago
+  abrirModalFormaPago(formaPago) {
+    this.setState({
+      modalFormaPago: true,
+      formaPagoSeleccionada: formaPago,
+      datosPago: {
+        comentarios: "",
+        banco: "",
+        nroCheque: "",
+        fechaCobranza: "",
+        cuit: "",
+        nroTransferencia: "",
+        fecha: "",
+        emisor: "",
+        destinatario: ""
+      }
+    });
+  }
+
+  cerrarModalFormaPago() {
+    this.setState({
+      modalFormaPago: false,
+      formaPagoSeleccionada: "",
+    });
+  }
+
+  onChangeDatosPago(campo, valor) {
+    this.setState({
+      datosPago: {
+        ...this.state.datosPago,
+        [campo]: valor
+      }
+    });
+  }
+
+  finalizarPedidoConDatos() {
+    const { formaPagoSeleccionada, datosPago } = this.state;
+
+    // Validar campos obligatorios según la forma de pago
+    let camposRequeridos = [];
+    switch (formaPagoSeleccionada) {
+      case 'Contado':
+        // Comentarios es opcional para contado
+        break;
+      case 'Cheque':
+        if (!datosPago.banco) camposRequeridos.push('Banco');
+        if (!datosPago.nroCheque) camposRequeridos.push('Nro de Cheque');
+        if (!datosPago.fechaCobranza) camposRequeridos.push('Fecha Cobranza');
+        if (!datosPago.cuit) camposRequeridos.push('CUIT');
+        break;
+      case 'Transferencia':
+        if (!datosPago.nroTransferencia) camposRequeridos.push('Nro Transferencia');
+        if (!datosPago.fecha) camposRequeridos.push('Fecha');
+        if (!datosPago.emisor) camposRequeridos.push('Emisor');
+        if (!datosPago.destinatario) camposRequeridos.push('Destinatario');
+        break;
+    }
+
+    if (camposRequeridos.length > 0) {
+      Toast.fail(`Faltan completar los siguientes campos: ${camposRequeridos.join(', ')}`, 3);
+      return;
+    }
+
+    // Cerrar modal y crear pedido
+    this.cerrarModalFormaPago();
+    this.createPedido(formaPagoSeleccionada, datosPago);
+  }
+
   render() {
     const {
       submitted,
@@ -379,6 +561,9 @@ export default class Pedido extends Component {
       tipoPrecio,
       editProd,
       indexProdOpen,
+      modalFormaPago,
+      formaPagoSeleccionada,
+      datosPago,
     } = this.state;
     const displayTable = searchTitle !== "" ? productoFilter : products;
     let subtotalDto = 0.0;
@@ -795,31 +980,22 @@ export default class Pedido extends Component {
                 variant="contained"
                 color="primary"
                 className="total__button"
-                // onClick={this.createPedido}
                 onClick={() =>
                   alert(
-                    "Tipo cobro",
-                    <div></div>,
+                    "Forma de Pago",
+                    "Seleccione la forma de pago:",
                     [
                       {
                         text: "Contado",
-                        onPress: () =>
-                          this.createPedido('contado'),
+                        onPress: () => this.abrirModalFormaPago('Contado'),
                       },
                       {
-                        text: "Contado 7 dias",
-                        onPress: () =>
-                          this.createPedido('a 7 dias'),
+                        text: "Cheque",
+                        onPress: () => this.abrirModalFormaPago('Cheque'),
                       },
                       {
-                        text: "Contado 14 dias",
-                        onPress: () =>
-                          this.createPedido('a 14 dias'),
-                      },
-                      {
-                        text: "Contado 21 dias",
-                        onPress: () =>
-                          this.createPedido('a 21 dias'),
+                        text: "Transferencia",
+                        onPress: () => this.abrirModalFormaPago('Transferencia'),
                       },
                       {
                         text: "Cancelar",
@@ -832,6 +1008,132 @@ export default class Pedido extends Component {
                 Finalizar pedido
               </Button>
             </div>
+
+            {/* Modal de Forma de Pago */}
+            <Dialog
+              open={this.state.modalFormaPago}
+              onClose={this.cerrarModalFormaPago}
+              maxWidth="sm"
+              fullWidth
+            >
+              <DialogTitle>
+                Datos de {this.state.formaPagoSeleccionada}
+              </DialogTitle>
+              <DialogContent>
+                {this.state.formaPagoSeleccionada === 'Contado' && (
+                  <TextField
+                    autoFocus
+                    margin="dense"
+                    label="Comentarios (opcional)"
+                    type="text"
+                    fullWidth
+                    multiline
+                    rows={3}
+                    variant="outlined"
+                    value={this.state.datosPago.comentarios}
+                    onChange={(e) => this.onChangeDatosPago('comentarios', e.target.value)}
+                  />
+                )}
+
+                {this.state.formaPagoSeleccionada === 'Cheque' && (
+                  <>
+                    <TextField
+                      autoFocus
+                      margin="dense"
+                      label="Banco *"
+                      type="text"
+                      fullWidth
+                      variant="outlined"
+                      value={this.state.datosPago.banco}
+                      onChange={(e) => this.onChangeDatosPago('banco', e.target.value)}
+                    />
+                    <TextField
+                      margin="dense"
+                      label="Nro de Cheque *"
+                      type="text"
+                      fullWidth
+                      variant="outlined"
+                      value={this.state.datosPago.nroCheque}
+                      onChange={(e) => this.onChangeDatosPago('nroCheque', e.target.value)}
+                    />
+                    <TextField
+                      margin="dense"
+                      label="Fecha Cobranza *"
+                      type="date"
+                      fullWidth
+                      variant="outlined"
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      value={this.state.datosPago.fechaCobranza}
+                      onChange={(e) => this.onChangeDatosPago('fechaCobranza', e.target.value)}
+                    />
+                    <TextField
+                      margin="dense"
+                      label="CUIT *"
+                      type="text"
+                      fullWidth
+                      variant="outlined"
+                      value={this.state.datosPago.cuit}
+                      onChange={(e) => this.onChangeDatosPago('cuit', e.target.value)}
+                    />
+                  </>
+                )}
+
+                {this.state.formaPagoSeleccionada === 'Transferencia' && (
+                  <>
+                    <TextField
+                      autoFocus
+                      margin="dense"
+                      label="Nro Transferencia *"
+                      type="text"
+                      fullWidth
+                      variant="outlined"
+                      value={this.state.datosPago.nroTransferencia}
+                      onChange={(e) => this.onChangeDatosPago('nroTransferencia', e.target.value)}
+                    />
+                    <TextField
+                      margin="dense"
+                      label="Fecha *"
+                      type="date"
+                      fullWidth
+                      variant="outlined"
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      value={this.state.datosPago.fecha}
+                      onChange={(e) => this.onChangeDatosPago('fecha', e.target.value)}
+                    />
+                    <TextField
+                      margin="dense"
+                      label="Emisor *"
+                      type="text"
+                      fullWidth
+                      variant="outlined"
+                      value={this.state.datosPago.emisor}
+                      onChange={(e) => this.onChangeDatosPago('emisor', e.target.value)}
+                    />
+                    <TextField
+                      margin="dense"
+                      label="Destinatario *"
+                      type="text"
+                      fullWidth
+                      variant="outlined"
+                      value={this.state.datosPago.destinatario}
+                      onChange={(e) => this.onChangeDatosPago('destinatario', e.target.value)}
+                    />
+                  </>
+                )}
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={this.cerrarModalFormaPago} color="secondary">
+                  Cancelar
+                </Button>
+                <Button onClick={this.finalizarPedidoConDatos} color="primary" variant="contained">
+                  Finalizar Pedido
+                </Button>
+              </DialogActions>
+            </Dialog>
           </div>
         )}
       </div>

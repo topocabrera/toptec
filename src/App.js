@@ -79,6 +79,8 @@ import FooterView from "./components/FooterView";
 import PedidoWrapper from "./components/Logistic/Pedido/PedidoWrapper";
 import PedidoListWrapper from "./components/Logistic/Pedido/PedidoListWrapper";
 import ClientPedidos from "./components/Logistic/Clients/clientPedidos";
+import ComprasList from "./components/Logistic/Compras/comprasList";
+import AddCompra from "./components/Logistic/Compras/addCompra";
 
 // const [setAnchorEl] = React.useState(null);
 class App extends Component {
@@ -337,6 +339,8 @@ class App extends Component {
                   <Route path="/logistic/pedido/:id" element={<PedidoWrapper />} />
                   <Route path="/logistic/edit-pedido/:id" element={<EditPedidoWrapper />} />
                   <Route path="/logistic/client-pedidos/:id" element={<ClientPedidos />} />
+                  <Route path="/logistic/compras-list" element={<ComprasList />} />
+                  <Route path="/logistic/compra" element={<AddCompra />} />
                 </React.Fragment>
               )}
 

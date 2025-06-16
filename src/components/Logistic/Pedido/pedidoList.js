@@ -22,6 +22,7 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  DialogTitle,
 } from "@mui/material";
 // import Button from '@mui/material/Button';
 
@@ -35,6 +36,8 @@ import ListCheckbox from "../../../components/ListCheckbox";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import PaymentIcon from "@mui/icons-material/Payment";
+import InfoIcon from "@mui/icons-material/Info";
 import PedidosDataService from "../../../services/pedidos.service";
 import ClientsDataService from "../../../services/clients.service";
 const queryString = require("query-string");
@@ -57,6 +60,8 @@ export default class PedidoList extends Component {
     this.getClientsByDay = this.getClientsByDay.bind(this);
     this.getQuantity = this.getQuantity.bind(this);
     this.handleClose = this.handleClose.bind(this);
+    this.abrirDetallesPago = this.abrirDetallesPago.bind(this);
+    this.cerrarDetallesPago = this.cerrarDetallesPago.bind(this);
 
     this.state = {
       pedidos: [],
@@ -74,6 +79,9 @@ export default class PedidoList extends Component {
       quantityProd: {},
       openModal: false,
       prodDesc: [],
+      // Estados para modal de detalles de pago
+      modalDetallesPago: false,
+      pedidoSeleccionado: null,
     };
   }
 
@@ -115,7 +123,9 @@ export default class PedidoList extends Component {
         productos: data.productos,
         status: data.status,
         condPago: data.condPago || "",
+        datosPago: data.datosPago || {},
         total: data.total,
+        totalCosto: data.totalCosto,
       });
     });
 
@@ -249,6 +259,21 @@ export default class PedidoList extends Component {
     this.setState({ openModal: false });
   }
 
+  // Métodos para modal de detalles de pago
+  abrirDetallesPago(pedido) {
+    this.setState({
+      modalDetallesPago: true,
+      pedidoSeleccionado: pedido,
+    });
+  }
+
+  cerrarDetallesPago() {
+    this.setState({
+      modalDetallesPago: false,
+      pedidoSeleccionado: null,
+    });
+  }
+
   render() {
     const {
       pedidoFilter,
@@ -261,6 +286,8 @@ export default class PedidoList extends Component {
       openModal,
       quantityProd,
       prodDesc,
+      modalDetallesPago,
+      pedidoSeleccionado,
     } = this.state;
     let totalPorDia = 0;
     let totalPorDiaCosto = 0;
@@ -509,18 +536,31 @@ export default class PedidoList extends Component {
                             {pedido.status}
                           </TableCell>
                           <TableCell>
+                            {/* Botón de detalles de pago */}
+                            <Tooltip title="Ver detalles de pago">
+                              <IconButton
+                                aria-label="detalles-pago"
+                                size="small"
+                                onClick={() => this.abrirDetallesPago(pedido)}
+                                disabled={!pedido.condPago}
+                              >
+                                <PaymentIcon color={pedido.condPago ? "primary" : "disabled"} />
+                              </IconButton>
+                            </Tooltip>
                             <IconButton
-                              aria-label="delete"
+                              aria-label="editar"
                               className="action__link"
                               href={`/logistic/edit-pedido/${pedido.id}`}
                               role="button"
+                              size="small"
                             >
                               <EditIcon />
                             </IconButton>
                             <IconButton
-                              aria-label="delete"
+                              aria-label="eliminar"
                               type="button"
                               className="action__button"
+                              size="small"
                               onClick={() =>
                                 alert("Eliminar", "Estás seguro???", [
                                   { text: "Cancelar" },
@@ -539,6 +579,7 @@ export default class PedidoList extends Component {
                               role="button"
                               aria-label="imprimir"
                               className="action__link"
+                              size="small"
                             >
                               <PrintOutlinedIcon />
                             </IconButton>
@@ -582,6 +623,182 @@ export default class PedidoList extends Component {
               </div>
             )}
           </div>
+
+          {/* Modal de Detalles de Pago */}
+          <Dialog
+            open={modalDetallesPago}
+            onClose={this.cerrarDetallesPago}
+            maxWidth="sm"
+            fullWidth
+            PaperProps={{
+              style: {
+                margin: '8px',
+                maxWidth: '95vw',
+              }
+            }}
+          >
+            <DialogTitle sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              backgroundColor: '#f5f5f5',
+              borderBottom: '1px solid #e0e0e0'
+            }}>
+              <PaymentIcon color="primary" />
+              Detalles de Pago
+              {pedidoSeleccionado && (
+                <Box component="span" sx={{ ml: 'auto', fontSize: '0.9rem', color: '#666' }}>
+                  Pedido #{pedidoSeleccionado.id}
+                </Box>
+              )}
+            </DialogTitle>
+            <DialogContent sx={{ padding: { xs: '16px', sm: '24px' } }}>
+              {pedidoSeleccionado && (
+                <Box>
+                  {/* Información general del pedido */}
+                  <Box sx={{ mb: 3, p: 2, bgcolor: '#f8f9fa', borderRadius: 1 }}>
+                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Box sx={{ fontWeight: 'bold', color: '#333', mb: 0.5 }}>Cliente:</Box>
+                        <Box sx={{ fontSize: '0.9rem' }}>{pedidoSeleccionado.clienteName}</Box>
+                      </Box>
+                      <Box sx={{ flex: 1 }}>
+                        <Box sx={{ fontWeight: 'bold', color: '#333', mb: 0.5 }}>Total:</Box>
+                        <Box sx={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#2e7d32' }}>
+                          ${pedidoSeleccionado.total?.toFixed(2)}
+                        </Box>
+                      </Box>
+                    </Box>
+                  </Box>
+
+                  {/* Forma de pago */}
+                  <Box sx={{ mb: 2 }}>
+                    <Box sx={{
+                      fontWeight: 'bold',
+                      fontSize: '1.1rem',
+                      color: '#1976d2',
+                      mb: 2,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1
+                    }}>
+                      <InfoIcon fontSize="small" />
+                      Forma de Pago: {pedidoSeleccionado.condPago}
+                    </Box>
+
+                    {/* Detalles específicos según el tipo de pago */}
+                    {pedidoSeleccionado.condPago === 'Contado' && (
+                      <Box sx={{ pl: 2 }}>
+                        {pedidoSeleccionado.datosPago?.comentarios ? (
+                          <Box>
+                            <Box sx={{ fontWeight: 'bold', mb: 1 }}>Comentarios:</Box>
+                            <Box sx={{
+                              p: 2,
+                              bgcolor: '#fff3e0',
+                              borderLeft: '4px solid #ff9800',
+                              borderRadius: '0 4px 4px 0',
+                              fontStyle: 'italic'
+                            }}>
+                              {pedidoSeleccionado.datosPago.comentarios}
+                            </Box>
+                          </Box>
+                        ) : (
+                          <Box sx={{ color: '#666', fontStyle: 'italic' }}>
+                            Sin comentarios adicionales
+                          </Box>
+                        )}
+                      </Box>
+                    )}
+
+                    {pedidoSeleccionado.condPago === 'Cheque' && (
+                      <Box sx={{ pl: 2 }}>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                          <Box>
+                            <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Banco:</Box>
+                            <Box sx={{ p: 1, bgcolor: '#e3f2fd', borderRadius: 1 }}>
+                              {pedidoSeleccionado.datosPago?.banco || 'No especificado'}
+                            </Box>
+                          </Box>
+                          <Box>
+                            <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Nro de Cheque:</Box>
+                            <Box sx={{ p: 1, bgcolor: '#e3f2fd', borderRadius: 1 }}>
+                              {pedidoSeleccionado.datosPago?.nroCheque || 'No especificado'}
+                            </Box>
+                          </Box>
+                          <Box>
+                            <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Fecha Cobranza:</Box>
+                            <Box sx={{ p: 1, bgcolor: '#e3f2fd', borderRadius: 1 }}>
+                              {pedidoSeleccionado.datosPago?.fechaCobranza || 'No especificado'}
+                            </Box>
+                          </Box>
+                          <Box>
+                            <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>CUIT:</Box>
+                            <Box sx={{ p: 1, bgcolor: '#e3f2fd', borderRadius: 1 }}>
+                              {pedidoSeleccionado.datosPago?.cuit || 'No especificado'}
+                            </Box>
+                          </Box>
+                        </Box>
+                      </Box>
+                    )}
+
+                    {pedidoSeleccionado.condPago === 'Transferencia' && (
+                      <Box sx={{ pl: 2 }}>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                          <Box>
+                            <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Nro Transferencia:</Box>
+                            <Box sx={{ p: 1, bgcolor: '#e8f5e8', borderRadius: 1 }}>
+                              {pedidoSeleccionado.datosPago?.nroTransferencia || 'No especificado'}
+                            </Box>
+                          </Box>
+                          <Box>
+                            <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Fecha:</Box>
+                            <Box sx={{ p: 1, bgcolor: '#e8f5e8', borderRadius: 1 }}>
+                              {pedidoSeleccionado.datosPago?.fecha || 'No especificado'}
+                            </Box>
+                          </Box>
+                          <Box>
+                            <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Emisor:</Box>
+                            <Box sx={{ p: 1, bgcolor: '#e8f5e8', borderRadius: 1 }}>
+                              {pedidoSeleccionado.datosPago?.emisor || 'No especificado'}
+                            </Box>
+                          </Box>
+                          <Box>
+                            <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Destinatario:</Box>
+                            <Box sx={{ p: 1, bgcolor: '#e8f5e8', borderRadius: 1 }}>
+                              {pedidoSeleccionado.datosPago?.destinatario || 'No especificado'}
+                            </Box>
+                          </Box>
+                        </Box>
+                      </Box>
+                    )}
+
+                    {/* Si no hay forma de pago específica */}
+                    {!pedidoSeleccionado.condPago && (
+                      <Box sx={{
+                        p: 2,
+                        bgcolor: '#ffebee',
+                        borderRadius: 1,
+                        textAlign: 'center',
+                        color: '#d32f2f'
+                      }}>
+                        No se ha especificado una forma de pago para este pedido
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+              )}
+            </DialogContent>
+            <DialogActions sx={{ padding: { xs: '16px', sm: '24px' } }}>
+              <Button
+                onClick={this.cerrarDetallesPago}
+                color="primary"
+                variant="contained"
+                fullWidth={window.innerWidth < 600}
+              >
+                Cerrar
+              </Button>
+            </DialogActions>
+          </Dialog>
         </div>
       </div>
     );

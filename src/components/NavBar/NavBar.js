@@ -67,6 +67,10 @@ const pageWindy = [
         name: 'Listado Pedidos',
         url: "/logistic/list-pedidos"
     },
+    {
+        name: 'Compras',
+        url: "/logistic/compras-list"
+    },
 ]
 
 const pageAdmin = [
