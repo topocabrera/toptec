@@ -45,8 +45,10 @@ export default class AddCompra extends Component {
                 fecha: moment(new Date().getTime()).format("DD-MM-YYYY"),
                 proveedor: "",
                 factura: "",
+                tipoCompra: "producto", // "producto" o "gasto_general"
                 productoId: "",
                 productoNombre: "",
+                descripcionGasto: "", // Para gastos generales
                 precio: "",
                 unidades: "",
                 descuentoFinanciero: "",
@@ -202,12 +204,17 @@ export default class AddCompra extends Component {
             Toast.fail("El proveedor es obligatorio", 2);
             return;
         }
-        if (!compra.factura) {
-            Toast.fail("El número de factura es obligatorio", 2);
+        // if (!compra.factura) {
+        //     Toast.fail("El número de factura es obligatorio", 2);
+        //     return;
+        // }
+        // Validación condicional basada en el tipo de compra
+        if (compra.tipoCompra === "producto" && !compra.productoId) {
+            Toast.fail("Debe seleccionar un producto", 2);
             return;
         }
-        if (!compra.productoId) {
-            Toast.fail("Debe seleccionar un producto", 2);
+        if (compra.tipoCompra === "gasto_general" && !compra.descripcionGasto) {
+            Toast.fail("Debe especificar la descripción del gasto", 2);
             return;
         }
         if (!compra.precio || parseFloat(compra.precio) <= 0) {
@@ -231,7 +238,9 @@ export default class AddCompra extends Component {
         ComprasDataService.create(compraData)
             .then(() => {
                 // Actualizar el stock del producto después de registrar la compra exitosamente
-                this.updateProductStock();
+                if (compra?.productoId) {
+                    this.updateProductStock();
+                }
 
                 this.setState({
                     submitted: true
@@ -301,8 +310,10 @@ export default class AddCompra extends Component {
                 fecha: moment(new Date().getTime()).format("DD-MM-YYYY"),
                 proveedor: "",
                 factura: "",
+                tipoCompra: "producto",
                 productoId: "",
                 productoNombre: "",
+                descripcionGasto: "",
                 precio: "",
                 unidades: "",
                 descuentoFinanciero: "",

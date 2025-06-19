@@ -68,6 +68,11 @@ export default class EditPedido extends Component {
     this.onChangeValueProduct = this.onChangeValueProduct.bind(this);
     this.onChangePrecio = this.onChangePrecio.bind(this);
     this.onChangeTipo = this.onChangeTipo.bind(this);
+    // Funciones para manejo de forma de pago
+    this.abrirModalFormaPago = this.abrirModalFormaPago.bind(this);
+    this.cerrarModalFormaPago = this.cerrarModalFormaPago.bind(this);
+    this.onChangeDatosPago = this.onChangeDatosPago.bind(this);
+    this.finalizarPedidoConDatos = this.finalizarPedidoConDatos.bind(this);
 
     this.state = {
       products: [],
@@ -86,6 +91,8 @@ export default class EditPedido extends Component {
         totalCosto: 0,
         status: "Creado",
         fechaEntrega: null,
+        condPago: "",
+        datosPago: {}
       },
       producto: {
         peso: "",
@@ -104,7 +111,24 @@ export default class EditPedido extends Component {
       indexProdOpen: -1,
       tipoPrecio: "precio",
       precioMayorista: 0,
-      precioMinorista: 0
+      precioMinorista: 0,
+      // Estados para el modal de forma de pago
+      modalFormaPago: false,
+      formaPagoSeleccionada: "",
+      datosPago: {
+        // Para Contado
+        comentarios: "",
+        // Para Cheque
+        banco: "",
+        nroCheque: "",
+        fechaCobranza: "",
+        cuit: "",
+        // Para Transferencia
+        nroTransferencia: "",
+        fecha: "",
+        emisor: "",
+        destinatario: ""
+      }
     };
   }
 
@@ -391,6 +415,114 @@ export default class EditPedido extends Component {
     this.setState({ open: !this.state.open });
   }
 
+  // Funciones para manejo de forma de pago
+  abrirModalFormaPago(formaPago) {
+    // Si el pedido ya tiene datos de pago, cargarlos en el modal
+    const datosPagoExistentes = this.state.pedido.datosPago || {};
+    
+    this.setState({
+      modalFormaPago: true,
+      formaPagoSeleccionada: formaPago,
+      datosPago: {
+        // Para Contado
+        comentarios: datosPagoExistentes.comentarios || "",
+        // Para Cheque
+        banco: datosPagoExistentes.banco || "",
+        nroCheque: datosPagoExistentes.nroCheque || "",
+        fechaCobranza: datosPagoExistentes.fechaCobranza || "",
+        cuit: datosPagoExistentes.cuit || "",
+        // Para Transferencia
+        nroTransferencia: datosPagoExistentes.nroTransferencia || "",
+        fecha: datosPagoExistentes.fecha || "",
+        emisor: datosPagoExistentes.emisor || "",
+        destinatario: datosPagoExistentes.destinatario || ""
+      }
+    });
+  }
+
+  cerrarModalFormaPago() {
+    this.setState({
+      modalFormaPago: false,
+      formaPagoSeleccionada: "",
+    });
+  }
+
+  onChangeDatosPago(campo, valor) {
+    this.setState({
+      datosPago: {
+        ...this.state.datosPago,
+        [campo]: valor
+      }
+    });
+  }
+
+  finalizarPedidoConDatos() {
+    const { formaPagoSeleccionada, datosPago } = this.state;
+
+    // Validar campos obligatorios según la forma de pago
+    let camposRequeridos = [];
+    switch (formaPagoSeleccionada) {
+      case 'Contado':
+        // Comentarios es opcional para contado
+        break;
+      case 'Cheque':
+        if (!datosPago.banco) camposRequeridos.push('Banco');
+        if (!datosPago.nroCheque) camposRequeridos.push('Nro de Cheque');
+        if (!datosPago.fechaCobranza) camposRequeridos.push('Fecha Cobranza');
+        if (!datosPago.cuit) camposRequeridos.push('CUIT');
+        break;
+      case 'Transferencia':
+        if (!datosPago.nroTransferencia) camposRequeridos.push('Nro Transferencia');
+        if (!datosPago.fecha) camposRequeridos.push('Fecha');
+        if (!datosPago.emisor) camposRequeridos.push('Emisor');
+        if (!datosPago.destinatario) camposRequeridos.push('Destinatario');
+        break;
+    }
+
+    if (camposRequeridos.length > 0) {
+      Toast.fail(`Faltan completar los siguientes campos: ${camposRequeridos.join(', ')}`, 3);
+      return;
+    }
+
+    // Actualizar el pedido con los datos de pago
+    this.setState({
+      pedido: {
+        ...this.state.pedido,
+        condPago: formaPagoSeleccionada,
+        datosPago: datosPago,
+      }
+    }, () => {
+      // Después de actualizar el estado, actualizar el pedido en la base de datos
+      this.updatePedidoConPago();
+    });
+    
+    this.cerrarModalFormaPago();
+  }
+
+  updatePedidoConPago() {
+    let data = {
+      id: this.state.pedido.id,
+      idCliente: this.state.pedido.idCliente,
+      clienteName: this.state.pedido.clienteName,
+      productos: this.state.pedido.productos,
+      fecha: this.state.pedido.fecha,
+      status: this.state.pedido.status,
+      fechaEntrega: this.state.pedido.fechaEntrega,
+      total: this.state.pedido.total,
+      totalCosto: this.state.pedido.totalCosto,
+      condPago: this.state.pedido.condPago,
+      datosPago: this.state.pedido.datosPago,
+    };
+
+    PedidosDataService.update(this.state.pedido.key, data)
+      .then(() => {
+        Toast.success("Pedido actualizado con datos de pago!", 2);
+      })
+      .catch((e) => {
+        Toast.fail("Ocurrió un error al actualizar !!!", 2);
+      });
+  }
+
   render() {
     const {
       submitted,
@@ -409,7 +541,10 @@ export default class EditPedido extends Component {
       indexProdOpen,
       producto,
       precio,
-      tipoPrecio
+      tipoPrecio,
+      modalFormaPago,
+      formaPagoSeleccionada,
+      datosPago
     } = this.state;
     const displayTable = searchTitle !== "" ? productoFilter : products;
     let subtotalDto = 0.0;
@@ -831,17 +966,203 @@ export default class EditPedido extends Component {
                   );
                 })}
             </div>
+            {/* Mostrar información de pago actual */}
+            {pedido.condPago && (
+              <div style={{ margin: '10px 0', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '5px' }}>
+                <h5>Información de Pago Actual:</h5>
+                <p><strong>Tipo de Pago:</strong> {pedido.condPago}</p>
+                {pedido.condPago === 'Contado' && pedido.datosPago?.comentarios && (
+                  <p><strong>Comentarios:</strong> {pedido.datosPago.comentarios}</p>
+                )}
+                {pedido.condPago === 'Cheque' && (
+                  <>
+                    <p><strong>Banco:</strong> {pedido.datosPago?.banco}</p>
+                    <p><strong>Nro de Cheque:</strong> {pedido.datosPago?.nroCheque}</p>
+                    <p><strong>Fecha Cobranza:</strong> {pedido.datosPago?.fechaCobranza}</p>
+                    <p><strong>CUIT:</strong> {pedido.datosPago?.cuit}</p>
+                  </>
+                )}
+                {pedido.condPago === 'Transferencia' && (
+                  <>
+                    <p><strong>Nro Transferencia:</strong> {pedido.datosPago?.nroTransferencia}</p>
+                    <p><strong>Fecha:</strong> {pedido.datosPago?.fecha}</p>
+                    <p><strong>Emisor:</strong> {pedido.datosPago?.emisor}</p>
+                    <p><strong>Destinatario:</strong> {pedido.datosPago?.destinatario}</p>
+                  </>
+                )}
+              </div>
+            )}
+
             <div role="region" className="total-banner">
               <p className="total__text">Total: $ {pedido.total.toFixed(2)}</p>
-              <Button
-                variant="contained"
-                color="primary"
-                className="total__button"
-                onClick={this.updatePedido}
-              >
-                Actualizar pedido
-              </Button>
-            </div>
+                            <div className="total-buttons" style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '10px' }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  className="total__button"
+                  onClick={this.updatePedido}
+                >
+                  Actualizar pedido
+                </Button>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  className="total__button"
+                  onClick={() =>
+                    alert(
+                      "Forma de Pago",
+                      `Forma de pago actual: ${pedido.condPago || 'No definida'}\n\nSeleccione nueva forma de pago:`,
+                      [
+                        {
+                          text: "Contado",
+                          onPress: () => this.abrirModalFormaPago('Contado'),
+                        },
+                        {
+                          text: "Cheque",
+                          onPress: () => this.abrirModalFormaPago('Cheque'),
+                        },
+                        {
+                          text: "Transferencia",
+                          onPress: () => this.abrirModalFormaPago('Transferencia'),
+                        },
+                        {
+                          text: "Cancelar",
+                        },
+                      ]
+                    )
+                  }
+                  disabled={pedido.total === 0}
+                >
+                  {pedido.condPago ? `Editar Pago (${pedido.condPago})` : 'Definir Forma de Pago'}
+                </Button>
+              </div>
+              </div>
+
+            {/* Modal de Forma de Pago */}
+            <Dialog
+              open={modalFormaPago}
+              onClose={this.cerrarModalFormaPago}
+              maxWidth="sm"
+              fullWidth
+            >
+              <DialogTitle>
+                Datos de {formaPagoSeleccionada}
+              </DialogTitle>
+              <DialogContent>
+                {formaPagoSeleccionada === 'Contado' && (
+                  <TextField
+                    autoFocus
+                    margin="dense"
+                    label="Comentarios (opcional)"
+                    type="text"
+                    fullWidth
+                    multiline
+                    rows={3}
+                    variant="outlined"
+                    value={datosPago.comentarios}
+                    onChange={(e) => this.onChangeDatosPago('comentarios', e.target.value)}
+                  />
+                )}
+
+                {formaPagoSeleccionada === 'Cheque' && (
+                  <>
+                    <TextField
+                      autoFocus
+                      margin="dense"
+                      label="Banco *"
+                      type="text"
+                      fullWidth
+                      variant="outlined"
+                      value={datosPago.banco}
+                      onChange={(e) => this.onChangeDatosPago('banco', e.target.value)}
+                    />
+                    <TextField
+                      margin="dense"
+                      label="Nro de Cheque *"
+                      type="text"
+                      fullWidth
+                      variant="outlined"
+                      value={datosPago.nroCheque}
+                      onChange={(e) => this.onChangeDatosPago('nroCheque', e.target.value)}
+                    />
+                    <TextField
+                      margin="dense"
+                      label="Fecha Cobranza *"
+                      type="date"
+                      fullWidth
+                      variant="outlined"
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      value={datosPago.fechaCobranza}
+                      onChange={(e) => this.onChangeDatosPago('fechaCobranza', e.target.value)}
+                    />
+                    <TextField
+                      margin="dense"
+                      label="CUIT *"
+                      type="text"
+                      fullWidth
+                      variant="outlined"
+                      value={datosPago.cuit}
+                      onChange={(e) => this.onChangeDatosPago('cuit', e.target.value)}
+                    />
+                  </>
+                )}
+
+                {formaPagoSeleccionada === 'Transferencia' && (
+                  <>
+                    <TextField
+                      autoFocus
+                      margin="dense"
+                      label="Nro Transferencia *"
+                      type="text"
+                      fullWidth
+                      variant="outlined"
+                      value={datosPago.nroTransferencia}
+                      onChange={(e) => this.onChangeDatosPago('nroTransferencia', e.target.value)}
+                    />
+                    <TextField
+                      margin="dense"
+                      label="Fecha *"
+                      type="date"
+                      fullWidth
+                      variant="outlined"
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      value={datosPago.fecha}
+                      onChange={(e) => this.onChangeDatosPago('fecha', e.target.value)}
+                    />
+                    <TextField
+                      margin="dense"
+                      label="Emisor *"
+                      type="text"
+                      fullWidth
+                      variant="outlined"
+                      value={datosPago.emisor}
+                      onChange={(e) => this.onChangeDatosPago('emisor', e.target.value)}
+                    />
+                    <TextField
+                      margin="dense"
+                      label="Destinatario *"
+                      type="text"
+                      fullWidth
+                      variant="outlined"
+                      value={datosPago.destinatario}
+                      onChange={(e) => this.onChangeDatosPago('destinatario', e.target.value)}
+                    />
+                  </>
+                )}
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={this.cerrarModalFormaPago} color="secondary">
+                  Cancelar
+                </Button>
+                <Button onClick={this.finalizarPedidoConDatos} color="primary" variant="contained">
+                  Guardar Datos de Pago
+                </Button>
+              </DialogActions>
+            </Dialog>
           </div>
         )}
       </div>
