@@ -1,6 +1,6 @@
 import React, { Component } from "react";
-import ProductosDataService from "../../../services/productos.service";
-import { marcasLogistic } from "../../../utils/default";
+import { getMarcasLogistic } from "../../../utils/default";
+import { getSmartService, generateSmartRoute } from "../../../utils/routeHelper";
 import {
   Button,
   TextField,
@@ -37,7 +37,8 @@ export default class EditProduct extends Component {
   }
 
   componentDidMount() {
-    ProductosDataService.getAll()
+    const ProductosService = getSmartService('productos');
+    ProductosService.getAll()
       .orderByChild("id")
       .once("value", this.onDataChange);
   }
@@ -92,7 +93,8 @@ export default class EditProduct extends Component {
     if (porcentaje > 0) {
       promises.forEach(promise => {
         const data = { precio: promise.precio }
-        ProductosDataService.update(promise.key, data)
+        const ProductosService = getSmartService('productos');
+        ProductosService.update(promise.key, data)
           .then(() => {
             this.setState({
               submitted: true,
@@ -120,14 +122,14 @@ export default class EditProduct extends Component {
             <h4>Precios editados correctamente!</h4>
             <a
               className="btn btn-primary go-listado"
-              href="/logistic/list-products"
+              href={generateSmartRoute("/list-products")}
               role="button"
             >
               Listado
             </a>
             <a
               className="btn btn-primary go-listado"
-              href="/logistic/change-price"
+              href={generateSmartRoute("/change-price")}
               role="button"
             >
               Editar nuevamente
@@ -168,7 +170,7 @@ export default class EditProduct extends Component {
                     className="select__form"
                     fullWidth
                   >
-                    {marcasLogistic.map((marca) => (
+                    {getMarcasLogistic().map((marca) => (
                       <MenuItem key={marca} value={marca}>
                         {marca}
                       </MenuItem>

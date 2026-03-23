@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import ProductosDataService from "../../../services/productos.service";
-import { marcasLogistic as marcas } from "../../../utils/default";
+import { getMarcasLogistic } from "../../../utils/default";
 import {
   Button,
   TextField,
@@ -12,6 +11,7 @@ import {
   MenuItem,
   Select,
 } from "@mui/material";
+import { getSmartService, generateSmartRoute } from "../../../utils/routeHelper";
 
 const EditProduct = () => {
   const { id } = useParams();
@@ -32,7 +32,8 @@ const EditProduct = () => {
 
   useEffect(() => {
     const productId = parseInt(id, 10);
-    ProductosDataService.getAll()
+    const ProductosService = getSmartService('productos');
+    ProductosService.getAll()
       .orderByChild("id")
       .equalTo(productId)
       .once("value", onDataChange);
@@ -65,7 +66,8 @@ const EditProduct = () => {
       peso: currentProduct.peso,
     };
 
-    ProductosDataService.update(currentProduct.key, data)
+    const ProductosService = getSmartService('productos');
+    ProductosService.update(currentProduct.key, data)
       .then(() => {
         setSubmitted(true);
       })
@@ -81,7 +83,7 @@ const EditProduct = () => {
           <h4>Producto editado correctamente!</h4>
           <a
             className="btn btn-primary go-listado"
-            href="/logistic/list-products"
+            href={generateSmartRoute("/list-products")}
             role="button"
           >
             Listado
@@ -129,7 +131,7 @@ const EditProduct = () => {
                   name="marca"
                   fullWidth
                 >
-                  {marcas.map((marca) => (
+                  {getMarcasLogistic().map((marca) => (
                     <MenuItem key={marca} value={marca}>
                       {marca}
                     </MenuItem>

@@ -25,6 +25,24 @@ export const marcasLogistic = [
   "Candela"
 ]
 
+export const marcasLogisticMax = [
+  "Quento",
+  "Rasta",
+  "Arcor",
+  "Golosinas importadas",
+  "Piñata",
+  "Yummy",
+  "Otros"
+]
+
+export const getMarcasLogistic = () => {
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  if (currentUser?.rol === "max") {
+    return marcasLogisticMax;
+  }
+  return marcasLogistic;
+}
+
 export const tipoCliente = [
   "HOME",
   "CORPORATIVO"

@@ -73,6 +73,65 @@ const pageWindy = [
     },
 ]
 
+const pageMax = [
+    {
+        name: 'Listado Clientes',
+        url: "/max/list-client"
+    },
+    {
+        name: 'Listado Productos',
+        url: "/max/list-products"
+    },
+    {
+        name: 'Nueva Visita',
+        url: "/max/new-visit"
+    },
+    {
+        name: 'Cambiar precios',
+        url: "/max/change-price"
+    },
+    {
+        name: 'Listado Pedidos',
+        url: "/max/list-pedidos"
+    },
+    {
+        name: 'Compras',
+        url: "/max/compras-list"
+    },
+]
+
+// Menú Nico (solo productos: listar, crear, editar, eliminar, carga masiva)
+const pageNico = [
+    {
+        name: 'Listado Productos',
+        url: "/nico/list-products"
+    },
+    {
+        name: 'Nuevo Producto',
+        url: "/nico/products"
+    },
+    {
+        name: 'Carga masiva (Excel/CSV)',
+        url: "/nico/products-bulk"
+    },
+]
+
+// Menú restringido para max-vendedor (solo crear pedidos)
+const pageMaxVendedor = [
+    {
+        name: 'Listado Clientes',
+        url: "/max/list-client"
+    },
+    {
+        name: 'Listado Productos',
+        url: "/max/list-products"
+    },
+    {
+        name: 'Listado Pedidos',
+        url: "/max/list-pedidos"
+    },
+]
+
 const pageAdmin = [
     {
         name: 'Precios',
@@ -157,6 +216,24 @@ function NavBar() {
                                         <Link href={page.url} sx={{ textDecoration: 'none', color: '#000' }}>{page.name}</Link>
                                     </MenuItem>
                                 ))}
+                            {currentUser?.rol === "max" &&
+                                pageMax.map((page) => (
+                                    <MenuItem key={page.name}>
+                                        <Link href={page.url} sx={{ textDecoration: 'none', color: '#000' }}>{page.name}</Link>
+                                    </MenuItem>
+                                ))}
+                            {currentUser?.rol === "max-vendedor" &&
+                                pageMaxVendedor.map((page) => (
+                                    <MenuItem key={page.name}>
+                                        <Link href={page.url} sx={{ textDecoration: 'none', color: '#000' }}>{page.name}</Link>
+                                    </MenuItem>
+                                ))}
+                            {currentUser?.rol === "nico" &&
+                                pageNico.map((page) => (
+                                    <MenuItem key={page.name}>
+                                        <Link href={page.url} sx={{ textDecoration: 'none', color: '#000' }}>{page.name}</Link>
+                                    </MenuItem>
+                                ))}
                         </Menu>
                     </Box>
                     <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
@@ -184,6 +261,39 @@ function NavBar() {
                         ))}
                         {(currentUser.rol === 'seguros' || currentUser.rol === 'admin') &&
                             pageSeguros.map((page) => (
+                                <Button
+                                    key={page.name}
+                                    href={page.url}
+                                    onClick={handleCloseNavMenu}
+                                    sx={{ my: 2, color: 'black', display: 'block', marginLeft: '10px' }}
+                                >
+                                    {page.name}
+                                </Button>
+                            ))}
+                        {currentUser?.rol === "max" &&
+                            pageMax.map((page) => (
+                                <Button
+                                    key={page.name}
+                                    href={page.url}
+                                    onClick={handleCloseNavMenu}
+                                    sx={{ my: 2, color: 'black', display: 'block', marginLeft: '10px' }}
+                                >
+                                    {page.name}
+                                </Button>
+                            ))}
+                        {currentUser?.rol === "max-vendedor" &&
+                            pageMaxVendedor.map((page) => (
+                                <Button
+                                    key={page.name}
+                                    href={page.url}
+                                    onClick={handleCloseNavMenu}
+                                    sx={{ my: 2, color: 'black', display: 'block', marginLeft: '10px' }}
+                                >
+                                    {page.name}
+                                </Button>
+                            ))}
+                        {currentUser?.rol === "nico" &&
+                            pageNico.map((page) => (
                                 <Button
                                     key={page.name}
                                     href={page.url}

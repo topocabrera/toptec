@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Toast } from "antd-mobile";
 import { useParams } from "react-router-dom";
-import PedidosDataService from "../../../services/pedidos.service";
-import ClientsDataService from "../../../services/clients.service";
 import { Modal } from "antd-mobile";
 import SearchIcon from "@mui/icons-material/Search";
 import { IconButton, Tooltip, Collapse, Box } from "@mui/material";
@@ -13,6 +11,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import moment from "moment";
+import { getSmartService, generateSmartRoute } from "../../../utils/routeHelper";
 
 const alert = Modal.alert;
 
@@ -60,7 +59,8 @@ const ClientPedidos = ({ match }) => {
     };
 
     const getClientData = () => {
-        ClientsDataService.getAll()
+        const ClientsService = getSmartService('clientes');
+        ClientsService.getAll()
             .orderByChild("id")
             .equalTo(parseInt(clientId, 10))
             .on("value", (items) => {
@@ -82,15 +82,18 @@ const ClientPedidos = ({ match }) => {
 
     useEffect(() => {
         getClientData();
-        PedidosDataService.getAll()
+        const PedidosService = getSmartService('pedidos');
+        PedidosService.getAll()
             .orderByChild("idCliente")
             .equalTo(parseInt(clientId, 10))
             .on("value", onDataChange);
 
         // Cleanup function
         return () => {
-            PedidosDataService.getAll().off("value", onDataChange);
-            ClientsDataService.getAll().off("value", getClientData);
+            const PedidosServiceCleanup = getSmartService('pedidos');
+            const ClientsServiceCleanup = getSmartService('clientes');
+            PedidosServiceCleanup.getAll().off("value", onDataChange);
+            ClientsServiceCleanup.getAll().off("value", getClientData);
         };
     }, [clientId]);
 
@@ -120,7 +123,8 @@ const ClientPedidos = ({ match }) => {
     };
 
     const deletePedido = (key) => {
-        PedidosDataService.delete(key)
+        const PedidosService = getSmartService('pedidos');
+        PedidosService.delete(key)
             .then(() => {
                 Toast.success("Pedido eliminado correctamente!", 1);
             })
@@ -218,7 +222,7 @@ const ClientPedidos = ({ match }) => {
                 <div className="client-header mb-4">
                     <div className="d-flex align-items-center mb-3">
                         <IconButton
-                            href="/logistic/list-client"
+                            href={generateSmartRoute("/list-client")}
                             className="me-2"
                             title="Volver al listado de clientes"
                         >
@@ -248,7 +252,7 @@ const ClientPedidos = ({ match }) => {
                 <div className="new-pedido mb-3">
                     <a
                         className="btn btn-primary"
-                        href={`/logistic/pedido/${client.id}`}
+                        href={generateSmartRoute(`/pedido/${client.id}`)}
                         role="button"
                     >
                         Nuevo Pedido
@@ -280,7 +284,7 @@ const ClientPedidos = ({ match }) => {
                         <p>No hay pedidos registrados para este cliente.</p>
                         <a
                             className="btn btn-success"
-                            href={`/logistic/pedido/${client.id}`}
+                            href={generateSmartRoute(`/pedido/${client.id}`)}
                         >
                             Crear Primer Pedido
                         </a>
@@ -352,7 +356,7 @@ const ClientPedidos = ({ match }) => {
                                                     <Tooltip title="Ver Factura">
                                                         <IconButton
                                                             className="action__link"
-                                                            href={`/logistic/factura/${pedido.id}`}
+                                                            href={generateSmartRoute(`/imprimir/${pedido.id}`)}
                                                             role="button"
                                                         >
                                                             <ReceiptIcon />
@@ -361,7 +365,7 @@ const ClientPedidos = ({ match }) => {
                                                     <Tooltip title="Editar Pedido">
                                                         <IconButton
                                                             className="action__link"
-                                                            href={`/logistic/edit-pedido/${pedido.id}`}
+                                                            href={generateSmartRoute(`/edit-pedido/${pedido.id}`)}
                                                             role="button"
                                                         >
                                                             <EditIcon />

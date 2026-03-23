@@ -12,14 +12,28 @@ import {
     CardContent,
     Typography,
     InputAdornment,
-    Divider
+    Divider,
+    IconButton,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    CircularProgress,
+    Autocomplete
 } from "@mui/material";
+import { Add, Delete } from "@mui/icons-material";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import moment from "moment";
-import ComprasDataService from "../../../services/compras.service";
-import ProductosDataService from "../../../services/productos.service";
+import 'moment/locale/es'; // Importar locale español
+import { getSmartService, generateSmartRoute } from "../../../utils/routeHelper";
+
+// Configurar moment en español
+moment.locale('es');
 
 export default class AddCompra extends Component {
     constructor(props) {
@@ -27,11 +41,10 @@ export default class AddCompra extends Component {
         this.onDataChange = this.onDataChange.bind(this);
         this.onChangeProveedor = this.onChangeProveedor.bind(this);
         this.onChangeFactura = this.onChangeFactura.bind(this);
-        this.onChangeProducto = this.onChangeProducto.bind(this);
-        this.onChangePrecio = this.onChangePrecio.bind(this);
-        this.onChangeUnidades = this.onChangeUnidades.bind(this);
-        this.onChangeDescuento = this.onChangeDescuento.bind(this);
         this.onChangeFecha = this.onChangeFecha.bind(this);
+        this.addProducto = this.addProducto.bind(this);
+        this.removeProducto = this.removeProducto.bind(this);
+        this.onChangeProductoItem = this.onChangeProductoItem.bind(this);
         this.calcularTotal = this.calcularTotal.bind(this);
         this.saveCompra = this.saveCompra.bind(this);
         this.updateProductStock = this.updateProductStock.bind(this);
@@ -45,36 +58,36 @@ export default class AddCompra extends Component {
                 fecha: moment(new Date().getTime()).format("DD-MM-YYYY"),
                 proveedor: "",
                 factura: "",
-                tipoCompra: "producto", // "producto" o "gasto_general"
-                productoId: "",
-                productoNombre: "",
-                descripcionGasto: "", // Para gastos generales
-                precio: "",
-                unidades: "",
-                descuentoFinanciero: "",
+                tipoCompra: "producto",
+                productos: [], // Array de productos
                 total: 0
             },
             submitted: false,
-            lastId: 0
+            lastId: 0,
+            loading: false
         };
     }
 
     componentDidMount() {
         // Obtener el último ID de compras
-        ComprasDataService.getAll()
+        const ComprasService = getSmartService('compras');
+        ComprasService.getAll()
             .orderByChild("id")
             .limitToLast(1)
             .once("child_added", this.getLastId);
 
         // Obtener todos los productos para el desplegable
-        ProductosDataService.getAll()
+        const ProductosService = getSmartService('productos');
+        ProductosService.getAll()
             .orderByChild("descripcion")
             .once("value", this.onDataChange);
     }
 
     componentWillUnmount() {
-        ProductosDataService.getAll().off("value", this.onDataChange);
-        ComprasDataService.getAll().off("child_added", this.getLastId);
+        const ProductosService = getSmartService('productos');
+        const ComprasService = getSmartService('compras');
+        ProductosService.getAll().off("value", this.onDataChange);
+        ComprasService.getAll().off("child_added", this.getLastId);
     }
 
     getLastId(items) {
@@ -97,7 +110,8 @@ export default class AddCompra extends Component {
                 descripcion: data.descripcion,
                 marca: data.marca,
                 precio: data.precio,
-                precioCosto: data.precioCosto
+                precioCosto: data.precioCosto,
+                stock: data.stock || 0
             });
         });
         this.setState({ productos });
@@ -110,7 +124,7 @@ export default class AddCompra extends Component {
                 ...this.state.compra,
                 fecha: dateFormat
             }
-        }, this.calcularTotal);
+        });
     }
 
     onChangeProveedor(e) {
@@ -131,69 +145,81 @@ export default class AddCompra extends Component {
         });
     }
 
-    onChangeProducto(e) {
-        const selectedProduct = this.state.productos.find(p => p.id === e.target.value);
+    addProducto() {
+        const newProducto = {
+            productoId: "",
+            productoNombre: "",
+            precio: "",
+            unidades: "",
+            descuentoFinanciero: 0,
+            subtotal: 0
+        };
+
         this.setState({
             compra: {
                 ...this.state.compra,
-                productoId: e.target.value,
+                productos: [...this.state.compra.productos, newProducto]
+            }
+        });
+    }
+
+    removeProducto(index) {
+        const productos = [...this.state.compra.productos];
+        productos.splice(index, 1);
+        this.setState({
+            compra: {
+                ...this.state.compra,
+                productos: productos
+            }
+        }, this.calcularTotal);
+    }
+
+    onChangeProductoItem(index, field, value) {
+        const productos = [...this.state.compra.productos];
+        
+        if (field === 'productoId') {
+            const selectedProduct = this.state.productos.find(p => p.id === value);
+            productos[index] = {
+                ...productos[index],
+                productoId: value,
                 productoNombre: selectedProduct ? selectedProduct.descripcion : ""
-            }
-        }, this.calcularTotal);
-    }
+            };
+        } else {
+            productos[index] = {
+                ...productos[index],
+                [field]: value
+            };
+        }
 
-    onChangePrecio(e) {
+        // Calcular subtotal para este producto
+        if (productos[index].precio && productos[index].unidades) {
+            const precio = parseFloat(productos[index].precio) || 0;
+            const unidades = parseFloat(productos[index].unidades) || 0;
+            const descuento = parseFloat(productos[index].descuentoFinanciero) || 0;
+            productos[index].subtotal = precio * unidades * (1 - descuento / 100);
+        } else {
+            productos[index].subtotal = 0;
+        }
+
         this.setState({
             compra: {
                 ...this.state.compra,
-                precio: e.target.value
-            }
-        }, this.calcularTotal);
-    }
-
-    onChangeUnidades(e) {
-        this.setState({
-            compra: {
-                ...this.state.compra,
-                unidades: e.target.value
-            }
-        }, this.calcularTotal);
-    }
-
-    onChangeDescuento(e) {
-        this.setState({
-            compra: {
-                ...this.state.compra,
-                descuentoFinanciero: e.target.value
+                productos: productos
             }
         }, this.calcularTotal);
     }
 
     calcularTotal() {
-        const { precio, unidades, descuentoFinanciero } = this.state.compra;
+        const total = this.state.compra.productos.reduce((sum, producto) => {
+            return sum + (producto.subtotal || 0);
+        }, 0);
 
-        if (precio && unidades) {
-            const precioFloat = parseFloat(precio) || 0;
-            const unidadesFloat = parseFloat(unidades) || 0;
-            const descuentoFloat = parseFloat(descuentoFinanciero) || 0;
-
-            // Fórmula: precio * unidades * (1 - descuento/100)
-            const total = precioFloat * unidadesFloat * (1 - descuentoFloat / 100);
-
-            this.setState({
-                compra: {
-                    ...this.state.compra,
-                    total: total
-                }
-            });
-        } else {
-            this.setState({
-                compra: {
-                    ...this.state.compra,
-                    total: 0
-                }
-            });
-        }
+        this.setState({
+            compra: {
+                ...this.state.compra,
+                total: total
+            }
+        });
     }
 
     saveCompra() {
@@ -204,43 +230,50 @@ export default class AddCompra extends Component {
             Toast.fail("El proveedor es obligatorio", 2);
             return;
         }
-        // if (!compra.factura) {
-        //     Toast.fail("El número de factura es obligatorio", 2);
-        //     return;
-        // }
-        // Validación condicional basada en el tipo de compra
-        if (compra.tipoCompra === "producto" && !compra.productoId) {
-            Toast.fail("Debe seleccionar un producto", 2);
+        if (!compra.factura) {
+            Toast.fail("El número de factura es obligatorio", 2);
             return;
         }
-        if (compra.tipoCompra === "gasto_general" && !compra.descripcionGasto) {
-            Toast.fail("Debe especificar la descripción del gasto", 2);
+        if (compra.productos.length === 0) {
+            Toast.fail("Debe agregar al menos un producto", 2);
             return;
         }
-        if (!compra.precio || parseFloat(compra.precio) <= 0) {
-            Toast.fail("El precio debe ser mayor a 0", 2);
-            return;
-        }
-        if (!compra.unidades || parseFloat(compra.unidades) <= 0) {
-            Toast.fail("Las unidades deben ser mayor a 0", 2);
-            return;
+
+        // Validar cada producto
+        for (let i = 0; i < compra.productos.length; i++) {
+            const producto = compra.productos[i];
+            if (producto.productoId === null || producto.productoId === undefined || producto.productoId === '') {
+                Toast.fail(`Debe seleccionar el producto en la fila ${i + 1}`, 2);
+                return;
+            }
+            if (!producto.precio || parseFloat(producto.precio) <= 0) {
+                Toast.fail(`El precio debe ser mayor a 0 en la fila ${i + 1}`, 2);
+                return;
+            }
+            if (!producto.unidades || parseFloat(producto.unidades) <= 0) {
+                Toast.fail(`Las unidades deben ser mayor a 0 en la fila ${i + 1}`, 2);
+                return;
+            }
         }
 
         const compraData = {
             ...compra,
-            fecha: compra.fecha,
-            precio: parseFloat(compra.precio),
-            unidades: parseFloat(compra.unidades),
-            descuentoFinanciero: parseFloat(compra.descuentoFinanciero) || 0,
-            total: compra.total
+            productos: compra.productos.map(p => ({
+                ...p,
+                precio: parseFloat(p.precio),
+                unidades: parseFloat(p.unidades),
+                descuentoFinanciero: parseFloat(p.descuentoFinanciero) || 0,
+                subtotal: p.subtotal
+            }))
         };
 
-        ComprasDataService.create(compraData)
+        this.setState({ loading: true });
+
+        const ComprasService = getSmartService('compras');
+        ComprasService.create(compraData)
             .then(() => {
-                // Actualizar el stock del producto después de registrar la compra exitosamente
-                if (compra?.productoId) {
-                    this.updateProductStock();
-                }
+                // Actualizar el stock de todos los productos
+                this.updateProductStock();
 
                 this.setState({
                     submitted: true
@@ -250,56 +283,61 @@ export default class AddCompra extends Component {
             .catch((e) => {
                 console.log(e);
                 Toast.fail("Error al guardar la compra", 2);
+            })
+            .finally(() => {
+                this.setState({ loading: false });
             });
     }
 
     updateProductStock() {
         const { compra } = this.state;
 
-        // Obtener todos los productos de la base de datos para encontrar el producto específico
-        ProductosDataService.getAll()
+        // Obtener todos los productos de la base de datos
+        const ProductosService = getSmartService('productos');
+        ProductosService.getAll()
             .once("value", (snapshot) => {
-                let productoKey = null;
-                let productoActual = null;
+                const productosDB = {};
+                const productosKeys = {};
 
-                // Buscar el producto por ID
+                // Crear un mapa de productos por ID
                 snapshot.forEach((childSnapshot) => {
                     const producto = childSnapshot.val();
                     const key = childSnapshot.key;
+                    productosDB[producto.id] = producto;
+                    productosKeys[producto.id] = key;
+                });
 
-                    if (producto.id === compra.productoId) {
-                        productoKey = key;
-                        productoActual = producto;
+                // Actualizar el stock de cada producto en la compra
+                const updatePromises = compra.productos.map(productoCompra => {
+                    const productoActual = productosDB[productoCompra.productoId];
+                    const productoKey = productosKeys[productoCompra.productoId];
+
+                    if (productoActual && productoKey) {
+                        const stockActual = parseFloat(productoActual.stock) || 0;
+                        const unidadesCompradas = parseFloat(productoCompra.unidades);
+                        const nuevoStock = stockActual + unidadesCompradas;
+
+                        const ProductosUpdateService = getSmartService('productos');
+                        return ProductosUpdateService.update(productoKey, {
+                            stock: nuevoStock
+                        }).then(() => {
+                            console.log(`Stock actualizado para ${productoCompra.productoNombre}: ${stockActual} -> ${nuevoStock}`);
+                        });
+                    } else {
+                        console.warn(`Producto no encontrado: ID ${productoCompra.productoId}`);
+                        return Promise.resolve();
                     }
                 });
 
-                if (productoActual && productoKey) {
-                    // Calcular el nuevo stock sumando las unidades compradas
-                    const stockActual = parseFloat(productoActual.stock) || 0;
-                    const unidadesCompradas = parseFloat(compra.unidades);
-                    const nuevoStock = stockActual + unidadesCompradas;
-
-                    // Actualizar el producto con el nuevo stock
-                    const datosActualizacion = {
-                        stock: nuevoStock
-                    };
-
-                    ProductosDataService.update(productoKey, datosActualizacion)
-                        .then(() => {
-                            console.log(`Stock actualizado para producto ${compra.productoNombre}: ${stockActual} -> ${nuevoStock}`);
-                        })
-                        .catch((error) => {
-                            console.error(`Error actualizando stock del producto ${compra.productoNombre}:`, error);
-                            Toast.fail(`Error actualizando stock del producto`, 2);
-                        });
-                } else {
-                    console.warn(`Producto no encontrado en la base de datos: ID ${compra.productoId}`);
-                    Toast.fail("Error: Producto no encontrado para actualizar stock", 2);
-                }
+                Promise.all(updatePromises)
+                    .catch((error) => {
+                        console.error("Error actualizando stocks:", error);
+                        Toast.fail("Error actualizando algunos stocks de productos", 2);
+                    });
             })
             .catch((error) => {
                 console.error("Error obteniendo productos para actualizar stock:", error);
-                Toast.fail("Error actualizando el stock del producto", 2);
+                Toast.fail("Error actualizando el stock de los productos", 2);
             });
     }
 
@@ -311,12 +349,7 @@ export default class AddCompra extends Component {
                 proveedor: "",
                 factura: "",
                 tipoCompra: "producto",
-                productoId: "",
-                productoNombre: "",
-                descripcionGasto: "",
-                precio: "",
-                unidades: "",
-                descuentoFinanciero: "",
+                productos: [],
                 total: 0
             },
             submitted: false
@@ -324,7 +357,7 @@ export default class AddCompra extends Component {
     }
 
     render() {
-        const { compra, productos, submitted } = this.state;
+        const { compra, productos, submitted, loading } = this.state;
 
         if (submitted) {
             return (
@@ -335,7 +368,7 @@ export default class AddCompra extends Component {
                                 ¡Compra registrada correctamente!
                             </Typography>
                             <Typography variant="body1" sx={{ mb: 3 }}>
-                                La compra ha sido guardada en el sistema.
+                                La compra ha sido guardada en el sistema con {compra.productos.length} producto(s).
                             </Typography>
                             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
                                 <Button
@@ -348,7 +381,7 @@ export default class AddCompra extends Component {
                                 <Button
                                     variant="outlined"
                                     color="primary"
-                                    href="/logistic/compras-list"
+                                    href={generateSmartRoute("/compras-list")}
                                 >
                                     Ver Listado
                                 </Button>
@@ -361,111 +394,182 @@ export default class AddCompra extends Component {
 
         return (
             <div className="submit-form">
-                <Card sx={{ maxWidth: 800, mx: 'auto', mt: 2 }}>
+                <Card sx={{ maxWidth: 1200, mx: 'auto', mt: 2 }}>
                     <CardContent>
                         <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3 }}>
                             Registrar Nueva Compra
                         </Typography>
 
                         <Box component="form" sx={{ '& .MuiTextField-root': { mb: 2 } }}>
-                            {/* Fecha */}
-                            <LocalizationProvider dateAdapter={AdapterMoment}>
-                                <DatePicker
-                                    label="Fecha de Compra"
-                                    value={moment(compra.fecha, "DD-MM-YYYY")}
-                                    onChange={this.onChangeFecha}
-                                    inputFormat="DD-MM-YYYY"
-                                    renderInput={(params) => (
-                                        <TextField
-                                            {...params}
-                                            fullWidth
-                                            margin="dense"
-                                        />
-                                    )}
-                                />
-                            </LocalizationProvider>
+                            {/* Información General */}
+                            <Box sx={{ mb: 3 }}>
+                                <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+                                    Información General
+                                </Typography>
+                                
+                                {/* Fecha */}
+                                <LocalizationProvider dateAdapter={AdapterMoment}>
+                                    <DatePicker
+                                        label="Fecha de Compra"
+                                        value={moment(compra.fecha, "DD-MM-YYYY")}
+                                        onChange={this.onChangeFecha}
+                                        inputFormat="DD-MM-YYYY"
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                fullWidth
+                                                margin="dense"
+                                            />
+                                        )}
+                                    />
+                                </LocalizationProvider>
 
-                            {/* Proveedor */}
-                            <TextField
-                                required
-                                fullWidth
-                                label="Proveedor"
-                                value={compra.proveedor}
-                                onChange={this.onChangeProveedor}
-                                variant="outlined"
-                            />
-
-                            {/* Factura */}
-                            <TextField
-                                required
-                                fullWidth
-                                label="Número de Factura"
-                                value={compra.factura}
-                                onChange={this.onChangeFactura}
-                                variant="outlined"
-                            />
-
-                            {/* Producto */}
-                            <FormControl required fullWidth sx={{ mb: 2 }}>
-                                <InputLabel>Producto</InputLabel>
-                                <Select
-                                    value={compra.productoId}
-                                    label="Producto"
-                                    onChange={this.onChangeProducto}
-                                >
-                                    {productos.map((producto) => (
-                                        <MenuItem key={producto.id} value={producto.id}>
-                                            {producto.codigo} - {producto.descripcion} ({producto.marca})
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-
-                            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 2 }}>
-                                {/* Precio */}
+                                {/* Proveedor */}
                                 <TextField
                                     required
-                                    label="Precio Unitario"
-                                    type="number"
-                                    value={compra.precio}
-                                    onChange={this.onChangePrecio}
+                                    fullWidth
+                                    label="Proveedor"
+                                    value={compra.proveedor}
+                                    onChange={this.onChangeProveedor}
                                     variant="outlined"
-                                    InputProps={{
-                                        startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                                    }}
                                 />
 
-                                {/* Unidades */}
+                                {/* Factura */}
                                 <TextField
                                     required
-                                    label="Unidades"
-                                    type="number"
-                                    value={compra.unidades}
-                                    onChange={this.onChangeUnidades}
+                                    fullWidth
+                                    label="Número de Factura"
+                                    value={compra.factura}
+                                    onChange={this.onChangeFactura}
                                     variant="outlined"
                                 />
                             </Box>
 
-                            {/* Descuento Financiero */}
-                            <TextField
-                                fullWidth
-                                label="% Descuento Financiero"
-                                type="number"
-                                value={compra.descuentoFinanciero}
-                                onChange={this.onChangeDescuento}
-                                variant="outlined"
-                                InputProps={{
-                                    endAdornment: <InputAdornment position="end">%</InputAdornment>,
-                                }}
-                                sx={{ mb: 3 }}
-                            />
+                            <Divider sx={{ my: 3 }} />
+
+                            {/* Productos */}
+                            <Box sx={{ mb: 3 }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                    <Typography variant="h6">
+                                        Productos
+                                    </Typography>
+                                    <Button
+                                        variant="contained"
+                                        startIcon={<Add />}
+                                        onClick={this.addProducto}
+                                        size="small"
+                                        sx={{ minHeight: '32px', fontSize: '0.75rem' }}
+                                    >
+                                        Agregar Producto
+                                    </Button>
+                                </Box>
+
+                                {compra.productos.length > 0 && (
+                                    <TableContainer component={Paper} sx={{ mb: 2 }}>
+                                        <Table size="small">
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell>Producto</TableCell>
+                                                    <TableCell>Precio Unit.</TableCell>
+                                                    <TableCell>Unidades</TableCell>
+                                                    <TableCell>% Desc.</TableCell>
+                                                    <TableCell>Subtotal</TableCell>
+                                                    <TableCell>Acciones</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {compra.productos.map((producto, index) => (
+                                                    <TableRow key={index}>
+                                                        <TableCell sx={{ minWidth: 250 }}>
+                                                            <Autocomplete
+                                                                size="small"
+                                                                options={productos}
+                                                                value={productos.find(p => p.id === producto.productoId) || null}
+                                                                onChange={(event, newValue) => {
+                                                                    this.onChangeProductoItem(index, 'productoId', newValue ? newValue.id : '');
+                                                                }}
+                                                                getOptionLabel={(option) => `${option.codigo} - ${option.descripcion} (${option.marca})`}
+                                                                isOptionEqualToValue={(option, value) => option.id === value.id}
+                                                                renderInput={(params) => (
+                                                                    <TextField
+                                                                        {...params}
+                                                                        placeholder="Buscar producto..."
+                                                                    />
+                                                                )}
+                                                                noOptionsText="No se encontraron productos"
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <TextField
+                                                                size="small"
+                                                                type="number"
+                                                                value={producto.precio}
+                                                                onChange={(e) => this.onChangeProductoItem(index, 'precio', e.target.value)}
+                                                                InputProps={{
+                                                                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                                                                }}
+                                                                sx={{ width: 100 }}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <TextField
+                                                                size="small"
+                                                                type="number"
+                                                                value={producto.unidades}
+                                                                onChange={(e) => this.onChangeProductoItem(index, 'unidades', e.target.value)}
+                                                                sx={{ width: 80 }}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <TextField
+                                                                size="small"
+                                                                type="number"
+                                                                value={producto.descuentoFinanciero}
+                                                                onChange={(e) => this.onChangeProductoItem(index, 'descuentoFinanciero', e.target.value)}
+                                                                InputProps={{
+                                                                    endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                                                                }}
+                                                                sx={{ width: 80 }}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Typography variant="body2" fontWeight="bold">
+                                                                ${(producto.subtotal || 0).toFixed(2)}
+                                                            </Typography>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <IconButton
+                                                                color="error"
+                                                                onClick={() => this.removeProducto(index)}
+                                                            >
+                                                                <Delete />
+                                                            </IconButton>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                )}
+
+                                {compra.productos.length === 0 && (
+                                    <Box sx={{ textAlign: 'center', py: 4, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+                                        <Typography variant="body2" color="text.secondary">
+                                            No hay productos agregados. Haz clic en "Agregar Producto" para comenzar.
+                                        </Typography>
+                                    </Box>
+                                )}
+                            </Box>
 
                             <Divider sx={{ my: 2 }} />
 
-                            {/* Total Calculado */}
+                            {/* Total */}
                             <Box sx={{ bgcolor: '#f5f5f5', p: 2, borderRadius: 1, mb: 3 }}>
                                 <Typography variant="h6" color="primary">
-                                    Total: ${compra.total.toFixed(2)}
+                                    Total de la Compra: ${compra.total.toFixed(2)}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    {compra.productos.length} producto(s) agregado(s)
                                 </Typography>
                             </Box>
 
@@ -473,16 +577,17 @@ export default class AddCompra extends Component {
                             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
                                 <Button
                                     variant="outlined"
-                                    href="/logistic/compras-list"
+                                    href={generateSmartRoute("/compras-list")}
                                 >
                                     Cancelar
                                 </Button>
                                 <Button
                                     variant="contained"
                                     onClick={this.saveCompra}
-                                    disabled={compra.total === 0}
+                                    disabled={compra.productos.length === 0 || loading}
+                                    startIcon={loading && <CircularProgress size={20} />}
                                 >
-                                    Guardar Compra
+                                    {loading ? "Guardando..." : "Guardar Compra"}
                                 </Button>
                             </Box>
                         </Box>

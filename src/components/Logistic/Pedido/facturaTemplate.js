@@ -3,8 +3,7 @@ import { useParams } from 'react-router-dom';
 import moment from 'moment';
 import { Button } from '@mui/material';
 import PrintOutlinedIcon from '@mui/icons-material/PrintOutlined';
-import PedidosDataService from '../../../services/pedidos.service';
-import ClientesDataService from '../../../services/clients.service';
+import { getSmartService } from '../../../utils/routeHelper';
 
 const Factura = () => {
   const { id } = useParams();
@@ -22,7 +21,8 @@ const Factura = () => {
   const [currentClient, setCurrentClient] = useState({});
 
   useEffect(() => {
-    const pedidoRef = PedidosDataService.getAll()
+    const PedidosService = getSmartService('pedidos');
+    const pedidoRef = PedidosService.getAll()
       .orderByChild('id')
       .equalTo(parseInt(id, 10));
 
@@ -31,7 +31,8 @@ const Factura = () => {
       if (pedidoData) {
         setPedido(pedidoData);
 
-        const clienteRef = ClientesDataService.getAll()
+        const ClientesService = getSmartService('clientes');
+        const clienteRef = ClientesService.getAll()
           .orderByChild('id')
           .equalTo(pedidoData.idCliente);
 
@@ -49,7 +50,8 @@ const Factura = () => {
 
     return () => {
       pedidoRef.off('child_added', handlePedido);
-      ClientesDataService.getAll().off('value');
+      const ClientesServiceCleanup = getSmartService('clientes');
+      ClientesServiceCleanup.getAll().off('value');
     };
   }, [id]);
 
@@ -114,9 +116,8 @@ const Factura = () => {
             <thead>
               <tr>
                 <th width="5%">Código</th>
-                <th width="60%">Descripción</th>
+                <th width="70%">Descripción</th>
                 <th width="10%">Cant.</th>
-                <th width="10%">Peso</th>
                 <th width="15%">Precio</th>
                 <th>Bonif.</th>
                 <th width="10%">Importe</th>
@@ -124,13 +125,12 @@ const Factura = () => {
             </thead>
             <tbody>
               {pedido.productos.map((prod, index) => {
-                totalSinDto += prod.cantidad * prod.peso * prod.precio;
+                totalSinDto += prod.cantidad * prod.precio;
                 return (
                   <tr key={index}>
                     <td><span>{prod.codigo}</span></td>
                     <td><span>{prod.descripcion}</span></td>
                     <td className="amount"><span>{prod.cantidad}</span></td>
-                    <td className="amount"><span>{prod.peso}</span></td>
                     <td className="rate"><span>{prod.precio}</span></td>
                     <td>
                       <span>
@@ -156,12 +156,12 @@ const Factura = () => {
               </tr>
               <tr>
                 <td><span>Descuentos:</span></td>
-                <td className="subtotal_price">{(totalSinDto - pedido.total).toFixed(2)}</td>
+                <td className="subtotal_price">{totalSinDto < pedido.total ? 0 :(totalSinDto - pedido.total).toFixed(2)}</td>
               </tr>
               <tr>
                 <td><strong>Total:</strong></td>
                 <td className="total_price" id="total_price">
-                  {pedido.total.toFixed(2)}
+                  {totalSinDto < pedido.total ? totalSinDto.toFixed(2) : pedido.total.toFixed(2)}
                 </td>
               </tr>
             </tbody>

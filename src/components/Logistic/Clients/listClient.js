@@ -1,12 +1,12 @@
 import React, { Component } from "react";
 import { Toast } from "antd-mobile";
-import ClientsDataService from "../../../services/clients.service";
 import { Modal } from "antd-mobile";
 import SearchIcon from "@mui/icons-material/Search";
 import { IconButton, Tooltip } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SubjectIcon from '@mui/icons-material/Subject';
+import { getSmartService, generateSmartRoute } from "../../../utils/routeHelper";
 
 const alert = Modal.alert;
 
@@ -34,13 +34,15 @@ export default class listClient extends Component {
   }
 
   componentDidMount() {
-    ClientsDataService.getAll()
+    const ClientsService = getSmartService('clientes');
+    ClientsService.getAll()
       .orderByChild("id")
       .on("value", this.onDataChange);
   }
 
   componentWillUnmount() {
-    ClientsDataService.getAll().off("value", this.onDataChange);
+    const ClientsService = getSmartService('clientes');
+    ClientsService.getAll().off("value", this.onDataChange);
   }
 
   onDataChange(items) {
@@ -107,7 +109,8 @@ export default class listClient extends Component {
   }
 
   deleteClient(key) {
-    ClientsDataService.delete(key)
+    const ClientsService = getSmartService('clientes');
+    ClientsService.delete(key)
       .then(() => {
         Toast.success("Eliminado correctamente!!", 1);
       })
@@ -123,7 +126,7 @@ export default class listClient extends Component {
       <div className="list row">
         <div className="col-md-6">
           <div className="new-reservation">
-            <a className="btn btn-primary" href="/logistic/client" role="button">
+            <a className="btn btn-primary" href={generateSmartRoute("/client")} role="button">
               Nuevo cliente
             </a>
           </div>
@@ -162,7 +165,7 @@ export default class listClient extends Component {
                       <tr key={index}>
                         <td>{cliente.id}</td>
                         <td>
-                          <a href={`/logistic/pedido/${cliente.id}`}>
+                          <a href={generateSmartRoute(`/pedido/${cliente.id}`)}>
                             {cliente.razonSocial}
                           </a>
                         </td>
@@ -173,7 +176,7 @@ export default class listClient extends Component {
                           <Tooltip title="Listado de Pedidos">
                             <IconButton
                               className="action__link"
-                              href={`/logistic/client-pedidos/${cliente.id}`}
+                              href={generateSmartRoute(`/client-pedidos/${cliente.id}`)}
                               role="button"
                             >
                               <SubjectIcon />
@@ -182,7 +185,7 @@ export default class listClient extends Component {
                           </Tooltip>
                           <IconButton
                             className="action__link"
-                            href={`/logistic/client/${cliente.id}`}
+                            href={generateSmartRoute(`/client/${cliente.id}`)}
                             role="button"
                           >
                             <EditIcon />

@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import ClientsDataService from "../../../services/clients.service";
 import {
   Button,
   TextField,
@@ -11,6 +10,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import { dias } from "../../../utils/default";
+import { getSmartService, generateSmartRoute } from "../../../utils/routeHelper";
 
 export default class AddClient extends Component {
   constructor(props) {
@@ -39,14 +39,16 @@ export default class AddClient extends Component {
   }
 
   componentDidMount() {
-    ClientsDataService.getAll()
+    const ClientsService = getSmartService('clientes');
+    ClientsService.getAll()
       .orderByChild("id")
       .limitToLast(1)
       .once("child_added", this.onDataChange);
   }
 
   componentWillUnmount() {
-    ClientsDataService.getAll().off("child_added", this.onDataChange);
+    const ClientsService = getSmartService('clientes');
+    ClientsService.getAll().off("child_added", this.onDataChange);
   }
 
   onDataChange(items) {
@@ -80,7 +82,8 @@ export default class AddClient extends Component {
       condicionIva: this.state.condicionIva,
     };
 
-    ClientsDataService.create(data)
+    const ClientsService = getSmartService('clientes');
+    ClientsService.create(data)
       .then(() => {
         this.setState({
           submitted: true,
@@ -118,7 +121,7 @@ export default class AddClient extends Component {
             <button className="btn btn-success" onClick={this.newClient}>
               Nuevo
             </button>
-            <a className="btn btn-primary go-listado" href="/logistic/list-client" role="button">
+            <a className="btn btn-primary go-listado" href={generateSmartRoute("/list-client")} role="button">
               Listado
             </a>
           </div>

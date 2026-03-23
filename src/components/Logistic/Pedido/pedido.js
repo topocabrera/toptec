@@ -29,19 +29,24 @@ import {
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import ProductosDataService from "../../../services/productos.service";
-import PedidosDataService from "../../../services/pedidos.service";
-import ClientesDataService from "../../../services/clients.service";
+import { getSmartService, generateSmartRoute } from "../../../utils/routeHelper";
 import SearchIcon from "@mui/icons-material/Search";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import EditIcon from "@mui/icons-material/Edit";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const alert = Modal.alert;
 const Item = List.Item;
 const Brief = Item.Brief;
 const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+
+// Obtener servicios dinámicamente según el rol del usuario
+const PedidosDataService = getSmartService('pedidos');
+const ProductosDataService = getSmartService('productos');
+const ClientesDataService = getSmartService('clientes');
 
 export default class Pedido extends Component {
   constructor(props) {
@@ -56,8 +61,9 @@ export default class Pedido extends Component {
     this.onChangeIva = this.onChangeIva.bind(this);
     this.addPedido = this.addPedido.bind(this);
     this.setInitialProduct = this.setInitialProduct.bind(this);
-    this.getLastId = this.getLastId.bind(this);
     this.createPedido = this.createPedido.bind(this);
+    this.obtenerSiguienteId = this.obtenerSiguienteId.bind(this);
+    this.crearPedidoConId = this.crearPedidoConId.bind(this);
     this.getClient = this.getClient.bind(this);
     this.onChangeDate = this.onChangeDate.bind(this);
     this.setOpen = this.setOpen.bind(this);
@@ -70,11 +76,15 @@ export default class Pedido extends Component {
     this.cerrarModalFormaPago = this.cerrarModalFormaPago.bind(this);
     this.onChangeDatosPago = this.onChangeDatosPago.bind(this);
     this.finalizarPedidoConDatos = this.finalizarPedidoConDatos.bind(this);
+    this.calcularSubtotal = this.calcularSubtotal.bind(this);
+    this.recalcularTotales = this.recalcularTotales.bind(this);
+    this.agregarCheque = this.agregarCheque.bind(this);
+    this.eliminarCheque = this.eliminarCheque.bind(this);
+    this.onChangeCheque = this.onChangeCheque.bind(this);
 
     this.state = {
       products: [],
       currentProduct: null,
-      lastId: 0,
       peso: "1",
       cantidad: "",
       descuento: "",
@@ -111,11 +121,14 @@ export default class Pedido extends Component {
       datosPago: {
         // Para Contado
         comentarios: "",
-        // Para Cheque
-        banco: "",
-        nroCheque: "",
-        fechaCobranza: "",
-        cuit: "",
+        // Para Cheque (array de cheques)
+        cheques: [{
+          banco: "",
+          nroCheque: "",
+          fechaCobranza: "",
+          cuit: "",
+          monto: ""
+        }],
         // Para Transferencia
         nroTransferencia: "",
         fecha: "",
@@ -126,11 +139,19 @@ export default class Pedido extends Component {
   }
 
   componentDidMount() {
+    // Evitar pull-to-refresh (swipe para recargar) en navegadores móviles
+    document.body.style.overscrollBehaviorY = "none";
+
+    // Alerta al recargar o salir: debe aceptar para confirmar (evita recargas accidentales en mobile)
+    this._handleBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = "";
+      return "";
+    };
+    window.addEventListener("beforeunload", this._handleBeforeUnload);
+
     const id = parseInt(this.props.match.params.id, 10);
-    PedidosDataService.getAll()
-      .orderByChild("id")
-      .limitToLast(1)
-      .once("child_added", this.getLastId);
+    // Ya no necesitamos obtener el último ID aquí
     ProductosDataService.getAll()
       .orderByChild("id")
       .once("value", this.onDataChange);
@@ -138,11 +159,17 @@ export default class Pedido extends Component {
       .orderByChild("id")
       .equalTo(id)
       .once("child_added", this.getClient);
+    
+    // Inicializar el pedido con un ID temporal
+    this.setInitialProduct();
   }
 
   componentWillUnmount() {
+    document.body.style.overscrollBehaviorY = "";
+    if (this._handleBeforeUnload) {
+      window.removeEventListener("beforeunload", this._handleBeforeUnload);
+    }
     ProductosDataService.getAll().off("value", this.onDataChange);
-    PedidosDataService.getAll().off("child_added", this.getLastId);
     ClientesDataService.getAll().off("child_added", this.getClient);
   }
 
@@ -165,17 +192,11 @@ export default class Pedido extends Component {
     this.setState({ products });
   }
 
-  getLastId(items) {
-    this.setState({ lastId: items.val().id || 0 });
-    this.setInitialProduct();
-  }
-
   setInitialProduct() {
-    const lastId = this.state.lastId;
     const idCliente = parseInt(this.props.match.params.id, 10);
     this.setState({
       pedido: {
-        id: lastId + 1,
+        id: 0, // Se asignará el ID definitivo al crear el pedido
         idCliente,
         clienteName: "",
         clienteDomicilio: "",
@@ -228,7 +249,8 @@ export default class Pedido extends Component {
   }
 
   setActive(peso, index, precio, precioMayorista) {
-    this.setState({ indexActive: index, peso, precio, precioMayorista, precioMinorista: precio });
+    // Peso siempre es 1 (readonly)
+    this.setState({ indexActive: index, peso: "1", precio, precioMayorista, precioMinorista: precio });
   }
 
   onChangeCantidad(e) {
@@ -240,7 +262,8 @@ export default class Pedido extends Component {
   }
 
   onChangePeso(e) {
-    this.setState({ peso: e.target.value });
+    // No hacer nada - el peso siempre es 1 (readonly)
+    // this.setState({ peso: e.target.value });
   }
 
   onChangePrecio(e) {
@@ -280,7 +303,6 @@ export default class Pedido extends Component {
 
   addPedido(subtotal, idProducto, subtotalCosto) {
     const { products, cantidad, peso, descuento, iva, medioIva, precio } = this.state;
-    console.log('subtotalCosto', subtotalCosto);
 
     const produc = products.filter((prod) => prod.id === idProducto);
     const producto = produc[0];
@@ -313,6 +335,51 @@ export default class Pedido extends Component {
     this.procesarAgregarPedido(subtotal, idProducto, subtotalCosto, producto);
   }
 
+  // Función para calcular subtotal de forma consistente
+  calcularSubtotal(precio, peso, cantidad, descuento, iva, medioIva) {
+    const subtotalBase = parseFloat(precio) * parseFloat(peso) * parseFloat(cantidad);
+    const subtotalConDescuento = subtotalBase - (subtotalBase * parseFloat(descuento || 0)) / 100;
+    const valorIva = iva ? 0.21 : (medioIva ? 0.105 : 0);
+    const subtotalFinal = subtotalConDescuento + (subtotalConDescuento * valorIva);
+    return subtotalFinal || 0;
+  }
+
+  // Función para calcular subtotal de costo de forma segura
+  calcularSubtotalCosto(precioCosto, peso, cantidad) {
+    // Convertir valores a número, si son vacíos, null, undefined o NaN, usar 0
+    const precioCostoNum = parseFloat(precioCosto) || 0;
+    const pesoNum = parseFloat(peso) || 0;
+    const cantidadNum = parseFloat(cantidad) || 0;
+    
+    const subtotalCostoFinal = precioCostoNum * pesoNum * cantidadNum;
+    
+    // Asegurarse de que el resultado no sea NaN
+    return isNaN(subtotalCostoFinal) ? 0 : subtotalCostoFinal;
+  }
+
+  // Función para recalcular el total del pedido
+  recalcularTotales() {
+    const { pedido } = this.state;
+    let nuevoTotal = 0;
+    let nuevoTotalCosto = 0;
+    
+    pedido.productos.forEach((prod) => {
+      const subtotal = parseFloat(prod.subtotal);
+      const subtotalCosto = parseFloat(prod.subtotalCosto);
+      
+      nuevoTotal += isNaN(subtotal) ? 0 : subtotal;
+      nuevoTotalCosto += isNaN(subtotalCosto) ? 0 : subtotalCosto;
+    });
+
+    this.setState({
+      pedido: {
+        ...this.state.pedido,
+        total: nuevoTotal,
+        totalCosto: nuevoTotalCosto
+      }
+    });
+  }
+
   // Método separado para procesar la adición del pedido
   procesarAgregarPedido(subtotal, idProducto, subtotalCosto, producto) {
     const { cantidad, peso, descuento, iva, medioIva, precio } = this.state;
@@ -324,68 +391,128 @@ export default class Pedido extends Component {
     if (medioIva) {
       isIva = "medioIva";
     }
+
+    // Recalcular el subtotal para asegurar consistencia
+    const subtotalRecalculado = this.calcularSubtotal(precio, peso, cantidad, descuento, iva, medioIva);
+    
     const prodPedido = {
       id: producto.id,
       codigo: producto.codigo,
       descripcion: producto.descripcion,
       marca: producto.marca,
       precioCosto: producto.precioCosto,
-      precio,
-      peso,
-      cantidad,
-      descuento,
+      precio: parseFloat(precio),
+      peso: parseFloat(peso),
+      cantidad: parseFloat(cantidad),
+      descuento: parseFloat(descuento || 0),
       iva: isIva,
-      subtotal,
-      subtotalCosto
+      subtotal: subtotalRecalculado,
+      subtotalCosto: isNaN(parseFloat(subtotalCosto)) ? 0 : parseFloat(subtotalCosto)
     };
-    this.state.pedido.productos.push(prodPedido);
-    const total = this.state.pedido.total + subtotal;
-    console.log('this.state.pedido.totalCosto', this.state.pedido.totalCosto, subtotalCosto);
 
-    const totalCosto = this.state.pedido.totalCosto + subtotalCosto;
-
+    // Crear nuevo array de productos en lugar de mutar el estado
+    const nuevosProductos = [...this.state.pedido.productos, prodPedido];
+    
+    // Primero actualizar el pedido y limpiar el formulario
     this.setState({
       pedido: {
         ...this.state.pedido,
-        total,
-        totalCosto
+        productos: nuevosProductos
       },
       cantidad: "",
       descuento: "",
-      // peso: "",
-      indexActive: -1,
+      precio: 0,
+      peso: "1",
+      tipoPrecio: "precio",
+      precioMayorista: 0,
+      precioMinorista: 0,
       iva: false,
       medioIva: false,
+    }, () => {
+      // Recalcular totales después de actualizar el estado
+      this.recalcularTotales();
     });
+
+    // Luego forzar que el producto quede inactivo
+    setTimeout(() => {
+      this.setState({ indexActive: -1 });
+    }, 0);
+    
     Toast.success("Cargado correctamente!!", 1);
   }
 
-  createPedido(condPago, datosPago = {}) {
+  // Método para obtener el siguiente ID de forma más segura
+  // Obtiene el ID justo antes de crear el pedido, reduciendo la ventana de colisión
+  obtenerSiguienteId() {
+    return new Promise((resolve, reject) => {
+      // Consultar los últimos 5 pedidos para mayor seguridad
+      PedidosDataService.getAll()
+        .orderByChild("id")
+        .limitToLast(5)
+        .once("value")
+        .then((snapshot) => {
+          let maxId = 0;
+          
+          // Encontrar el ID máximo de los pedidos existentes
+          snapshot.forEach((childSnapshot) => {
+            const pedido = childSnapshot.val();
+            if (pedido.id && pedido.id > maxId) {
+              maxId = pedido.id;
+            }
+          });
+          
+          // El nuevo ID será el máximo + 1
+          const nuevoId = maxId + 1;
+          
+          resolve(nuevoId);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  }
+
+  // Método auxiliar para crear el pedido con reintento en caso de ID duplicado
+  crearPedidoConId(nuevoId, condPago, datosPago, intentosRestantes = 3) {
+    // Sanitizar productos para evitar NaN
+    const productosSanitizados = this.state.pedido.productos.map(prod => ({
+      ...prod,
+      subtotal: isNaN(parseFloat(prod.subtotal)) ? 0 : parseFloat(prod.subtotal),
+      subtotalCosto: isNaN(parseFloat(prod.subtotalCosto)) ? 0 : parseFloat(prod.subtotalCosto),
+      precio: isNaN(parseFloat(prod.precio)) ? 0 : parseFloat(prod.precio),
+      cantidad: isNaN(parseFloat(prod.cantidad)) ? 0 : parseFloat(prod.cantidad),
+      peso: isNaN(parseFloat(prod.peso)) ? 0 : parseFloat(prod.peso),
+      descuento: isNaN(parseFloat(prod.descuento)) ? 0 : parseFloat(prod.descuento)
+    }));
+    
     let data = {
-      id: this.state.pedido.id,
+      id: nuevoId,
       idCliente: this.state.pedido.idCliente,
       clienteName: this.state.pedido.clienteName,
       clienteDomicilio: this.state.pedido.clienteDomicilio,
-      productos: this.state.pedido.productos,
+      productos: productosSanitizados,
       fecha: this.state.pedido.fecha,
       status: this.state.pedido.status,
       fechaEntrega: this.state.pedido.fechaEntrega,
       user: currentUser.userName,
       condPago,
-      datosPago, // Agregar los datos específicos de la forma de pago
-      total: this.state.pedido.total,
-      totalCosto: this.state.pedido.totalCosto,
+      datosPago,
+      total: isNaN(parseFloat(this.state.pedido.total)) ? 0 : parseFloat(this.state.pedido.total),
+      totalCosto: isNaN(parseFloat(this.state.pedido.totalCosto)) ? 0 : parseFloat(this.state.pedido.totalCosto),
     };
-    const estado = { estado: "visitado" }
+    
+    const estado = { estado: "visitado" };
     ClientesDataService.update(this.state.keyClient, estado)
       .then(() => { })
       .catch((e) => {
-        Toast.fail("Ocurrió un error !!!", 2);
+        console.error("Error al actualizar estado del cliente:", e);
       });
+    
     PedidosDataService.create(data)
       .then(() => {
         // Actualizar el stock de todos los productos del pedido
         this.updateProductStock();
+        Toast.hide();
         Toast.loading("Loading...", 1, () => {
           this.setState({
             submitted: true,
@@ -393,7 +520,30 @@ export default class Pedido extends Component {
         });
       })
       .catch((e) => {
-        Toast.fail("Ocurrió un error !!!", 2);
+        // Si falla y aún hay reintentos, intentar con el siguiente ID
+        if (intentosRestantes > 0) {
+          console.warn(`ID ${nuevoId} puede estar duplicado, reintentando con ID ${nuevoId + 1}`);
+          this.crearPedidoConId(nuevoId + 1, condPago, datosPago, intentosRestantes - 1);
+        } else {
+          Toast.hide();
+          console.error("Error al crear pedido después de varios intentos:", e);
+          Toast.fail("Ocurrió un error al crear el pedido", 2);
+        }
+      });
+  }
+
+  createPedido(condPago, datosPago = {}) {
+    // Primero obtener el siguiente ID disponible
+    Toast.loading("Generando pedido...", 0);
+    
+    this.obtenerSiguienteId()
+      .then((nuevoId) => {
+        this.crearPedidoConId(nuevoId, condPago, datosPago);
+      })
+      .catch((error) => {
+        Toast.hide();
+        console.error("Error al obtener siguiente ID:", error);
+        Toast.fail("Error al generar ID del pedido", 2);
       });
   }
 
@@ -458,21 +608,22 @@ export default class Pedido extends Component {
 
   deleteProduct(codigo) {
     const { pedido } = this.state;
-    var index = pedido.productos.findIndex((prd) => prd.codigo === codigo);
-    pedido.productos.splice(index, 1);
-    let newTotal = 0;
-    let newTotalCosto = 0;
-    pedido.productos.forEach((prd) => {
-      newTotal += prd.subtotal;
-      newTotalCosto += prd.subtotalCosto;
-    });
-    this.setState({
-      pedido: {
-        ...this.state.pedido,
-        total: newTotal,
-        totalCosto: newTotalCosto,
-      },
-    });
+    const index = pedido.productos.findIndex((prd) => prd.codigo === codigo);
+    
+    if (index !== -1) {
+      // Crear nuevo array sin el producto eliminado
+      const nuevosProductos = pedido.productos.filter((prd) => prd.codigo !== codigo);
+      
+      this.setState({
+        pedido: {
+          ...this.state.pedido,
+          productos: nuevosProductos
+        }
+      }, () => {
+        // Recalcular totales después de eliminar el producto
+        this.recalcularTotales();
+      });
+    }
   }
 
   // Métodos para el modal de forma de pago
@@ -482,10 +633,13 @@ export default class Pedido extends Component {
       formaPagoSeleccionada: formaPago,
       datosPago: {
         comentarios: "",
-        banco: "",
-        nroCheque: "",
-        fechaCobranza: "",
-        cuit: "",
+        cheques: [{
+          banco: "",
+          nroCheque: "",
+          fechaCobranza: "",
+          cuit: "",
+          monto: ""
+        }],
         nroTransferencia: "",
         fecha: "",
         emisor: "",
@@ -510,6 +664,53 @@ export default class Pedido extends Component {
     });
   }
 
+  agregarCheque() {
+    const { datosPago } = this.state;
+    const nuevosCheques = [...datosPago.cheques, {
+      banco: "",
+      nroCheque: "",
+      fechaCobranza: "",
+      cuit: "",
+      monto: ""
+    }];
+    
+    this.setState({
+      datosPago: {
+        ...datosPago,
+        cheques: nuevosCheques
+      }
+    });
+  }
+
+  eliminarCheque(index) {
+    const { datosPago } = this.state;
+    if (datosPago.cheques.length > 1) {
+      const nuevosCheques = datosPago.cheques.filter((_, i) => i !== index);
+      this.setState({
+        datosPago: {
+          ...datosPago,
+          cheques: nuevosCheques
+        }
+      });
+    }
+  }
+
+  onChangeCheque(index, campo, valor) {
+    const { datosPago } = this.state;
+    const nuevosCheques = [...datosPago.cheques];
+    nuevosCheques[index] = {
+      ...nuevosCheques[index],
+      [campo]: valor
+    };
+    
+    this.setState({
+      datosPago: {
+        ...datosPago,
+        cheques: nuevosCheques
+      }
+    });
+  }
+
   finalizarPedidoConDatos() {
     const { formaPagoSeleccionada, datosPago } = this.state;
 
@@ -520,10 +721,14 @@ export default class Pedido extends Component {
         // Comentarios es opcional para contado
         break;
       case 'Cheque':
-        if (!datosPago.banco) camposRequeridos.push('Banco');
-        if (!datosPago.nroCheque) camposRequeridos.push('Nro de Cheque');
-        if (!datosPago.fechaCobranza) camposRequeridos.push('Fecha Cobranza');
-        if (!datosPago.cuit) camposRequeridos.push('CUIT');
+        // Validar cada cheque
+        datosPago.cheques.forEach((cheque, index) => {
+          if (!cheque.banco) camposRequeridos.push(`Banco del cheque ${index + 1}`);
+          if (!cheque.nroCheque) camposRequeridos.push(`Nro de Cheque ${index + 1}`);
+          if (!cheque.fechaCobranza) camposRequeridos.push(`Fecha Cobranza del cheque ${index + 1}`);
+          if (!cheque.cuit) camposRequeridos.push(`CUIT del cheque ${index + 1}`);
+          if (!cheque.monto) camposRequeridos.push(`Monto del cheque ${index + 1}`);
+        });
         break;
       case 'Transferencia':
         if (!datosPago.nroTransferencia) camposRequeridos.push('Nro Transferencia');
@@ -536,6 +741,20 @@ export default class Pedido extends Component {
     if (camposRequeridos.length > 0) {
       Toast.fail(`Faltan completar los siguientes campos: ${camposRequeridos.join(', ')}`, 3);
       return;
+    }
+
+    // Validar que la suma de cheques sea igual al total del pedido
+    if (formaPagoSeleccionada === 'Cheque') {
+      const totalCheques = datosPago.cheques.reduce((sum, cheque) => {
+        return sum + (parseFloat(cheque.monto) || 0);
+      }, 0);
+      
+      const totalPedido = this.state.pedido.total;
+      
+      if (Math.abs(totalCheques - totalPedido) > 0.01) {
+        Toast.fail(`La suma de los cheques ($${totalCheques.toFixed(2)}) debe ser igual al total del pedido ($${totalPedido.toFixed(2)})`, 4);
+        return;
+      }
     }
 
     // Cerrar modal y crear pedido
@@ -568,7 +787,6 @@ export default class Pedido extends Component {
     const displayTable = searchTitle !== "" ? productoFilter : products;
     let subtotalDto = 0.0;
     let subtotalCosto = 0.0;
-    const valorIva = iva ? 0.21 : 0.105;
     return (
       <div className="list row">
         {submitted ? (
@@ -660,7 +878,7 @@ export default class Pedido extends Component {
                       <TableCell></TableCell>
                       <TableCell>Código</TableCell>
                       <TableCell>Precio</TableCell>
-                      <TableCell>Peso</TableCell>
+                      {/* <TableCell>Peso</TableCell> */}
                       <TableCell>Cant.</TableCell>
                       <TableCell>Descripción</TableCell>
                       <TableCell>Marca</TableCell>
@@ -720,6 +938,8 @@ export default class Pedido extends Component {
                                 label="Peso"
                                 value={producto.peso}
                                 onChange={this.onChangeValueProduct}
+                                disabled
+                                helperText="El peso siempre es 1"
                               />
                               <TextField
                                 className="prod-input"
@@ -787,7 +1007,7 @@ export default class Pedido extends Component {
                           {row.codigo}
                         </TableCell>
                         <TableCell>${row.precio}</TableCell>
-                        <TableCell>{row.peso}</TableCell>
+                        {/* <TableCell>{row.peso}</TableCell> */}
                         <TableCell>{row.cantidad}</TableCell>
                         <TableCell>{row.descripcion}</TableCell>
                         <TableCell>{row.marca}</TableCell>
@@ -808,12 +1028,9 @@ export default class Pedido extends Component {
                 displayTable.map((producto, index) => {
                   const isActive = indexActive === index;
                   if (isActive) {
-                    subtotalCosto = producto?.precioCosto * peso * cantidad;
-                    const subtotal = precio * peso * cantidad;
-                    subtotalDto =
-                      subtotal -
-                      (subtotal * descuento) / 100 +
-                      (iva || medioIva ? subtotal * valorIva : 0);
+                    subtotalCosto = this.calcularSubtotalCosto(producto?.precioCosto, peso, cantidad);
+                    // Usar la función consistente para calcular el subtotal
+                    subtotalDto = this.calcularSubtotal(precio, peso, cantidad, descuento, iva, medioIva);
                   }
                   return (
                     <List className="my-list" key={index}>
@@ -915,11 +1132,12 @@ export default class Pedido extends Component {
                         </div>
                         {isActive && (
                           <div className="prod__codigo-container">
-                            <TextField
+                            {/* <TextField
                               id="standard-start-adornment"
                               type="number"
                               onChange={this.onChangePeso}
                               value={isActive ? peso : ""}
+                              disabled
                               InputProps={{
                                 endAdornment: (
                                   <InputAdornment position="end">
@@ -927,7 +1145,7 @@ export default class Pedido extends Component {
                                   </InputAdornment>
                                 ),
                               }}
-                            />
+                            /> */}
                             <TextField
                               id="standard-basic"
                               label="Cantidad"
@@ -961,7 +1179,7 @@ export default class Pedido extends Component {
                               this.addPedido(subtotalDto, producto.id, subtotalCosto);
                             }}
                             disabled={
-                              !isActive || cantidad === "" || peso === ""
+                              !isActive || cantidad === ""
                             }
                           >
                             Agregar
@@ -1037,46 +1255,102 @@ export default class Pedido extends Component {
 
                 {this.state.formaPagoSeleccionada === 'Cheque' && (
                   <>
-                    <TextField
-                      autoFocus
-                      margin="dense"
-                      label="Banco *"
-                      type="text"
-                      fullWidth
-                      variant="outlined"
-                      value={this.state.datosPago.banco}
-                      onChange={(e) => this.onChangeDatosPago('banco', e.target.value)}
-                    />
-                    <TextField
-                      margin="dense"
-                      label="Nro de Cheque *"
-                      type="text"
-                      fullWidth
-                      variant="outlined"
-                      value={this.state.datosPago.nroCheque}
-                      onChange={(e) => this.onChangeDatosPago('nroCheque', e.target.value)}
-                    />
-                    <TextField
-                      margin="dense"
-                      label="Fecha Cobranza *"
-                      type="date"
-                      fullWidth
-                      variant="outlined"
-                      InputLabelProps={{
-                        shrink: true,
-                      }}
-                      value={this.state.datosPago.fechaCobranza}
-                      onChange={(e) => this.onChangeDatosPago('fechaCobranza', e.target.value)}
-                    />
-                    <TextField
-                      margin="dense"
-                      label="CUIT *"
-                      type="text"
-                      fullWidth
-                      variant="outlined"
-                      value={this.state.datosPago.cuit}
-                      onChange={(e) => this.onChangeDatosPago('cuit', e.target.value)}
-                    />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <h4>Cheques ({this.state.datosPago.cheques.length})</h4>
+                      <Button
+                        variant="outlined"
+                        startIcon={<AddIcon />}
+                        onClick={this.agregarCheque}
+                        size="small"
+                      >
+                        Agregar Cheque
+                      </Button>
+                    </Box>
+                    
+                    {this.state.datosPago.cheques.map((cheque, index) => (
+                      <Box key={index} sx={{ border: '1px solid #e0e0e0', borderRadius: 1, p: 2, mb: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                          <h5>Cheque {index + 1}</h5>
+                          {this.state.datosPago.cheques.length > 1 && (
+                            <IconButton
+                              color="error"
+                              size="small"
+                              onClick={() => this.eliminarCheque(index)}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          )}
+                        </Box>
+                        
+                        <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' } }}>
+                          <TextField
+                            margin="dense"
+                            label="Banco *"
+                            type="text"
+                            fullWidth
+                            variant="outlined"
+                            value={cheque.banco}
+                            onChange={(e) => this.onChangeCheque(index, 'banco', e.target.value)}
+                          />
+                          <TextField
+                            margin="dense"
+                            label="Nro de Cheque *"
+                            type="text"
+                            fullWidth
+                            variant="outlined"
+                            value={cheque.nroCheque}
+                            onChange={(e) => this.onChangeCheque(index, 'nroCheque', e.target.value)}
+                          />
+                          <TextField
+                            margin="dense"
+                            label="Fecha Cobranza *"
+                            type="date"
+                            fullWidth
+                            variant="outlined"
+                            InputLabelProps={{
+                              shrink: true,
+                            }}
+                            value={cheque.fechaCobranza}
+                            onChange={(e) => this.onChangeCheque(index, 'fechaCobranza', e.target.value)}
+                          />
+                          <TextField
+                            margin="dense"
+                            label="CUIT *"
+                            type="text"
+                            fullWidth
+                            variant="outlined"
+                            value={cheque.cuit}
+                            onChange={(e) => this.onChangeCheque(index, 'cuit', e.target.value)}
+                          />
+                          <TextField
+                            margin="dense"
+                            label="Monto *"
+                            type="number"
+                            fullWidth
+                            variant="outlined"
+                            InputProps={{
+                              startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                            }}
+                            value={cheque.monto}
+                            onChange={(e) => this.onChangeCheque(index, 'monto', e.target.value)}
+                          />
+                        </Box>
+                      </Box>
+                    ))}
+                    
+                    <Box sx={{ mt: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <strong>Total Cheques:</strong>
+                        <strong>
+                          ${this.state.datosPago.cheques.reduce((sum, cheque) => 
+                            sum + (parseFloat(cheque.monto) || 0), 0).toFixed(2)}
+                        </strong>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <strong>Total Pedido:</strong>
+                        <strong>${this.state.pedido.total.toFixed(2)}</strong>
+                      </Box>
+                    </Box>
                   </>
                 )}
 

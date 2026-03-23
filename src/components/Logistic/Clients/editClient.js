@@ -10,8 +10,8 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-import ClientService from "../../../services/clients.service";
 import { dias } from "../../../utils/default";
+import { getSmartService, generateSmartRoute } from "../../../utils/routeHelper";
 
 const EditClient = () => {
   const { id } = useParams();
@@ -34,7 +34,8 @@ const EditClient = () => {
 
   useEffect(() => {
     const idParsed = parseInt(id, 10);
-    ClientService.getAll()
+    const ClientsService = getSmartService('clientes');
+    ClientsService.getAll()
       .orderByChild("id")
       .equalTo(idParsed)
       .once("value", (items) => {
@@ -83,7 +84,8 @@ const EditClient = () => {
       condicionIva,
     };
 
-    ClientService.update(key, data)
+    const ClientsService = getSmartService('clientes');
+    ClientsService.update(key, data)
       .then(() => setSubmitted(true))
       .catch((e) => console.log(e));
   };
@@ -93,12 +95,12 @@ const EditClient = () => {
       {submitted ? (
         <div>
           <h4>Cliente editado correctamente!</h4>
-          <a className="btn btn-primary go-listado" href="/logistic/client">
+          <a className="btn btn-primary go-listado" href={generateSmartRoute("/client")}>
             Nuevo
           </a>
           <a
             className="btn btn-primary go-listado"
-            href="/logistic/list-client"
+            href={generateSmartRoute("/list-client")}
           >
             Listado
           </a>

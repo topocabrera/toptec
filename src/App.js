@@ -81,6 +81,13 @@ import PedidoListWrapper from "./components/Logistic/Pedido/PedidoListWrapper";
 import ClientPedidos from "./components/Logistic/Clients/clientPedidos";
 import ComprasList from "./components/Logistic/Compras/comprasList";
 import AddCompra from "./components/Logistic/Compras/addCompra";
+// Nico (solo productos)
+import ListProductNico from "./components/Logistic/Products/Nico/ListProductNico";
+import AddProductNico from "./components/Logistic/Products/Nico/AddProductNico";
+import EditProductNico from "./components/Logistic/Products/Nico/EditProductNico";
+import BulkUploadNico from "./components/Logistic/Products/Nico/BulkUploadNico";
+
+
 
 // const [setAnchorEl] = React.useState(null);
 class App extends Component {
@@ -147,7 +154,7 @@ class App extends Component {
     </div>
   </div>
 </nav> */}
-        {(currentUser?.rol === "windy" || currentUser?.rol === "admin" || currentUser?.rol === "seguros")
+        {(currentUser?.rol === "windy" || currentUser?.rol === "windy-vendedor" || currentUser?.rol === "admin" || currentUser?.rol === "seguros" || currentUser?.rol === "max" || currentUser?.rol === "max-vendedor" || currentUser?.rol === "nico")
           ? (
             <NavBar />
           ) : (
@@ -184,6 +191,7 @@ class App extends Component {
                     id="navbarSupportedContent"
                   >
                     {(currentUser?.rol === "windy" ||
+                      currentUser?.rol === "windy-vendedor" ||
                       currentUser?.rol === "admin") && (
                         <div className="dropdown-container">
                           <ul className="navbar-nav">
@@ -200,6 +208,48 @@ class App extends Component {
                             <li className="nav-item">
                               <Link to={"/list-pedidos"} className="nav-link">
                                 Pedidos
+                              </Link>
+                            </li>
+                          </ul>
+                        </div>
+                      )}
+                    {(currentUser?.rol === "max" || currentUser?.rol === "max-vendedor") && (
+                        <div className="dropdown-container">
+                          <ul className="navbar-nav">
+                            <li className="nav-item">
+                              <Link to={"/max/list-client"} className="nav-link">
+                                Clientes
+                              </Link>
+                            </li>
+                            <li className="nav-item">
+                              <Link to={"/max/list-products"} className="nav-link">
+                                Productos
+                              </Link>
+                            </li>
+                            <li className="nav-item">
+                              <Link to={"/max/list-pedidos"} className="nav-link">
+                                Pedidos
+                              </Link>
+                            </li>
+                          </ul>
+                        </div>
+                      )}
+                    {currentUser?.rol === "nico" && (
+                        <div className="dropdown-container">
+                          <ul className="navbar-nav">
+                            <li className="nav-item">
+                              <Link to={"/nico/list-products"} className="nav-link">
+                                Productos
+                              </Link>
+                            </li>
+                            <li className="nav-item">
+                              <Link to={"/nico/products"} className="nav-link">
+                                Nuevo producto
+                              </Link>
+                            </li>
+                            <li className="nav-item">
+                              <Link to={"/nico/products-bulk"} className="nav-link">
+                                Carga masiva
                               </Link>
                             </li>
                           </ul>
@@ -316,16 +366,12 @@ class App extends Component {
 
             {/* // Windy */}
             {(currentUser?.rol === "windy" ||
+              currentUser?.rol === "windy-vendedor" ||
               currentUser?.rol === "admin") && (
                 <React.Fragment>
-                  <Route
-                    path={
-                      currentUser && (currentUser?.rol === "windy" ||
-                        currentUser?.rol === "admin")
-                      && "/"
-                    }
-                    element={<ListClient />}
-                  />
+                  {(currentUser?.rol === "windy" || currentUser?.rol === "windy-vendedor") && (
+                    <Route path="/" element={<ListClient />} />
+                  )}
                   <Route path="/logistic/list-client" element={<ListClient />} />
                   <Route path="/logistic/client" element={<AddClient />} />
                   <Route path="/logistic/client/:id" element={<EditClient />} />
@@ -344,18 +390,50 @@ class App extends Component {
                 </React.Fragment>
               )}
 
+            {/* // Nico (solo productos) */}
+            {currentUser?.rol === "nico" && (
+                <React.Fragment>
+                  <Route path="/" element={<ListProductNico />} />
+                  <Route path="/nico/list-products" element={<ListProductNico />} />
+                  <Route path="/nico/products" element={<AddProductNico />} />
+                  <Route path="/nico/product/:id" element={<EditProductNico />} />
+                  <Route path="/nico/products-bulk" element={<BulkUploadNico />} />
+                </React.Fragment>
+              )}
+
+            {/* // Max */}
+            {(currentUser?.rol === "max" ||
+              currentUser?.rol === "max-vendedor" ||
+              currentUser?.rol === "admin") && (
+                <React.Fragment>
+                  {(currentUser?.rol === "max" || currentUser?.rol === "max-vendedor") && (
+                    <Route path="/" element={<ListClient />} />
+                  )}
+                  <Route path="/max/list-client" element={<ListClient />} />
+                  <Route path="/max/client" element={<AddClient />} />
+                  <Route path="/max/client/:id" element={<EditClient />} />
+                  <Route path="/max/list-products" element={<ListProduct />} />
+                  <Route path="/max/products" element={<AddProduct />} />
+                  <Route path="/max/product/:id" element={<EditProduct />} />
+                  <Route path="/max/imprimir/:id" element={<Factura />} />
+                  <Route path="/max/change-price" element={<ChangePriceProduct />} />
+                  <Route path="/max/new-visit" element={<Visita />} />
+                  <Route path="/max/list-pedidos" element={<PedidoListWrapper />} />
+                  <Route path="/max/pedido/:id" element={<PedidoWrapper />} />
+                  <Route path="/max/edit-pedido/:id" element={<EditPedidoWrapper />} />
+                  <Route path="/max/client-pedidos/:id" element={<ClientPedidos />} />
+                  <Route path="/max/compras-list" element={<ComprasList />} />
+                  <Route path="/max/compra" element={<AddCompra />} />
+                </React.Fragment>
+              )}
+
             {/* // Seguros */}
             {(currentUser?.rol === "seguros" ||
               currentUser?.rol === "admin") && (
                 <React.Fragment>
-                  <Route
-                    path={
-                      currentUser && (currentUser?.rol === "seguros" ||
-                        currentUser?.rol === "admin")
-                      && "/"
-                    }
-                    element={<ListClientsSeguros />}
-                  />
+                  {currentUser?.rol === "seguros" && (
+                    <Route path="/" element={<ListClientsSeguros />} />
+                  )}
                   <Route path="/cseguros/list-clients" element={<ListClientsSeguros />} />
                   <Route path="/cseguros/create" element={<AddClientsSeguros />} />
                   <Route path="/cseguros/client/:id" element={<EditClientsSeguros />} />

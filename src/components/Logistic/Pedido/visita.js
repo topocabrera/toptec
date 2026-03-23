@@ -1,10 +1,10 @@
 import React, { Component } from "react";
 import { Toast, Modal } from "antd-mobile";
-import ClientsDataService from "../../../services/clients.service";
 import { MenuItem, Select, Button, FormControl } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import moment from "moment";
 import { dias } from "../../../utils/default";
+import { getSmartService, generateSmartRoute } from "../../../utils/routeHelper";
 
 const alert = Modal.alert;
 
@@ -32,13 +32,15 @@ export default class Visita extends Component {
   }
 
   componentDidMount() {
-    ClientsDataService.getAll()
+    const ClientsService = getSmartService('clientes');
+    ClientsService.getAll()
       .orderByChild("id")
       .on("value", this.onDataChange);
   }
 
   componentWillUnmount() {
-    ClientsDataService.getAll().off("value", this.onDataChange);
+    const ClientsService = getSmartService('clientes');
+    ClientsService.getAll().off("value", this.onDataChange);
   }
 
   onDataChange(items) {
@@ -123,7 +125,8 @@ export default class Visita extends Component {
       estado: "visitado",
     };
 
-    ClientsDataService.update(key, data)
+    const ClientsService = getSmartService('clientes');
+    ClientsService.update(key, data)
       .then(() => {
         Toast.success("Visita actualizada!", 1, () => {
           window.location.reload(false);
@@ -142,7 +145,8 @@ export default class Visita extends Component {
     clearTimeout(this.timer);
     this.timer = setTimeout(() => {
       this.state.clientesPorDia.forEach((client) => {
-        ClientsDataService.update(client.key, data)
+        const ClientsService = getSmartService('clientes');
+        ClientsService.update(client.key, data)
           .then(() => { })
           .catch((e) => {
             Toast.fail("Ocurrió un error al resetear algun estado!", 2);
@@ -218,7 +222,7 @@ export default class Visita extends Component {
                       <tr key={index}>
                         <td>{cliente.id}</td>
                         <td>
-                          <a href={`/logistic/pedido/${cliente.id}`}>
+                          <a href={generateSmartRoute(`/pedido/${cliente.id}`)}>
                             {cliente.razonSocial}
                           </a>
                         </td>

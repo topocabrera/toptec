@@ -27,7 +27,11 @@ import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
 import moment from "moment";
-import ComprasDataService from "../../../services/compras.service";
+import 'moment/locale/es'; // Importar locale español
+import { getSmartService, generateSmartRoute } from "../../../utils/routeHelper";
+
+// Configurar moment en español
+moment.locale('es');
 
 const alert = Modal.alert;
 
@@ -50,13 +54,15 @@ export default class ComprasList extends Component {
     }
 
     componentDidMount() {
-        ComprasDataService.getAll()
+        const ComprasService = getSmartService('compras');
+        ComprasService.getAll()
             .orderByChild("fecha")
             .on("value", this.onDataChange);
     }
 
     componentWillUnmount() {
-        ComprasDataService.getAll().off("value", this.onDataChange);
+        const ComprasService = getSmartService('compras');
+        ComprasService.getAll().off("value", this.onDataChange);
     }
 
     onDataChange(items) {
@@ -64,19 +70,40 @@ export default class ComprasList extends Component {
         items.forEach((item) => {
             let data = item.val();
             let key = item.key;
-            compras.push({
-                key,
-                id: data.id,
-                fecha: data.fecha,
-                proveedor: data.proveedor,
-                factura: data.factura,
-                productoId: data.productoId,
-                productoNombre: data.productoNombre,
-                precio: data.precio,
-                unidades: data.unidades,
-                descuentoFinanciero: data.descuentoFinanciero,
-                total: data.total
-            });
+            
+            // Detectar si es formato nuevo (con array de productos) o formato antiguo
+            if (data.productos && Array.isArray(data.productos)) {
+                // Formato nuevo: múltiples productos
+                compras.push({
+                    key,
+                    id: data.id,
+                    fecha: data.fecha,
+                    proveedor: data.proveedor,
+                    factura: data.factura,
+                    productos: data.productos,
+                    total: data.total,
+                    tipoCompra: 'multiple'
+                });
+            } else {
+                // Formato antiguo: un solo producto (retrocompatibilidad)
+                compras.push({
+                    key,
+                    id: data.id,
+                    fecha: data.fecha,
+                    proveedor: data.proveedor,
+                    factura: data.factura,
+                    productos: [{
+                        productoId: data.productoId,
+                        productoNombre: data.productoNombre,
+                        precio: data.precio,
+                        unidades: data.unidades,
+                        descuentoFinanciero: data.descuentoFinanciero,
+                        subtotal: data.total
+                    }],
+                    total: data.total,
+                    tipoCompra: 'single'
+                });
+            }
         });
 
         // Ordenar por fecha más reciente
@@ -101,11 +128,15 @@ export default class ComprasList extends Component {
 
         // Aplicar filtro de búsqueda si existe
         if (searchTerm) {
-            filtered = filtered.filter((compra) =>
-                compra.proveedor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                compra.factura.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                compra.productoNombre.toLowerCase().includes(searchTerm.toLowerCase())
-            );
+            filtered = filtered.filter((compra) => {
+                const searchInProducts = compra.productos.some(producto => 
+                    producto.productoNombre && producto.productoNombre.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+                
+                return compra.proveedor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                       compra.factura.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                       searchInProducts;
+            });
         }
 
         this.setState({ comprasFilter: filtered });
@@ -124,8 +155,18 @@ export default class ComprasList extends Component {
     }
 
     deleteCompra(key) {
-        ComprasDataService.delete(key)
+        const ComprasService = getSmartService('compras');
+        ComprasService.delete(key)
             .then(() => {
+                // Actualizar el estado local removiendo la compra eliminada
+                const updatedCompras = this.state.compras.filter(compra => compra.key !== key);
+                const updatedComprasFilter = this.state.comprasFilter.filter(compra => compra.key !== key);
+                
+                this.setState({
+                    compras: updatedCompras,
+                    comprasFilter: updatedComprasFilter
+                });
+                
                 Toast.success("Compra eliminada correctamente!", 1);
             })
             .catch((e) => {
@@ -140,7 +181,7 @@ export default class ComprasList extends Component {
             const month = moment().subtract(i, 'months');
             months.push({
                 value: month.format("YYYY-MM"),
-                label: month.format("MMMM YYYY")
+                label: month.format("MMMM YYYY").replace(/^\w/, c => c.toUpperCase()) // Capitalizar primera letra
             });
         }
         return months;
@@ -182,7 +223,7 @@ export default class ComprasList extends Component {
                             variant="contained"
                             color="primary"
                             startIcon={<AddIcon />}
-                            href="/logistic/compra"
+                            href={generateSmartRoute("/compra")}
                             sx={{ mb: 2 }}
                         >
                             Nueva Compra
@@ -227,7 +268,7 @@ export default class ComprasList extends Component {
                     <Card sx={{ mb: 3 }}>
                         <CardContent>
                             <Typography variant="h6" gutterBottom>
-                                Resumen de {moment(selectedMonth).format("MMMM YYYY")}
+                                Resumen de {moment(selectedMonth).format("MMMM YYYY").replace(/^\w/, c => c.toUpperCase())}
                             </Typography>
                             <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
                                 <Chip
@@ -257,7 +298,7 @@ export default class ComprasList extends Component {
                                 <Button
                                     variant="contained"
                                     color="primary"
-                                    href="/logistic/compra"
+                                    href={generateSmartRoute("/compra")}
                                 >
                                     Registrar Primera Compra
                                 </Button>
@@ -271,10 +312,7 @@ export default class ComprasList extends Component {
                                         <TableCell><strong>Fecha</strong></TableCell>
                                         <TableCell><strong>Proveedor</strong></TableCell>
                                         <TableCell><strong>Factura</strong></TableCell>
-                                        <TableCell><strong>Producto</strong></TableCell>
-                                        <TableCell align="right"><strong>Precio Unit.</strong></TableCell>
-                                        <TableCell align="center"><strong>Unidades</strong></TableCell>
-                                        <TableCell align="center"><strong>% Desc.</strong></TableCell>
+                                        <TableCell><strong>Productos</strong></TableCell>
                                         <TableCell align="right"><strong>Total</strong></TableCell>
                                         <TableCell align="center"><strong>Acciones</strong></TableCell>
                                     </TableRow>
@@ -289,19 +327,40 @@ export default class ComprasList extends Component {
                                             <TableCell>{compra.factura}</TableCell>
                                             <TableCell>
                                                 <Box>
-                                                    <Typography variant="body2" fontWeight="medium">
-                                                        {compra.productoNombre}
-                                                    </Typography>
+                                                    {compra.productos.length === 1 ? (
+                                                        // Mostrar producto único
+                                                        <Box>
+                                                            <Typography variant="body2" fontWeight="medium">
+                                                                {compra.productos[0].productoNombre}
+                                                            </Typography>
+                                                            <Typography variant="caption" color="text.secondary">
+                                                                ${compra.productos[0].precio?.toFixed(2)} × {compra.productos[0].unidades} 
+                                                                {compra.productos[0].descuentoFinanciero > 0 && ` (-${compra.productos[0].descuentoFinanciero}%)`}
+                                                            </Typography>
+                                                        </Box>
+                                                    ) : (
+                                                        // Mostrar múltiples productos
+                                                        <Box>
+                                                            <Typography variant="body2" fontWeight="medium" color="primary">
+                                                                {compra.productos.length} productos
+                                                            </Typography>
+                                                            <Box sx={{ mt: 0.5 }}>
+                                                                {compra.productos.map((producto, prodIndex) => (
+                                                                    <Box key={prodIndex} sx={{ mb: 0.5 }}>
+                                                                        <Typography variant="caption" display="block">
+                                                                            • {producto.productoNombre}
+                                                                        </Typography>
+                                                                        <Typography variant="caption" color="text.secondary">
+                                                                            ${producto.precio?.toFixed(2)} × {producto.unidades}
+                                                                            {producto.descuentoFinanciero > 0 && ` (-${producto.descuentoFinanciero}%)`}
+                                                                            {" = $" + (producto.subtotal?.toFixed(2) || "0.00")}
+                                                                        </Typography>
+                                                                    </Box>
+                                                                ))}
+                                                            </Box>
+                                                        </Box>
+                                                    )}
                                                 </Box>
-                                            </TableCell>
-                                            <TableCell align="right">
-                                                ${compra.precio?.toFixed(2)}
-                                            </TableCell>
-                                            <TableCell align="center">
-                                                {compra.unidades}
-                                            </TableCell>
-                                            <TableCell align="center">
-                                                {compra.descuentoFinanciero || 0}%
                                             </TableCell>
                                             <TableCell align="right">
                                                 <Typography variant="body2" fontWeight="bold" color="success.main">

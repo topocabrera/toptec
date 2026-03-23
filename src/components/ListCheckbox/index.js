@@ -65,7 +65,7 @@ function stableSort(array, comparator) {
 
 const headCells = [
   { id: "codigo", numeric: false, disablePadding: true, label: "Código" },
-  { id: "peso", numeric: false, disablePadding: true, label: "Peso" },
+  // { id: "peso", numeric: false, disablePadding: true, label: "Peso" },
   { id: "cantidad", numeric: false, disablePadding: false, label: "Cantidad" },
   {
     id: "descripcion",
@@ -442,7 +442,7 @@ export default function EnhancedTable(props) {
                       >
                         {row.codigo}
                       </TableCell>
-                      <TableCell>{row.peso}</TableCell>
+                      {/* <TableCell>{row.peso}</TableCell> */}
                       <TableCell>{row.cantidad}</TableCell>
                       <TableCell>{row.descripcion}</TableCell>
                       <TableCell>{row.marca}</TableCell>

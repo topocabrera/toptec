@@ -38,11 +38,14 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import PaymentIcon from "@mui/icons-material/Payment";
 import InfoIcon from "@mui/icons-material/Info";
-import PedidosDataService from "../../../services/pedidos.service";
-import ClientsDataService from "../../../services/clients.service";
+import { getSmartService, generateSmartRoute, hasPermission } from "../../../utils/routeHelper";
 const queryString = require("query-string");
 
 const alert = Modal.alert;
+
+// Obtener servicios dinámicamente según el rol del usuario
+const PedidosDataService = getSmartService('pedidos');
+const ClientsDataService = getSmartService('clientes');
 
 export default class PedidoList extends Component {
   constructor(props) {
@@ -89,7 +92,7 @@ export default class PedidoList extends Component {
     const today = moment(new Date().getTime()).get("day");
     const dateFormat = moment(new Date().getTime()).format("DD-MM-YYYY");
     if (!this.props.location.search) {
-      window.location.href = `/logistic/list-pedidos?date=${dateFormat}`;
+      window.location.href = `${generateSmartRoute('/list-pedidos')}?date=${dateFormat}`;
       this.getClients(today);
     } else {
       const params = queryString.parse(this.props.location.search);
@@ -175,8 +178,8 @@ export default class PedidoList extends Component {
   onChangeDate(e) {
     const dateFormat = e.format("DD-MM-YYYY");
     window.location.href = this.state.entregaPedido
-      ? `/logistic/list-pedidos?date=${dateFormat}&entrega=true`
-      : `/logistic/list-pedidos?date=${dateFormat}`;
+      ? `${generateSmartRoute('/list-pedidos')}?date=${dateFormat}&entrega=true`
+      : `${generateSmartRoute('/list-pedidos')}?date=${dateFormat}`;
   }
 
   setOpen(index) {
@@ -219,9 +222,9 @@ export default class PedidoList extends Component {
 
   changeEntrega() {
     if (this.state.entregaPedido) {
-      window.location.href = `/logistic/list-pedidos?date=${this.state.date}`;
+      window.location.href = `${generateSmartRoute('/list-pedidos')}?date=${this.state.date}`;
     } else {
-      window.location.href = `/logistic/list-pedidos?date=${this.state.date}&entrega=true`;
+      window.location.href = `${generateSmartRoute('/list-pedidos')}?date=${this.state.date}&entrega=true`;
     }
   }
 
@@ -300,7 +303,7 @@ export default class PedidoList extends Component {
       <div className="list row">
         <div className="col-md-6">
           <div className="new-reservation">
-            <a className="btn btn-primary" href="/logistic/list-client" role="button">
+                            <a className="btn btn-primary" href={generateSmartRoute("/list-client")} role="button">
               Nuevo pedido
             </a>
             <Button
@@ -550,32 +553,34 @@ export default class PedidoList extends Component {
                             <IconButton
                               aria-label="editar"
                               className="action__link"
-                              href={`/logistic/edit-pedido/${pedido.id}`}
+                              href={generateSmartRoute(`/edit-pedido/${pedido.id}`)}
                               role="button"
                               size="small"
                             >
                               <EditIcon />
                             </IconButton>
+                            {hasPermission('edit_orders') && (
+                              <IconButton
+                                aria-label="eliminar"
+                                type="button"
+                                className="action__button"
+                                size="small"
+                                onClick={() =>
+                                  alert("Eliminar", "Estás seguro???", [
+                                    { text: "Cancelar" },
+                                    {
+                                      text: "Ok",
+                                      onPress: () =>
+                                        this.deletePedido(pedido.key),
+                                    },
+                                  ])
+                                }
+                              >
+                                <DeleteIcon color="secondary" />
+                              </IconButton>
+                            )}
                             <IconButton
-                              aria-label="eliminar"
-                              type="button"
-                              className="action__button"
-                              size="small"
-                              onClick={() =>
-                                alert("Eliminar", "Estás seguro???", [
-                                  { text: "Cancelar" },
-                                  {
-                                    text: "Ok",
-                                    onPress: () =>
-                                      this.deletePedido(pedido.key),
-                                  },
-                                ])
-                              }
-                            >
-                              <DeleteIcon color="secondary" />
-                            </IconButton>
-                            <IconButton
-                              href={`/logistic/imprimir/${pedido.id}`}
+                              href={generateSmartRoute(`/imprimir/${pedido.id}`)}
                               role="button"
                               aria-label="imprimir"
                               className="action__link"
@@ -712,32 +717,89 @@ export default class PedidoList extends Component {
 
                     {pedidoSeleccionado.condPago === 'Cheque' && (
                       <Box sx={{ pl: 2 }}>
-                        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-                          <Box>
-                            <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Banco:</Box>
-                            <Box sx={{ p: 1, bgcolor: '#e3f2fd', borderRadius: 1 }}>
-                              {pedidoSeleccionado.datosPago?.banco || 'No especificado'}
+                        {pedidoSeleccionado.datosPago?.cheques && Array.isArray(pedidoSeleccionado.datosPago.cheques) ? (
+                          // Formato nuevo: múltiples cheques
+                          <>
+                            <Box sx={{ fontWeight: 'bold', mb: 2, color: '#1976d2' }}>
+                              Cheques ({pedidoSeleccionado.datosPago.cheques.length})
+                            </Box>
+                            {pedidoSeleccionado.datosPago.cheques.map((cheque, index) => (
+                              <Box key={index} sx={{ mb: 3, p: 2, bgcolor: '#f8f9fa', borderRadius: 1, border: '1px solid #e3f2fd' }}>
+                                <Box sx={{ fontWeight: 'bold', mb: 1, color: '#1976d2' }}>
+                                  Cheque {index + 1}
+                                </Box>
+                                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                                  <Box>
+                                    <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Banco:</Box>
+                                    <Box sx={{ p: 1, bgcolor: '#e3f2fd', borderRadius: 1 }}>
+                                      {cheque.banco || 'No especificado'}
+                                    </Box>
+                                  </Box>
+                                  <Box>
+                                    <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Nro de Cheque:</Box>
+                                    <Box sx={{ p: 1, bgcolor: '#e3f2fd', borderRadius: 1 }}>
+                                      {cheque.nroCheque || 'No especificado'}
+                                    </Box>
+                                  </Box>
+                                  <Box>
+                                    <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Fecha Cobranza:</Box>
+                                    <Box sx={{ p: 1, bgcolor: '#e3f2fd', borderRadius: 1 }}>
+                                      {cheque.fechaCobranza || 'No especificado'}
+                                    </Box>
+                                  </Box>
+                                  <Box>
+                                    <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>CUIT:</Box>
+                                    <Box sx={{ p: 1, bgcolor: '#e3f2fd', borderRadius: 1 }}>
+                                      {cheque.cuit || 'No especificado'}
+                                    </Box>
+                                  </Box>
+                                  {cheque.monto && (
+                                    <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1' } }}>
+                                      <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Monto:</Box>
+                                      <Box sx={{ p: 1, bgcolor: '#e8f5e8', borderRadius: 1, fontWeight: 'bold' }}>
+                                        ${parseFloat(cheque.monto).toFixed(2)}
+                                      </Box>
+                                    </Box>
+                                  )}
+                                </Box>
+                              </Box>
+                            ))}
+                            <Box sx={{ mt: 2, p: 2, bgcolor: '#e8f5e8', borderRadius: 1 }}>
+                              <Box sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+                                Total Cheques: ${pedidoSeleccionado.datosPago.cheques.reduce((sum, cheque) => 
+                                  sum + (parseFloat(cheque.monto) || 0), 0).toFixed(2)}
+                              </Box>
+                            </Box>
+                          </>
+                        ) : (
+                          // Formato antiguo: un solo cheque (compatibilidad hacia atrás)
+                          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                            <Box>
+                              <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Banco:</Box>
+                              <Box sx={{ p: 1, bgcolor: '#e3f2fd', borderRadius: 1 }}>
+                                {pedidoSeleccionado.datosPago?.banco || 'No especificado'}
+                              </Box>
+                            </Box>
+                            <Box>
+                              <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Nro de Cheque:</Box>
+                              <Box sx={{ p: 1, bgcolor: '#e3f2fd', borderRadius: 1 }}>
+                                {pedidoSeleccionado.datosPago?.nroCheque || 'No especificado'}
+                              </Box>
+                            </Box>
+                            <Box>
+                              <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Fecha Cobranza:</Box>
+                              <Box sx={{ p: 1, bgcolor: '#e3f2fd', borderRadius: 1 }}>
+                                {pedidoSeleccionado.datosPago?.fechaCobranza || 'No especificado'}
+                              </Box>
+                            </Box>
+                            <Box>
+                              <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>CUIT:</Box>
+                              <Box sx={{ p: 1, bgcolor: '#e3f2fd', borderRadius: 1 }}>
+                                {pedidoSeleccionado.datosPago?.cuit || 'No especificado'}
+                              </Box>
                             </Box>
                           </Box>
-                          <Box>
-                            <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Nro de Cheque:</Box>
-                            <Box sx={{ p: 1, bgcolor: '#e3f2fd', borderRadius: 1 }}>
-                              {pedidoSeleccionado.datosPago?.nroCheque || 'No especificado'}
-                            </Box>
-                          </Box>
-                          <Box>
-                            <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Fecha Cobranza:</Box>
-                            <Box sx={{ p: 1, bgcolor: '#e3f2fd', borderRadius: 1 }}>
-                              {pedidoSeleccionado.datosPago?.fechaCobranza || 'No especificado'}
-                            </Box>
-                          </Box>
-                          <Box>
-                            <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>CUIT:</Box>
-                            <Box sx={{ p: 1, bgcolor: '#e3f2fd', borderRadius: 1 }}>
-                              {pedidoSeleccionado.datosPago?.cuit || 'No especificado'}
-                            </Box>
-                          </Box>
-                        </Box>
+                        )}
                       </Box>
                     )}
 

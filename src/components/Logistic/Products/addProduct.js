@@ -9,8 +9,8 @@ import {
   MenuItem,
   Select,
 } from "@mui/material";
-import ProductosDataService from "../../../services/productos.service";
-import { marcasLogistic } from "../../../utils/default";
+import { getMarcasLogistic } from "../../../utils/default";
+import { getSmartService, generateSmartRoute } from "../../../utils/routeHelper";
 
 export default class AddProduct extends Component {
   constructor(props) {
@@ -41,14 +41,16 @@ export default class AddProduct extends Component {
   }
 
   componentDidMount() {
-    ProductosDataService.getAll()
+    const ProductosService = getSmartService('productos');
+    ProductosService.getAll()
       .orderByChild("id")
       .limitToLast(1)
       .once("child_added", this.onDataChange);
   }
 
   componentWillUnmount() {
-    ProductosDataService.getAll().off("child_added", this.onDataChange);
+    const ProductosService = getSmartService('productos');
+    ProductosService.getAll().off("child_added", this.onDataChange);
   }
 
   onDataChange(items) {
@@ -104,7 +106,8 @@ export default class AddProduct extends Component {
       peso: this.state.peso,
     };
 
-    ProductosDataService.create(data)
+    const ProductosService = getSmartService('productos');
+    ProductosService.create(data)
       .then(() => {
         this.setState({
           submitted: true,
@@ -142,7 +145,7 @@ export default class AddProduct extends Component {
             </button>
             <a
               className="btn btn-primary go-listado"
-              href="/logistic/list-products"
+              href={generateSmartRoute("/list-products")}
               role="button"
             >
               Listado
@@ -189,7 +192,7 @@ export default class AddProduct extends Component {
                     className="select__form"
                     fullWidth
                   >
-                    {marcasLogistic.map((marca) => (
+                    {getMarcasLogistic().map((marca) => (
                       <MenuItem key={marca} value={marca}>
                         {marca}
                       </MenuItem>
