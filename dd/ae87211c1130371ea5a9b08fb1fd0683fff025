@@ -1,0 +1,224 @@
+src/components/Logistic/Pedido/pedidoList.js
+  08fc8a885452da89 79,92-95,104-107,160,162-193,247-265,267-290,309-336,386-487,495-496,505,509,516-517,528-552,639-674,801,804
+src/services/compras-nico.service.js
+  s_aa22ce9a8a1e60::t_38301a35f5b889 1-27
+src/components/Logistic/Gastos/addGasto.js
+  c6f97d3289a3c885 1-208
+src/services/clients-nico.service.js
+  s_aa22ce9a8a1e60::t_700ed0acab2124 1-27
+src/services/gastos-max.service.js
+  c6f97d3289a3c885 1-23
+src/services/pedidos-nico.service.js
+  s_aa22ce9a8a1e60::t_2644ac6bb13505 1-27
+src/services/gastos-nico.service.js
+  s_aa22ce9a8a1e60::t_b8368dc7a6283d 1-23
+src/components/Logistic/Compras/comprasList.js
+  h_7f074e634475fb 29,31,48,193-252,284-285,291-298,300-302,331
+src/services/marcas-nico.service.js
+  s_aa22ce9a8a1e60::t_e7ddb6a696261b 1-27
+src/components/Logistic/Products/changePrice.js
+  s_aa22ce9a8a1e60::t_ceecc8c1f28cf9 2
+  s_aa22ce9a8a1e60::t_c9c0a1f1e6c9d6 215-221
+  s_79ab0950a7e180::t_db8cca05118b60 101
+  s_79ab0950a7e180::t_a36bcdff58ab4d 96-100,102-120,123-129,131-135
+  s_0ae2035a5aeb8d::t_3b78a8f927f964 226
+src/utils/default.js
+  s_aa22ce9a8a1e60::t_fd65e99bc34062 38-39,42,45-46
+src/components/Logistic/Clients/editClient.js
+  s_454724a97c81f9::t_fd2da34dd6c7c9 14
+  s_454724a97c81f9::t_93a70d47ff8634 227-239
+  s_454724a97c81f9::t_7ab1553bb0248d 31
+  s_454724a97c81f9::t_278df0eba55409 72,87
+src/components/Logistic/Products/editProduct.js
+  93637137b905a5f2 80-81
+  s_0ae2035a5aeb8d::t_fd2cb2c21fff60 206
+  s_454724a97c81f9::t_21c4f76e682ed8 251-265
+  s_aa22ce9a8a1e60::t_e77b9e1a8c5832 13
+  s_454724a97c81f9::t_a1c344c7f82794 83
+  s_454724a97c81f9::t_9faf429995fa22 29
+  s_aa22ce9a8a1e60::t_d83a45ab1fdeb6 184-198,212-225
+src/App.scss
+  f905f257f586c8a4 205-212
+src/components/Logistic/Products/listProduct.js
+  s_0ae2035a5aeb8d::t_851f8c35bccf34 513
+  93637137b905a5f2 32,34,218-288,504
+  s_aa22ce9a8a1e60::t_2004a355a2c810 49,52
+  s_aa22ce9a8a1e60::t_514c6e0bc42cb7 475,477
+  s_aa22ce9a8a1e60::t_2b1ccec88f18b7 10
+  s_aa22ce9a8a1e60::t_7243a29f7d85fb 506,508,515-519
+  s_0ae2035a5aeb8d::t_19b2bdbe3e6223 476
+  s_0ae2035a5aeb8d::t_72642369162f13 507
+functions/src/handlers/emitComprobante.js
+  3af74c7da01cecf0 178-187,189-191
+src/App.js
+  c6f97d3289a3c885 87-88,394-395,458-459
+  s_aa22ce9a8a1e60::t_0e62cda108a2de 400-403,405-428
+  s_aa22ce9a8a1e60::t_e1a6d98ee63e1a 158
+  s_aa22ce9a8a1e60::t_137de920c82d69 238,242-243,247-248,252-253
+src/components/Logistic/Pedido/editPedido.js
+  s_0ae2035a5aeb8d::t_a78d1976a623bb 223,225-230
+  s_454724a97c81f9::t_29640b07c5b885 182
+  s_0ae2035a5aeb8d::t_8e93939e9313b4 128
+  s_0ae2035a5aeb8d::t_137277469769e9 280-281
+  s_454724a97c81f9::t_b7262cd30b7188 1146-1150
+  s_aa22ce9a8a1e60::t_4be00cc8f99678 1117
+  s_0ae2035a5aeb8d::t_2e7fd37f08256f 1095
+  s_aa22ce9a8a1e60::t_61430bf1199967 34
+  s_0ae2035a5aeb8d::t_58f7beb4689b52 180
+  s_0ae2035a5aeb8d::t_6429e414ec6b20 1118
+  s_0ae2035a5aeb8d::t_b1b919df091cd3 1119
+src/components/Logistic/Gastos/gastosList.js
+  c6f97d3289a3c885 1-440
+src/components/Logistic/Clients/addClient.js
+  s_454724a97c81f9::t_15746d6992410a 84
+  s_454724a97c81f9::t_7a47755fa50ebf 234-246
+  s_454724a97c81f9::t_c8e9bf802b1ca4 112
+  s_454724a97c81f9::t_382a136c26a3f1 13
+  s_454724a97c81f9::t_4258cd68019209 36
+src/components/NavBar/NavBar.js
+  s_aa22ce9a8a1e60::t_f340be10d9097a 288-293
+  c6f97d3289a3c885 71-81,105-109
+  s_aa22ce9a8a1e60::t_d5630e676326ce 363-373
+  s_aa22ce9a8a1e60::t_6add45ad208f86 121-123,129-134,137-150,170-182
+src/components/Logistic/Pedido/pedido.js
+  s_0ae2035a5aeb8d::t_cf4e9d219777e7 189
+  s_0ae2035a5aeb8d::t_daae9097cd8651 1048
+  s_0ae2035a5aeb8d::t_247d422f17cc69 254,256
+  s_454724a97c81f9::t_9bf588a7cc584a 1099-1103
+  s_0ae2035a5aeb8d::t_b214ac83c34f9f 434
+  s_aa22ce9a8a1e60::t_824ee1c342ea89 32
+  s_0ae2035a5aeb8d::t_3258c3af0c8070 299-300
+  s_0ae2035a5aeb8d::t_86980994a5b817 118
+  s_454724a97c81f9::t_4dd66342ea7a3c 192
+  s_aa22ce9a8a1e60::t_6c5284aca00e3e 1070
+  s_0ae2035a5aeb8d::t_be264c152e9936 1071
+  s_0ae2035a5aeb8d::t_3d3b2ec62905b2 1072
+src/components/Logistic/Products/addProduct.js
+  s_454724a97c81f9::t_21a668c2e56eb2 38
+  s_aa22ce9a8a1e60::t_ddc197685a896a 251-265,279-292
+  s_454724a97c81f9::t_4abc323031d674 318-332
+  s_454724a97c81f9::t_67a8679c3ab11d 126
+  s_454724a97c81f9::t_6c33f06469c642 153
+  s_0ae2035a5aeb8d::t_d277c40ef2ef4b 273
+  s_aa22ce9a8a1e60::t_4094fd9f8298c0 12
+src/utils/routeHelper.js
+  s_aa22ce9a8a1e60::t_03cb9d3d3b14f1 60-63
+  s_aa22ce9a8a1e60::t_4ba82666b0da6c 38,41
+  c6f97d3289a3c885 124-125,140-143
+  h_e67173743db6e0 180-182
+  s_aa22ce9a8a1e60::t_37941108d23e7c 94-109
+  s_aa22ce9a8a1e60::t_962d94eb8f0a81 167-171,175-177
+  s_aa22ce9a8a1e60::t_4da195ec7030d9 8
+  s_0ae2035a5aeb8d::t_677ca8fb4bf1a0 160-166,172-174,178-179,183-184
+src/services/gastos.service.js
+  c6f97d3289a3c885 1-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "ddae87211c1130371ea5a9b08fb1fd0683fff025",
+  "prompts": {
+    "08fc8a885452da89": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "eb820ced-d439-4379-8ef4-d6b9d5260f8f",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "topocabrera <jerecabrera16@gmail.com>",
+      "total_additions": 56,
+      "total_deletions": 8,
+      "accepted_lines": 56,
+      "overriden_lines": 0
+    },
+    "3af74c7da01cecf0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9a73aaf0-7dcd-4973-bd70-36f3d8b804c8",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "topocabrera <jerecabrera16@gmail.com>",
+      "total_additions": 8,
+      "total_deletions": 3,
+      "accepted_lines": 8,
+      "overriden_lines": 0
+    },
+    "93637137b905a5f2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "35a8c953-8ec1-4c7b-ac2d-22028936c793",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "topocabrera <jerecabrera16@gmail.com>",
+      "total_additions": 76,
+      "total_deletions": 3,
+      "accepted_lines": 76,
+      "overriden_lines": 0
+    },
+    "c6f97d3289a3c885": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5105e5ab-32e9-4b9c-95fd-de76cc33b032",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "topocabrera <jerecabrera16@gmail.com>",
+      "total_additions": 712,
+      "total_deletions": 0,
+      "accepted_lines": 712,
+      "overriden_lines": 0
+    },
+    "f905f257f586c8a4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a5e66747-2e46-415f-9fdd-3bfd0a6d2c7d",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "topocabrera <jerecabrera16@gmail.com>",
+      "total_additions": 8,
+      "total_deletions": 0,
+      "accepted_lines": 8,
+      "overriden_lines": 0
+    }
+  },
+  "humans": {
+    "h_7f074e634475fb": {
+      "author": "topocabrera"
+    },
+    "h_e67173743db6e0": {
+      "author": "topocabrera <jerecabrera16@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_0ae2035a5aeb8d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4d165b2a-ca44-43d5-8ce5-467ca3352c64",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "topocabrera <jerecabrera16@gmail.com>"
+    },
+    "s_454724a97c81f9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8f501d13-2183-4350-9a00-4c0a340fee66",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "topocabrera <jerecabrera16@gmail.com>"
+    },
+    "s_79ab0950a7e180": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4d8524be-fcf7-41e3-9de0-d70567086047",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "topocabrera <jerecabrera16@gmail.com>"
+    },
+    "s_aa22ce9a8a1e60": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9ecee744-e71a-4fa0-be52-de78ab43b708",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "topocabrera <jerecabrera16@gmail.com>"
+    }
+  }
+}
