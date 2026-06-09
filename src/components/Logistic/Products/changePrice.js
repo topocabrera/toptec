@@ -1,6 +1,5 @@
 import React, { Component } from "react";
-import { getMarcasLogistic } from "../../../utils/default";
-import { getSmartService, generateSmartRoute } from "../../../utils/routeHelper";
+import { getSmartService, generateSmartRoute, getPriceLabels, isNicoRole } from "../../../utils/routeHelper";
 import {
   Button,
   TextField,
@@ -22,6 +21,7 @@ export default class EditProduct extends Component {
     this.onChangePorcentaje = this.onChangePorcentaje.bind(this);
     this.onChangeMarca = this.onChangeMarca.bind(this);
     this.onDataChange = this.onDataChange.bind(this);
+    this.onMarcasChange = this.onMarcasChange.bind(this);
     this.updateProduct = this.updateProduct.bind(this);
     this.onCheckPrice = this.onCheckPrice.bind(this);
 
@@ -33,6 +33,7 @@ export default class EditProduct extends Component {
       precioMayorista: true,
       precioCosto: true,
       marca: '',
+      marcas: [],
     };
   }
 
@@ -41,6 +42,11 @@ export default class EditProduct extends Component {
     ProductosService.getAll()
       .orderByChild("id")
       .once("value", this.onDataChange);
+
+    const MarcasService = getSmartService('marcas');
+    MarcasService.getAll()
+      .orderByChild("id")
+      .once("value", this.onMarcasChange);
   }
 
   onDataChange(items) {
@@ -64,6 +70,14 @@ export default class EditProduct extends Component {
     this.setState({ products });
   }
 
+  onMarcasChange(items) {
+    const marcas = [];
+    items.forEach((item) => {
+      marcas.push(item.val().nombre);
+    });
+    this.setState({ marcas });
+  }
+
   onChangePorcentaje(e) {
     this.setState({
       porcentaje: e.target.value
@@ -79,32 +93,46 @@ export default class EditProduct extends Component {
   updateProduct() {
     const { products, porcentaje, marca } = this.state
 
-    const promises = [];
+    const applyIncrement = (base) => {
+      const parsed = parseInt(base, 10);
+      if (Number.isNaN(parsed)) return null;
+      return parsed + (porcentaje * parsed) / 100;
+    };
+
+    const buildUpdate = (product) => {
+      const data = {};
+      if (this.state.precio) {
+        const v = applyIncrement(product.precio);
+        if (v !== null) data.precio = v;
+      }
+      if (this.state.precioMayorista) {
+        const v = applyIncrement(product.precioMayorista);
+        if (v !== null) data.precioMayorista = v;
+      }
+      if (this.state.precioCosto) {
+        const v = applyIncrement(product.precioCosto);
+        if (v !== null) data.precioCosto = v;
+      }
+      return data;
+    };
+
+    if (porcentaje <= 0) return;
+
     const prodFilter = products.filter(prod => prod.marca === marca);
     prodFilter.forEach(product => {
-      let data = {
-        key: product.key,
-        precio: this.state.precio ? parseInt(product.precio, 10) + (porcentaje * parseInt(product.precio, 10)) / 100 : product.precio,
-        precioMayorista: this.state.precioMayorista ? parseInt(product.precio, 10) + (porcentaje * parseInt(product.precio, 10)) / 100 : product.precioMayorista,
-        precioCosto: this.state.precioCosto ? parseInt(product.precio, 10) + (porcentaje * parseInt(product.precio, 10)) / 100 : product.precioCosto
-      }
-      promises.push(data)
-    })
-    if (porcentaje > 0) {
-      promises.forEach(promise => {
-        const data = { precio: promise.precio }
-        const ProductosService = getSmartService('productos');
-        ProductosService.update(promise.key, data)
-          .then(() => {
-            this.setState({
-              submitted: true,
-            });
-          })
-          .catch((e) => {
-            console.log(e);
+      const data = buildUpdate(product);
+      if (Object.keys(data).length === 0) return;
+      const ProductosService = getSmartService('productos');
+      ProductosService.update(product.key, data)
+        .then(() => {
+          this.setState({
+            submitted: true,
           });
-      })
-    }
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    });
   }
 
   onCheckPrice(e, type) {
@@ -170,7 +198,7 @@ export default class EditProduct extends Component {
                     className="select__form"
                     fullWidth
                   >
-                    {getMarcasLogistic().map((marca) => (
+                    {this.state.marcas.map((marca) => (
                       <MenuItem key={marca} value={marca}>
                         {marca}
                       </MenuItem>
@@ -184,16 +212,18 @@ export default class EditProduct extends Component {
                         <Checkbox defaultChecked value={this.state.precioCosto} onChange={(e) => this.onCheckPrice(e, 'precioCosto')} />
                       }
                       label="Precio Costo" />
+                    {!isNicoRole() && (
+                      <FormControlLabel
+                        control={
+                          <Checkbox defaultChecked value={this.state.precioMayorista} onChange={(e) => this.onCheckPrice(e, 'precioMayorista')} />
+                        }
+                        label={getPriceLabels().mayorista} />
+                    )}
                     <FormControlLabel
                       control={
                         <Checkbox defaultChecked value={this.state.precio} onChange={(e) => this.onCheckPrice(e, 'precio')} />
                       }
-                      label="Precio minorista" />
-                    <FormControlLabel
-                      control={
-                        <Checkbox defaultChecked value={this.state.precioMayorista} onChange={(e) => this.onCheckPrice(e, 'precioMayorista')} />
-                      }
-                      label="Precio mayorista" />
+                      label={getPriceLabels().minorista} />
                   </FormGroup>
                 </Grid>
               </Grid>

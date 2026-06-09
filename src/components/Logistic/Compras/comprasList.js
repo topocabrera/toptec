@@ -26,7 +26,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import moment from "moment";
+import * as XLSX from 'xlsx';
 import 'moment/locale/es'; // Importar locale español
 import { getSmartService, generateSmartRoute } from "../../../utils/routeHelper";
 
@@ -43,6 +45,7 @@ export default class ComprasList extends Component {
         this.deleteCompra = this.deleteCompra.bind(this);
         this.searchCompra = this.searchCompra.bind(this);
         this.onChangeMonth = this.onChangeMonth.bind(this);
+        this.descargarExcel = this.descargarExcel.bind(this);
 
         this.state = {
             compras: [],
@@ -187,6 +190,66 @@ export default class ComprasList extends Component {
         return months;
     }
 
+    descargarExcel() {
+        const { comprasFilter, selectedMonth } = this.state;
+        if (comprasFilter.length === 0) {
+            Toast.fail('No hay compras para descargar', 2);
+            return;
+        }
+
+        const ars = (num) =>
+            (parseFloat(num) || 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 2 });
+
+        const rows = [
+            ['FECHA', 'PROVEEDOR', 'FACTURA', 'COD ART', 'DESCRIPCION', 'PRECIO', 'UNIDADES', 'DTO FINANCIERO', 'COSTO MERCADERIA'],
+        ];
+
+        let grandTotal = 0;
+        let lastFechaProveedor = null;
+
+        comprasFilter.forEach((compra) => {
+            const fechaProveedor = `${compra.fecha}_${compra.proveedor}`;
+            const isNewGroup = fechaProveedor !== lastFechaProveedor;
+            lastFechaProveedor = fechaProveedor;
+
+            compra.productos.forEach((prod, idx) => {
+                const subtotal = parseFloat(prod.subtotal) || 0;
+                grandTotal += subtotal;
+                rows.push([
+                    isNewGroup && idx === 0 ? compra.fecha : '',
+                    isNewGroup && idx === 0 ? compra.proveedor : '',
+                    idx === 0 ? (compra.factura || '') : '',
+                    prod.productoId || '',
+                    prod.productoNombre || '',
+                    ars(prod.precio),
+                    prod.unidades,
+                    prod.descuentoFinanciero > 0 ? `${prod.descuentoFinanciero} %` : '',
+                    ars(subtotal),
+                ]);
+            });
+        });
+
+        rows.push(['', '', '', '', '', '', '', 'TOTAL GENERAL', ars(grandTotal)]);
+
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        ws['!cols'] = [
+            { wch: 13 },
+            { wch: 20 },
+            { wch: 12 },
+            { wch: 10 },
+            { wch: 35 },
+            { wch: 16 },
+            { wch: 12 },
+            { wch: 16 },
+            { wch: 18 },
+        ];
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Compras');
+        const mes = moment(selectedMonth).format('MM-YYYY');
+        XLSX.writeFile(wb, `compras_${mes}.xlsx`);
+    }
+
     // Calcular totales del mes
     calcularTotales() {
         const { comprasFilter } = this.state;
@@ -218,16 +281,25 @@ export default class ComprasList extends Component {
                             Listado de Compras
                         </Typography>
 
-                        {/* Botón Nueva Compra */}
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            startIcon={<AddIcon />}
-                            href={generateSmartRoute("/compra")}
-                            sx={{ mb: 2 }}
-                        >
-                            Nueva Compra
-                        </Button>
+                        {/* Botones de acción */}
+                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                startIcon={<AddIcon />}
+                                href={generateSmartRoute("/compra")}
+                            >
+                                Nueva Compra
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                color="success"
+                                startIcon={<FileDownloadIcon />}
+                                onClick={this.descargarExcel}
+                            >
+                                Descargar mes
+                            </Button>
+                        </Box>
                     </Box>
 
                     {/* Filtros */}
@@ -256,6 +328,7 @@ export default class ComprasList extends Component {
                                     label="Buscar"
                                     placeholder="Buscar por proveedor, factura o producto..."
                                     onChange={this.searchCompra}
+                                    sx={{ marginTop: "0 !important" }}
                                     InputProps={{
                                         endAdornment: <SearchIcon color="action" />
                                     }}

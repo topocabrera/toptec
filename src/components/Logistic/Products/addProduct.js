@@ -9,8 +9,7 @@ import {
   MenuItem,
   Select,
 } from "@mui/material";
-import { getMarcasLogistic } from "../../../utils/default";
-import { getSmartService, generateSmartRoute } from "../../../utils/routeHelper";
+import { getSmartService, generateSmartRoute, getPriceLabels, isNicoRole } from "../../../utils/routeHelper";
 
 export default class AddProduct extends Component {
   constructor(props) {
@@ -21,6 +20,7 @@ export default class AddProduct extends Component {
     this.onChangeStock = this.onChangeStock.bind(this);
     this.onChangePrecio = this.onChangePrecio.bind(this);
     this.onDataChange = this.onDataChange.bind(this);
+    this.onMarcasChange = this.onMarcasChange.bind(this);
     this.saveProduct = this.saveProduct.bind(this);
     this.newProduct = this.newProduct.bind(this);
     this.onChangeValues = this.onChangeValues.bind(this);
@@ -28,13 +28,17 @@ export default class AddProduct extends Component {
     this.state = {
       codigo: "",
       descripcion: "",
-      marca: "Windy",
+      marca: "",
       precio: "",
       precioCosto: "",
       precioMayorista: "",
+      precioAlternativo: "",
+      codigoBarras: "",
       stock: 0,
+      unidadesPorBulto: "",
       lastId: 0,
       peso: 1,
+      marcas: [],
 
       submitted: false,
     };
@@ -46,6 +50,11 @@ export default class AddProduct extends Component {
       .orderByChild("id")
       .limitToLast(1)
       .once("child_added", this.onDataChange);
+
+    const MarcasService = getSmartService('marcas');
+    MarcasService.getAll()
+      .orderByChild("id")
+      .once("value", this.onMarcasChange);
   }
 
   componentWillUnmount() {
@@ -57,6 +66,14 @@ export default class AddProduct extends Component {
     this.setState({
       lastId: items.val().id || 0,
     });
+  }
+
+  onMarcasChange(items) {
+    const marcas = [];
+    items.forEach((item) => {
+      marcas.push(item.val().nombre);
+    });
+    this.setState({ marcas });
   }
 
   onChangeCodigo(e) {
@@ -103,7 +120,10 @@ export default class AddProduct extends Component {
       precioCosto: this.state.precioCosto,
       precio: this.state.precio,
       precioMayorista: this.state.precioMayorista,
+      precioAlternativo: this.state.precioAlternativo,
+      codigoBarras: this.state.codigoBarras,
       peso: this.state.peso,
+      ...(isNicoRole() && { unidadesPorBulto: this.state.unidadesPorBulto }),
     };
 
     const ProductosService = getSmartService('productos');
@@ -124,10 +144,13 @@ export default class AddProduct extends Component {
       codigo: "",
       descripcion: "",
       stock: 0,
-      marca: "Windy",
+      marca: "",
       precio: "",
       precioCosto: "",
       precioMayorista: "",
+      precioAlternativo: "",
+      codigoBarras: "",
+      unidadesPorBulto: "",
       lastId: this.state.lastId,
 
       submitted: false,
@@ -192,7 +215,7 @@ export default class AddProduct extends Component {
                     className="select__form"
                     fullWidth
                   >
-                    {getMarcasLogistic().map((marca) => (
+                    {this.state.marcas.map((marca) => (
                       <MenuItem key={marca} value={marca}>
                         {marca}
                       </MenuItem>
@@ -225,6 +248,21 @@ export default class AddProduct extends Component {
                     onChange={this.onChangePrecio}
                   />
                 </Grid>
+                {!isNicoRole() && (
+                  <Grid item xs={12}>
+                    <TextField
+                      variant="outlined"
+                      required
+                      fullWidth
+                      className="default__textfield"
+                      id="precioMayorista"
+                      label={getPriceLabels().mayorista}
+                      value={this.state.precioMayorista}
+                      name="precioMayorista"
+                      onChange={this.onChangePrecio}
+                    />
+                  </Grid>
+                )}
                 <Grid item xs={12}>
                   <TextField
                     variant="outlined"
@@ -232,23 +270,36 @@ export default class AddProduct extends Component {
                     fullWidth
                     className="default__textfield"
                     id="precio"
-                    label="Precio Venta Minorista"
+                    label={getPriceLabels().minorista}
                     value={this.state.precio}
                     name="precio"
                     onChange={this.onChangePrecio}
                   />
                 </Grid>
+                {!isNicoRole() && (
+                  <Grid item xs={12}>
+                    <TextField
+                      variant="outlined"
+                      fullWidth
+                      className="default__textfield"
+                      id="precioAlternativo"
+                      label={`${getPriceLabels().alternativo} (Opcional)`}
+                      value={this.state.precioAlternativo}
+                      name="precioAlternativo"
+                      onChange={this.onChangePrecio}
+                    />
+                  </Grid>
+                )}
                 <Grid item xs={12}>
                   <TextField
                     variant="outlined"
-                    required
                     fullWidth
                     className="default__textfield"
-                    id="precioMayorista"
-                    label="Precio Venta Mayorista"
-                    value={this.state.precioMayorista}
-                    name="precioMayorista"
-                    onChange={this.onChangePrecio}
+                    id="codigoBarras"
+                    label="Código de Barras (Opcional)"
+                    value={this.state.codigoBarras}
+                    name="codigoBarras"
+                    onChange={this.onChangeValues}
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -264,6 +315,21 @@ export default class AddProduct extends Component {
                     onChange={this.onChangeStock}
                   />
                 </Grid>
+                {isNicoRole() && (
+                  <Grid item xs={12}>
+                    <TextField
+                      variant="outlined"
+                      fullWidth
+                      className="default__textfield"
+                      id="unidadesPorBulto"
+                      label="Unidades por bulto"
+                      type="number"
+                      value={this.state.unidadesPorBulto}
+                      name="unidadesPorBulto"
+                      onChange={this.onChangeValues}
+                    />
+                  </Grid>
+                )}
               </Grid>
               <Button
                 type="button"

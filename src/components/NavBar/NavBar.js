@@ -48,28 +48,36 @@ const pageSeguros = [
 ]
 const pageWindy = [
     {
-        name: 'Listado Clientes',
+        name: 'Clientes',
         url: "/logistic/list-client"
     },
     {
-        name: 'Listado Productos',
+        name: 'Productos',
         url: "/logistic/list-products"
-    },
-    {
-        name: 'Nueva Visita',
-        url: "/logistic/new-visit"
     },
     {
         name: 'Cambiar precios',
         url: "/logistic/change-price"
     },
     {
-        name: 'Listado Pedidos',
+        name: 'Pedidos',
         url: "/logistic/list-pedidos"
     },
     {
         name: 'Compras',
         url: "/logistic/compras-list"
+    },
+    {
+        name: 'Gastos',
+        url: "/logistic/gastos-list"
+    },
+    {
+        name: 'Marcas',
+        url: '/logistic/list-marcas'
+    },
+    {
+        name: 'Estadísticas',
+        url: '/logistic/estadisticas'
     },
 ]
 
@@ -83,10 +91,6 @@ const pageMax = [
         url: "/max/list-products"
     },
     {
-        name: 'Nueva Visita',
-        url: "/max/new-visit"
-    },
-    {
         name: 'Cambiar precios',
         url: "/max/change-price"
     },
@@ -98,21 +102,52 @@ const pageMax = [
         name: 'Compras',
         url: "/max/compras-list"
     },
+    {
+        name: 'Gastos',
+        url: "/max/gastos-list"
+    },
+    {
+        name: 'Marcas',
+        url: '/max/list-marcas'
+    },
+    {
+        name: 'Estadísticas',
+        url: '/max/estadisticas'
+    },
 ]
 
-// Menú Nico (solo productos: listar, crear, editar, eliminar, carga masiva)
 const pageNico = [
+    {
+        name: 'Listado Clientes',
+        url: "/nico/list-client"
+    },
     {
         name: 'Listado Productos',
         url: "/nico/list-products"
     },
     {
-        name: 'Nuevo Producto',
-        url: "/nico/products"
+        name: 'Cambiar precios',
+        url: "/nico/change-price"
     },
     {
-        name: 'Carga masiva (Excel/CSV)',
-        url: "/nico/products-bulk"
+        name: 'Listado Pedidos',
+        url: "/nico/list-pedidos"
+    },
+    {
+        name: 'Compras',
+        url: "/nico/compras-list"
+    },
+    {
+        name: 'Gastos',
+        url: "/nico/gastos-list"
+    },
+    {
+        name: 'Marcas',
+        url: '/nico/list-marcas'
+    },
+    {
+        name: 'Estadísticas',
+        url: '/nico/estadisticas'
     },
 ]
 
@@ -129,6 +164,22 @@ const pageMaxVendedor = [
     {
         name: 'Listado Pedidos',
         url: "/max/list-pedidos"
+    },
+]
+
+// Menú restringido para nico-vendedor (solo crear pedidos)
+const pageNicoVendedor = [
+    {
+        name: 'Listado Clientes',
+        url: "/nico/list-client"
+    },
+    {
+        name: 'Listado Productos',
+        url: "/nico/list-products"
+    },
+    {
+        name: 'Listado Pedidos',
+        url: "/nico/list-pedidos"
     },
 ]
 
@@ -234,6 +285,12 @@ function NavBar() {
                                         <Link href={page.url} sx={{ textDecoration: 'none', color: '#000' }}>{page.name}</Link>
                                     </MenuItem>
                                 ))}
+                            {currentUser?.rol === "nico-vendedor" &&
+                                pageNicoVendedor.map((page) => (
+                                    <MenuItem key={page.name}>
+                                        <Link href={page.url} sx={{ textDecoration: 'none', color: '#000' }}>{page.name}</Link>
+                                    </MenuItem>
+                                ))}
                         </Menu>
                     </Box>
                     <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
@@ -294,6 +351,17 @@ function NavBar() {
                             ))}
                         {currentUser?.rol === "nico" &&
                             pageNico.map((page) => (
+                                <Button
+                                    key={page.name}
+                                    href={page.url}
+                                    onClick={handleCloseNavMenu}
+                                    sx={{ my: 2, color: 'black', display: 'block', marginLeft: '10px' }}
+                                >
+                                    {page.name}
+                                </Button>
+                            ))}
+                        {currentUser?.rol === "nico-vendedor" &&
+                            pageNicoVendedor.map((page) => (
                                 <Button
                                     key={page.name}
                                     href={page.url}

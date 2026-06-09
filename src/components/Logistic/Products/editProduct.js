@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getMarcasLogistic } from "../../../utils/default";
 import {
   Button,
   TextField,
@@ -11,7 +10,7 @@ import {
   MenuItem,
   Select,
 } from "@mui/material";
-import { getSmartService, generateSmartRoute } from "../../../utils/routeHelper";
+import { getSmartService, generateSmartRoute, getPriceLabels, isNicoRole } from "../../../utils/routeHelper";
 
 const EditProduct = () => {
   const { id } = useParams();
@@ -24,11 +23,15 @@ const EditProduct = () => {
     precio: "",
     precioCosto: "",
     precioMayorista: "",
+    precioAlternativo: "",
+    codigoBarras: "",
     stock: 0,
+    unidadesPorBulto: "",
     peso: 1,
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [marcas, setMarcas] = useState([]);
 
   useEffect(() => {
     const productId = parseInt(id, 10);
@@ -37,6 +40,17 @@ const EditProduct = () => {
       .orderByChild("id")
       .equalTo(productId)
       .once("value", onDataChange);
+
+    const MarcasService = getSmartService('marcas');
+    MarcasService.getAll()
+      .orderByChild("id")
+      .once("value", (items) => {
+        const marcasArray = [];
+        items.forEach((item) => {
+          marcasArray.push(item.val().nombre);
+        });
+        setMarcas(marcasArray);
+      });
   }, [id]);
 
   const onDataChange = (items) => {
@@ -63,7 +77,10 @@ const EditProduct = () => {
       precio: currentProduct.precio,
       precioCosto: currentProduct.precioCosto,
       precioMayorista: currentProduct.precioMayorista,
+      precioAlternativo: currentProduct.precioAlternativo ?? "",
+      codigoBarras: currentProduct.codigoBarras ?? "",
       peso: currentProduct.peso,
+      ...(isNicoRole() && { unidadesPorBulto: currentProduct.unidadesPorBulto ?? "" }),
     };
 
     const ProductosService = getSmartService('productos');
@@ -131,7 +148,7 @@ const EditProduct = () => {
                   name="marca"
                   fullWidth
                 >
-                  {getMarcasLogistic().map((marca) => (
+                  {marcas.map((marca) => (
                     <MenuItem key={marca} value={marca}>
                       {marca}
                     </MenuItem>
@@ -164,6 +181,21 @@ const EditProduct = () => {
                   onChange={handleChange}
                 />
               </Grid>
+              {!isNicoRole() && (
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    className="default__textfield"
+                    id="precioMayorista"
+                    label={getPriceLabels().mayorista}
+                    value={currentProduct.precioMayorista}
+                    name="precioMayorista"
+                    onChange={handleChange}
+                  />
+                </Grid>
+              )}
               <Grid item xs={12}>
                 <TextField
                   variant="outlined"
@@ -171,22 +203,35 @@ const EditProduct = () => {
                   fullWidth
                   className="default__textfield"
                   id="precio"
-                  label="Precio Venta Minorista"
+                  label={getPriceLabels().minorista}
                   value={currentProduct.precio}
                   name="precio"
                   onChange={handleChange}
                 />
               </Grid>
+              {!isNicoRole() && (
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    fullWidth
+                    className="default__textfield"
+                    id="precioAlternativo"
+                    label={`${getPriceLabels().alternativo} (Opcional)`}
+                    value={currentProduct.precioAlternativo}
+                    name="precioAlternativo"
+                    onChange={handleChange}
+                  />
+                </Grid>
+              )}
               <Grid item xs={12}>
                 <TextField
                   variant="outlined"
-                  required
                   fullWidth
                   className="default__textfield"
-                  id="precioMayorista"
-                  label="Precio Venta Mayorista"
-                  value={currentProduct.precioMayorista}
-                  name="precioMayorista"
+                  id="codigoBarras"
+                  label="Código de Barras (Opcional)"
+                  value={currentProduct.codigoBarras}
+                  name="codigoBarras"
                   onChange={handleChange}
                 />
               </Grid>
@@ -203,6 +248,21 @@ const EditProduct = () => {
                   onChange={handleChange}
                 />
               </Grid>
+              {isNicoRole() && (
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    fullWidth
+                    className="default__textfield"
+                    id="unidadesPorBulto"
+                    label="Unidades por bulto"
+                    type="number"
+                    value={currentProduct.unidadesPorBulto ?? ""}
+                    name="unidadesPorBulto"
+                    onChange={handleChange}
+                  />
+                </Grid>
+              )}
             </Grid>
             <Button
               type="button"

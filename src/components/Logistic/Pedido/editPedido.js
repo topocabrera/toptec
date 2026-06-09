@@ -31,7 +31,7 @@ import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import { getSmartService, generateSmartRoute } from "../../../utils/routeHelper";
+import { getSmartService, generateSmartRoute, getPriceLabels, isWindyRole, isNicoRole } from "../../../utils/routeHelper";
 import SearchIcon from "@mui/icons-material/Search";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import EditIcon from "@mui/icons-material/Edit";
@@ -84,8 +84,11 @@ export default class EditPedido extends Component {
     this.eliminarCheque = this.eliminarCheque.bind(this);
     this.onChangeCheque = this.onChangeCheque.bind(this);
 
+    this.ajustarStockEnEdicion = this.ajustarStockEnEdicion.bind(this);
+
     this.state = {
       products: [],
+      productosOriginales: [],
       peso: "1",
       cantidad: "",
       descuento: "",
@@ -122,6 +125,7 @@ export default class EditPedido extends Component {
       tipoPrecio: "precio",
       precioMayorista: 0,
       precioMinorista: 0,
+      precioAlternativo: 0,
       // Estados para el modal de forma de pago
       modalFormaPago: false,
       formaPagoSeleccionada: "",
@@ -173,7 +177,9 @@ export default class EditPedido extends Component {
         peso: data.peso,
         precio: data.precio,
         precioMayorista: data.precioMayorista,
+        precioAlternativo: data.precioAlternativo,
         precioCosto: data.precioCosto,
+        unidadesPorBulto: data.unidadesPorBulto,
       });
     });
     this.setState({ products });
@@ -184,7 +190,8 @@ export default class EditPedido extends Component {
     let data = item.val();
     const pedido = data[key];
     pedido.key = key[0];
-    this.setState({ pedido });
+    const productosOriginales = (pedido.productos || []).map(p => ({ ...p }));
+    this.setState({ pedido, productosOriginales });
   }
 
   onChangeSearchTitle(e) {
@@ -213,13 +220,14 @@ export default class EditPedido extends Component {
     }, 500);
   }
 
-  setActive(peso, index, precio, precioMayorista) {
+  setActive(peso, index, precio, precioMayorista, precioAlternativo) {
     // Peso siempre es 1 (readonly)
-    this.setState({ 
-      indexActive: index, 
-      peso: "1", 
-      precio, 
-      precioMayorista, 
+    this.setState({
+      indexActive: index,
+      peso: "1",
+      precio,
+      precioMayorista,
+      precioAlternativo: precioAlternativo || 0,
       precioMinorista: precio,
       tipoPrecio: "precio",
       cantidad: "",
@@ -269,6 +277,8 @@ export default class EditPedido extends Component {
       nuevoPrecio = this.state.precioMinorista || "";
     } else if (tipoPrecio === "precioMayorista") {
       nuevoPrecio = this.state.precioMayorista || "";
+    } else if (tipoPrecio === "precioAlternativo") {
+      nuevoPrecio = this.state.precioAlternativo || "";
     }
 
     this.setState({
@@ -497,6 +507,43 @@ export default class EditPedido extends Component {
     });
   }
 
+  ajustarStockEnEdicion() {
+    const { productosOriginales, pedido } = this.state;
+    const netChanges = {};
+
+    // Sumar cantidades originales (para restaurar)
+    (productosOriginales || []).forEach((prod) => {
+      const cantidad = parseInt(prod.cantidad, 10) || 0;
+      netChanges[prod.codigo] = (netChanges[prod.codigo] || 0) + cantidad;
+    });
+
+    // Restar cantidades nuevas (para descontar)
+    (pedido.productos || []).forEach((prod) => {
+      const cantidad = parseInt(prod.cantidad, 10) || 0;
+      netChanges[prod.codigo] = (netChanges[prod.codigo] || 0) - cantidad;
+    });
+
+    const promises = Object.entries(netChanges)
+      .filter(([, diff]) => diff !== 0)
+      .map(([codigo, diff]) =>
+        ProductosDataService.getAll()
+          .orderByChild("codigo")
+          .equalTo(codigo)
+          .once("value")
+          .then((snapshot) => {
+            if (snapshot.exists()) {
+              snapshot.forEach((item) => {
+                const productoActual = item.val();
+                const stockActualizado = (productoActual.stock || 0) + diff;
+                ProductosDataService.update(item.key, { stock: stockActualizado });
+              });
+            }
+          })
+      );
+
+    return Promise.all(promises);
+  }
+
   updatePedido() {
     // Sanitizar productos para evitar NaN
     const productosSanitizados = this.state.pedido.productos.map(prod => ({
@@ -523,6 +570,10 @@ export default class EditPedido extends Component {
 
     PedidosDataService.update(this.state.pedido.key, data)
       .then(() => {
+        this.ajustarStockEnEdicion().then(() => {
+          // Actualizar productosOriginales para reflejar el nuevo estado guardado
+          this.setState({ productosOriginales: data.productos.map(p => ({ ...p })) });
+        });
         Toast.loading("Loading...", 1, () => {
           this.setState({
             submitted: true,
@@ -1041,7 +1092,7 @@ export default class EditPedido extends Component {
                         onClick={(e) => {
                           e.preventDefault();
                           if (!isActive) {
-                            this.setActive(producto.peso, index, producto.precio, producto.precioMayorista);
+                            this.setActive(producto.peso, index, producto.precio, producto.precioMayorista, producto.precioAlternativo);
                           }
                         }}
                         wrap
@@ -1063,8 +1114,9 @@ export default class EditPedido extends Component {
                                   onChange={this.onChangeTipo}
                                   sx={{ minWidth: 110 }}
                                 >
-                                  <MenuItem value="precio">P. Minorista</MenuItem>
-                                  <MenuItem value="precioMayorista">P. Mayorista</MenuItem>
+                                  {!isNicoRole() && <MenuItem value="precioMayorista">{getPriceLabels().mayorista}</MenuItem>}
+                                  <MenuItem value="precio">{getPriceLabels().minorista}</MenuItem>
+                                  {isWindyRole() && <MenuItem value="precioAlternativo">{getPriceLabels().alternativo}</MenuItem>}
                                   <MenuItem value="otro">Otro</MenuItem>
                                 </Select>
                               </FormControl>
@@ -1091,6 +1143,11 @@ export default class EditPedido extends Component {
                           <span className="prod__stock-text">
                             S: {producto.stock}
                           </span>
+                          {isNicoRole() && producto.unidadesPorBulto !== undefined && producto.unidadesPorBulto !== null && producto.unidadesPorBulto !== "" && (
+                            <span className="prod__stock-text">
+                              U/Bulto: {producto.unidadesPorBulto}
+                            </span>
+                          )}
                           {isActive && (
                             <div>
                               <FormControlLabel

@@ -10,7 +10,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import { dias } from "../../../utils/default";
-import { getSmartService, generateSmartRoute } from "../../../utils/routeHelper";
+import { getSmartService, generateSmartRoute, isNicoRole } from "../../../utils/routeHelper";
 
 export default class AddClient extends Component {
   constructor(props) {
@@ -33,6 +33,7 @@ export default class AddClient extends Component {
       lastId: 0,
       dia: 1,
       condicionIva: "",
+      horarioAtencion: "",
 
       submitted: false,
     };
@@ -80,6 +81,7 @@ export default class AddClient extends Component {
       motivo: this.state.motivo,
       estado: this.state.estado,
       condicionIva: this.state.condicionIva,
+      ...(isNicoRole() && { horarioAtencion: this.state.horarioAtencion }),
     };
 
     const ClientsService = getSmartService('clientes');
@@ -107,6 +109,7 @@ export default class AddClient extends Component {
       motivo: "",
       dia: 1,
       condicionIva: "",
+      horarioAtencion: "",
 
       submitted: false,
     });
@@ -228,6 +231,19 @@ export default class AddClient extends Component {
                     onChange={this.onChangeValues}
                   />
                 </Grid>
+                {isNicoRole() && (
+                  <Grid item xs={12}>
+                    <TextField
+                      variant="outlined"
+                      fullWidth
+                      id="horarioAtencion"
+                      label="Horario de atención"
+                      name="horarioAtencion"
+                      value={this.state.horarioAtencion}
+                      onChange={this.onChangeValues}
+                    />
+                  </Grid>
+                )}
               </Grid>
               <Button
                 type="button"

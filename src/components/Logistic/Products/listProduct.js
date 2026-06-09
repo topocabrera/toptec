@@ -1,12 +1,15 @@
 import React, { Component } from "react";
 import { Toast, Modal } from "antd-mobile";
 import SearchIcon from "@mui/icons-material/Search";
-import { IconButton, TextField, InputAdornment, Box } from "@mui/material";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import { IconButton, TextField, InputAdornment, Box, Autocomplete, Button } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
-import { getSmartService, generateSmartRoute, canViewCostPrice, canEditProducts, canChangePrice } from "../../../utils/routeHelper";
+import { getSmartService, generateSmartRoute, canViewCostPrice, canEditProducts, canChangePrice, getPriceLabels, isNicoRole } from "../../../utils/routeHelper";
+import moment from "moment";
+import * as XLSX from 'xlsx';
 
 const alert = Modal.alert;
 
@@ -16,15 +19,20 @@ export default class listProduct extends Component {
     this.refreshList = this.refreshList.bind(this);
     this.setActiveProduct = this.setActiveProduct.bind(this);
     this.onDataChange = this.onDataChange.bind(this);
+    this.onMarcasChange = this.onMarcasChange.bind(this);
     this.onChangeDate = this.onChangeDate.bind(this);
     this.onChangeTurno = this.onChangeTurno.bind(this);
     this.searchTitle = this.searchTitle.bind(this);
     this.onChangeSearchTitle = this.onChangeSearchTitle.bind(this);
+    this.onChangeMarcaFilter = this.onChangeMarcaFilter.bind(this);
     this.deleteProduct = this.deleteProduct.bind(this);
     this.handleEditPrice = this.handleEditPrice.bind(this);
     this.handleCancelEdit = this.handleCancelEdit.bind(this);
     this.handleSavePrice = this.handleSavePrice.bind(this);
+    this.handleSaveStock = this.handleSaveStock.bind(this);
     this.renderPriceCell = this.renderPriceCell.bind(this);
+    this.renderStockCell = this.renderStockCell.bind(this);
+    this.descargarExcel = this.descargarExcel.bind(this);
 
     this.state = {
       products: [],
@@ -32,14 +40,16 @@ export default class listProduct extends Component {
       currentIndex: -1,
       productoFilter: [],
       searchTitle: "",
+      marcaFilter: "",
+      marcas: [],
       editingPrice: null, // { productoKey, field } - null cuando no se está editando
       tempPrice: "", // Precio temporal durante la edición
     };
     
-    // Verificar si el usuario puede editar precios (solo max y windy)
+    // Verificar si el usuario puede editar precios (max, windy y nico)
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
     this.userRole = currentUser?.rol;
-    this.canEditPrice = this.userRole === 'max' || this.userRole === 'windy';
+    this.canEditPrice = this.userRole === 'max' || this.userRole === 'windy' || this.userRole === 'nico';
   }
 
   componentDidMount() {
@@ -47,6 +57,11 @@ export default class listProduct extends Component {
     ProductosService.getAll()
       .orderByChild("id")
       .on("value", this.onDataChange);
+
+    const MarcasService = getSmartService('marcas');
+    MarcasService.getAll()
+      .orderByChild("id")
+      .once("value", this.onMarcasChange);
   }
 
   componentWillUnmount() {
@@ -70,10 +85,24 @@ export default class listProduct extends Component {
         precio: data.precio,
         precioCosto: data.precioCosto,
         precioMayorista: data.precioMayorista,
+        precioAlternativo: data.precioAlternativo,
+        codigoBarras: data.codigoBarras,
       });
     });
 
     this.setState({ products });
+  }
+
+  onMarcasChange(items) {
+    const marcas = [];
+    items.forEach((item) => {
+      marcas.push(item.val().nombre);
+    });
+    this.setState({ marcas });
+  }
+
+  onChangeMarcaFilter(e) {
+    this.setState({ marcaFilter: e.target.value });
   }
 
   onChangeSearchTitle(e) {
@@ -186,6 +215,77 @@ export default class listProduct extends Component {
       });
   }
 
+  handleSaveStock(productoKey) {
+    const newStock = parseInt(this.state.tempPrice, 10);
+
+    if (isNaN(newStock) || newStock < 0) {
+      Toast.fail("El stock debe ser un número entero válido mayor o igual a 0", 2);
+      return;
+    }
+
+    Toast.loading("Actualizando stock...", 0);
+
+    const ProductosService = getSmartService('productos');
+    ProductosService.update(productoKey, { stock: newStock })
+      .then(() => {
+        Toast.hide();
+        Toast.success("Stock actualizado correctamente!", 1);
+        this.setState({ editingPrice: null, tempPrice: "" });
+      })
+      .catch((e) => {
+        Toast.hide();
+        console.error("Error al actualizar stock:", e);
+        Toast.fail("Error al actualizar el stock", 2);
+      });
+  }
+
+  renderStockCell(producto) {
+    const { editingPrice, tempPrice } = this.state;
+    const field = 'stock';
+    const isEditing = editingPrice?.productoKey === producto.key && editingPrice?.field === field;
+    const currentValue = producto.stock;
+    const displayValue = currentValue !== null && currentValue !== undefined && currentValue !== '' ? currentValue : '-';
+
+    if (!this.canEditPrice) {
+      return <td>{displayValue}</td>;
+    }
+
+    return (
+      <td>
+        {isEditing ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: '150px' }}>
+            <TextField
+              size="small"
+              type="number"
+              value={tempPrice}
+              onChange={(e) => this.setState({ tempPrice: e.target.value })}
+              sx={{ width: 90 }}
+              autoFocus
+              inputProps={{ step: "1", min: "0" }}
+            />
+            <IconButton size="small" color="success" onClick={() => this.handleSaveStock(producto.key)} title="Guardar">
+              <CheckIcon fontSize="small" />
+            </IconButton>
+            <IconButton size="small" color="error" onClick={() => this.handleCancelEdit()} title="Cancelar">
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        ) : (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: '80px' }}>
+            <span style={{ minWidth: '30px' }}>{displayValue}</span>
+            <IconButton
+              size="small"
+              onClick={() => this.handleEditPrice(producto.key, field, currentValue ?? 0)}
+              title="Editar stock"
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        )}
+      </td>
+    );
+  }
+
   renderPriceCell(producto, field, fieldLabel) {
     const { editingPrice, tempPrice } = this.state;
     const isEditing = editingPrice?.productoKey === producto.key && editingPrice?.field === field;
@@ -255,9 +355,55 @@ export default class listProduct extends Component {
     );
   }
 
+  descargarExcel() {
+    const { products, searchTitle, productoFilter, marcaFilter } = this.state;
+    let displayTable = searchTitle !== "" ? productoFilter : products;
+    if (marcaFilter !== "") {
+      displayTable = displayTable.filter((prod) => prod.marca === marcaFilter);
+    }
+
+    if (displayTable.length === 0) {
+      Toast.fail('No hay productos para descargar', 2);
+      return;
+    }
+
+    const fecha = moment().format('DD-MM-YYYY');
+    const rows = [
+      ['FECHA', 'MARCA', 'COD ART', 'DESCRIPCION', 'CANTIDAD'],
+    ];
+
+    displayTable.forEach((prod, idx) => {
+      rows.push([
+        idx === 0 ? fecha : '',
+        prod.marca || '',
+        prod.codigo || '',
+        prod.descripcion || '',
+        prod.stock !== null && prod.stock !== undefined && prod.stock !== '' ? prod.stock : 0,
+      ]);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [
+      { wch: 13 },
+      { wch: 20 },
+      { wch: 12 },
+      { wch: 35 },
+      { wch: 12 },
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Productos');
+    XLSX.writeFile(wb, `productos_stock_${fecha}.xlsx`);
+  }
+
   render() {
-    const { products, searchTitle, productoFilter } = this.state;
-    const displayTable = searchTitle !== "" ? productoFilter : products;
+    const { products, searchTitle, productoFilter, marcaFilter, marcas } = this.state;
+    let displayTable = searchTitle !== "" ? productoFilter : products;
+
+    // Filtrar por marca si está seleccionada
+    if (marcaFilter !== "") {
+      displayTable = displayTable.filter((prod) => prod.marca === marcaFilter);
+    }
     return (
       <div className="list row">
         <div className="col-md-6">
@@ -272,22 +418,45 @@ export default class listProduct extends Component {
                 Cambiar precios masivamente
               </a>
             )}
+            <Button
+              variant="outlined"
+              color="success"
+              startIcon={<FileDownloadIcon />}
+              onClick={this.descargarExcel}
+              sx={{ marginLeft: '10px' }}
+            >
+              Descargar stock
+            </Button>
           </div>
-          <div className="col-md-8">
-            <div className="input-group mb-3">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Buscar"
-                onChange={this.searchTitle}
-              />
-              <div className="input-group-append">
-                <button
-                  className="btn btn-outline-secondary search-button"
-                  type="button"
-                >
-                  <SearchIcon color="action" />
-                </button>
+          <div className="col-md-8" style={{ paddingLeft: 0 }}>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+              <div className="input-group mb-3" style={{ flex: 1 }}>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Buscar"
+                  onChange={this.searchTitle}
+                />
+                <div className="input-group-append">
+                  <button
+                    className="btn btn-outline-secondary search-button"
+                    type="button"
+                  >
+                    <SearchIcon color="action" />
+                  </button>
+                </div>
+              </div>
+              <div style={{ flex: 1, marginTop: '-6px' }}>
+                <Autocomplete
+                  options={[{ label: "Todas las marcas", value: "" }, ...marcas.map((marca) => ({ label: marca, value: marca }))]}
+                  getOptionLabel={(option) => option.label}
+                  value={marcas.length > 0 ? { label: this.state.marcaFilter === "" ? "Todas las marcas" : this.state.marcaFilter, value: this.state.marcaFilter } : { label: "Cargando...", value: "" }}
+                  onChange={(_, newValue) => {
+                    this.setState({ marcaFilter: newValue?.value || "" });
+                  }}
+                  renderInput={(params) => <TextField {...params} label="Marca" />}
+                  size="small"
+                />
               </div>
             </div>
           </div>
@@ -297,13 +466,15 @@ export default class listProduct extends Component {
               <thead className="thead-dark">
                 <tr>
                   <th scope="col">Código</th>
+                  {/* <th scope="col">Código de Barras</th> */}
                   <th scope="col">Descripción</th>
-                  <th scope="col">Peso</th>
+                  {/* <th scope="col">Peso</th> */}
                   <th scope="col">Marca</th>
                   <th scope="col">Stock</th>
                   {canViewCostPrice() && <th scope="col">Precio Costo</th>}
-                  <th scope="col">Precio Venta Minorista</th>
-                  <th scope="col">Precio Venta Mayorista</th>
+                  {!isNicoRole() && <th scope="col">{getPriceLabels().mayorista}</th>}
+                  <th scope="col">{getPriceLabels().minorista}</th>
+                  {!isNicoRole() && <th scope="col">{getPriceLabels().alternativo}</th>}
                   {canViewCostPrice() && <th scope="col">Dif. con P. Costo</th>}
                   {canEditProducts() && <th scope="col">Acciones</th>}
                 </tr>
@@ -326,22 +497,26 @@ export default class listProduct extends Component {
                     return (
                       <tr key={index}>
                         <td>{producto.codigo || '-'}</td>
+                        {/* <td>{producto.codigoBarras || '-'}</td> */}
                         <td>{producto.descripcion || '-'}</td>
-                        <td>{producto.peso || '-'}</td>
+                        {/* <td>{producto.peso || '-'}</td> */}
                         <td>{producto.marca || '-'}</td>
-                        <td>{producto.stock !== null && producto.stock !== undefined && producto.stock !== '' ? producto.stock : '-'}</td>
+                        {this.renderStockCell(producto)}
                         {canViewCostPrice() && this.renderPriceCell(producto, 'precioCosto', 'Precio Costo')}
-                        {this.renderPriceCell(producto, 'precio', 'Precio Venta Minorista')}
-                        {this.renderPriceCell(producto, 'precioMayorista', 'Precio Venta Mayorista')}
+                        {!isNicoRole() && this.renderPriceCell(producto, 'precioMayorista', getPriceLabels().mayorista)}
+                        {this.renderPriceCell(producto, 'precio', getPriceLabels().minorista)}
+                        {!isNicoRole() && this.renderPriceCell(producto, 'precioAlternativo', getPriceLabels().alternativo)}
                         {canViewCostPrice() && (
                           <td>
                             <div>
                               <div>
-                                <strong>P. Minorista:</strong> {isNaN(difCosto) ? '-' : `$${difCosto.toFixed(2)}`}
+                                <strong>{getPriceLabels().minorista}:</strong> {isNaN(difCosto) ? '-' : `$${difCosto.toFixed(2)}`}
                               </div>
-                              <div>
-                                <strong>P. Mayorista:</strong> {precioMayoristaValid > 0 && !isNaN(difPMayorista) ? `$${difPMayorista.toFixed(2)}` : '-'}
-                              </div>
+                              {!isNicoRole() && (
+                                <div>
+                                  <strong>{getPriceLabels().mayorista}:</strong> {precioMayoristaValid > 0 && !isNaN(difPMayorista) ? `$${difPMayorista.toFixed(2)}` : '-'}
+                                </div>
+                              )}
                             </div>
                           </td>
                         )}

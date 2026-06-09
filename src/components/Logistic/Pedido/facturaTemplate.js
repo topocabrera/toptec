@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import moment from 'moment';
-import { Button } from '@mui/material';
+import { Button, Box, Typography } from '@mui/material';
 import PrintOutlinedIcon from '@mui/icons-material/PrintOutlined';
 import { getSmartService } from '../../../utils/routeHelper';
+import EmitirFacturaModal from './EmitirFacturaModal';
+
+const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+const isWindy = currentUser?.rol === 'windy';
 
 const Factura = () => {
   const { id } = useParams();
@@ -19,6 +23,7 @@ const Factura = () => {
     fechaEntrega: moment(new Date().getTime()).add(1, 'days').format('DD-MM-YYYY'),
   });
   const [currentClient, setCurrentClient] = useState({});
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     const PedidosService = getSmartService('pedidos');
@@ -29,7 +34,7 @@ const Factura = () => {
     const handlePedido = (snapshot) => {
       const pedidoData = snapshot.val();
       if (pedidoData) {
-        setPedido(pedidoData);
+        setPedido({ ...pedidoData, key: snapshot.key });
 
         const ClientesService = getSmartService('clientes');
         const clienteRef = ClientesService.getAll()
@@ -73,10 +78,78 @@ const Factura = () => {
           onClick={print}
           endIcon={<PrintOutlinedIcon />}
           className="button-print"
+          sx={{ marginBottom: '20px' }}
         >
           Imprimir
         </Button>
       </div>
+
+      {/* AFIP Status Banner - Emitted */}
+      {isWindy && pedido.afipStatus === 'EMITTED' && (
+        <Box
+          sx={{
+            mx: 'auto',
+            maxWidth: 800,
+            mb: 1,
+            p: 1.5,
+            bgcolor: '#e8f5e9',
+            borderRadius: 1,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <Box>
+            <Typography variant="body2" sx={{ color: '#2e7d32' }}>
+              <strong>AFIP: EMITIDA</strong> — CAE: {pedido.afipCae} — Vto: {pedido.afipCaeVto}
+            </Typography>
+          </Box>
+          {pedido.afipPdfUrl && (
+            <Button
+              size="small"
+              variant="outlined"
+              color="success"
+              href={pedido.afipPdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              PDF
+            </Button>
+          )}
+        </Box>
+      )}
+
+      {/* AFIP Status Banner - Failed */}
+      {isWindy && pedido.afipStatus === 'EMIT_FAILED' && (
+        <Box
+          sx={{
+            mx: 'auto',
+            maxWidth: 800,
+            mb: 1,
+            p: 1.5,
+            bgcolor: '#ffebee',
+            borderRadius: 1,
+          }}
+        >
+          <Typography variant="body2" sx={{ color: '#c62828' }}>
+            <strong>AFIP: FALLIDA</strong> — Reintente desde el botón "Emitir a AFIP"
+          </Typography>
+        </Box>
+      )}
+
+      {/* Emitir a AFIP Button - only if not yet emitted */}
+      {isWindy && pedido.afipStatus !== 'EMITTED' && (
+        <div className="col-12 text-center">
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={() => setModalOpen(true)}
+            sx={{ mb: 1 }}
+          >
+            Emitir a AFIP
+          </Button>
+        </div>
+      )}
 
       <div className="factura__container">
         <div className="row section">
@@ -168,6 +241,15 @@ const Factura = () => {
           </table>
         </div>
       </div>
+
+      {/* EmitirFacturaModal */}
+      <EmitirFacturaModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        pedido={pedido}
+        pedidoKey={pedido.key}
+        currentClient={currentClient}
+      />
     </div>
   );
 };

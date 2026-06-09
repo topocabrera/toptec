@@ -24,6 +24,7 @@ import {
   DialogContent,
   DialogTitle,
 } from "@mui/material";
+import * as XLSX from 'xlsx';
 // import Button from '@mui/material/Button';
 
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
@@ -31,6 +32,8 @@ import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import ReceiptIcon from "@mui/icons-material/Receipt";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import DateRangeIcon from "@mui/icons-material/DateRange";
 import moment from "moment";
 import ListCheckbox from "../../../components/ListCheckbox";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
@@ -38,6 +41,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import PaymentIcon from "@mui/icons-material/Payment";
 import InfoIcon from "@mui/icons-material/Info";
+import BarChartIcon from "@mui/icons-material/BarChart";
 import { getSmartService, generateSmartRoute, hasPermission } from "../../../utils/routeHelper";
 const queryString = require("query-string");
 
@@ -46,6 +50,7 @@ const alert = Modal.alert;
 // Obtener servicios dinámicamente según el rol del usuario
 const PedidosDataService = getSmartService('pedidos');
 const ClientsDataService = getSmartService('clientes');
+const ProductosDataService = getSmartService('productos');
 
 export default class PedidoList extends Component {
   constructor(props) {
@@ -59,12 +64,19 @@ export default class PedidoList extends Component {
     this.expandAll = this.expandAll.bind(this);
     this.deletePedido = this.deletePedido.bind(this);
     this.changeEntrega = this.changeEntrega.bind(this);
+    this.changeMostrarPendientes = this.changeMostrarPendientes.bind(this);
     this.getClients = this.getClients.bind(this);
     this.getClientsByDay = this.getClientsByDay.bind(this);
     this.getQuantity = this.getQuantity.bind(this);
     this.handleClose = this.handleClose.bind(this);
     this.abrirDetallesPago = this.abrirDetallesPago.bind(this);
     this.cerrarDetallesPago = this.cerrarDetallesPago.bind(this);
+    this.generarExcel = this.generarExcel.bind(this);
+    this.descargarDiario = this.descargarDiario.bind(this);
+    this.abrirModalRango = this.abrirModalRango.bind(this);
+    this.cerrarModalRango = this.cerrarModalRango.bind(this);
+    this.descargarPorRango = this.descargarPorRango.bind(this);
+    this.changeMostrarArchivados = this.changeMostrarArchivados.bind(this);
 
     this.state = {
       pedidos: [],
@@ -77,6 +89,10 @@ export default class PedidoList extends Component {
       expandAll: false,
       entregaPedido:
         queryString.parse(this.props.location.search).entrega || false,
+      mostrarSoloPendientes:
+        queryString.parse(this.props.location.search).pendientes === 'true' || false,
+      mostrarArchivados:
+        queryString.parse(this.props.location.search).archivados === 'true' || false,
       clients: [],
       cantVisitas: 0,
       quantityProd: {},
@@ -85,6 +101,10 @@ export default class PedidoList extends Component {
       // Estados para modal de detalles de pago
       modalDetallesPago: false,
       pedidoSeleccionado: null,
+      // Estados para modal de descarga por rango
+      modalRango: false,
+      fechaRangoInicio: null,
+      fechaRangoFin: null,
     };
   }
 
@@ -137,17 +157,40 @@ export default class PedidoList extends Component {
   }
 
   filterPedidos(fecha, entrega) {
-    const { pedidos, date, entregaPedido } = this.state;
+    const { pedidos, date, entregaPedido, mostrarSoloPendientes, mostrarArchivados } = this.state;
     let pedido = [];
-    const fechaComp = fecha || date;
-    pedidos.forEach((item) => {
-      const fechaFormat = entregaPedido
-        ? item.fechaEntrega
-        : item.fecha?.slice(0, 10);
-      if (fechaFormat === fechaComp) {
-        pedido.push(item);
-      }
-    });
+
+    if (mostrarArchivados) {
+      const fechaComp = fecha || date;
+      pedidos.forEach((item) => {
+        if (item.status === "Archivado") {
+          const fechaFormat = entregaPedido
+            ? item.fechaEntrega
+            : item.fecha?.slice(0, 10);
+          if (fechaFormat === fechaComp) {
+            pedido.push(item);
+          }
+        }
+      });
+    } else if (mostrarSoloPendientes) {
+      pedidos.forEach((item) => {
+        if (item.status !== "confirmado" && item.status !== "Archivado") {
+          pedido.push(item);
+        }
+      });
+    } else {
+      const fechaComp = fecha || date;
+      pedidos.forEach((item) => {
+        if (item.status === "Archivado") return;
+        const fechaFormat = entregaPedido
+          ? item.fechaEntrega
+          : item.fecha?.slice(0, 10);
+        if (fechaFormat === fechaComp) {
+          pedido.push(item);
+        }
+      });
+    }
+
     this.setState({ pedidoFilter: pedido });
   }
 
@@ -201,15 +244,50 @@ export default class PedidoList extends Component {
   }
 
   deletePedido(key) {
-    PedidosDataService.delete(key)
-      .then(() => {
-        Toast.success("Eliminado correctamente!!", 1, () => {
-          window.location.reload(false);
-        });
-      })
-      .catch((e) => {
-        Toast.fail("Ocurrió un error !!!", 2);
+    const { pedidos } = this.state;
+    const pedidoAEliminar = pedidos.find(p => p.key === key);
+
+    if (pedidoAEliminar && pedidoAEliminar.productos) {
+      // Restaurar stock de cada producto del pedido
+      const promesasStock = pedidoAEliminar.productos.map((producto) => {
+        return ProductosDataService.getAll()
+          .orderByChild("codigo")
+          .equalTo(producto.codigo)
+          .once("value")
+          .then((snapshot) => {
+            if (snapshot.exists()) {
+              snapshot.forEach((item) => {
+                const productoActual = item.val();
+                const stockRestaurado = (productoActual.stock || 0) + parseInt(producto.cantidad, 10);
+                ProductosDataService.update(item.key, { stock: stockRestaurado });
+              });
+            }
+          });
       });
+
+      Promise.all(promesasStock)
+        .then(() => {
+          return PedidosDataService.delete(key);
+        })
+        .then(() => {
+          Toast.success("Eliminado correctamente!!", 1, () => {
+            window.location.reload(false);
+          });
+        })
+        .catch(() => {
+          Toast.fail("Ocurrió un error !!!", 2);
+        });
+    } else {
+      PedidosDataService.delete(key)
+        .then(() => {
+          Toast.success("Eliminado correctamente!!", 1, () => {
+            window.location.reload(false);
+          });
+        })
+        .catch(() => {
+          Toast.fail("Ocurrió un error !!!", 2);
+        });
+    }
   }
 
   expandAll() {
@@ -226,6 +304,34 @@ export default class PedidoList extends Component {
     } else {
       window.location.href = `${generateSmartRoute('/list-pedidos')}?date=${this.state.date}&entrega=true`;
     }
+  }
+
+  changeMostrarPendientes() {
+    const nuevoEstado = !this.state.mostrarSoloPendientes;
+    const urlParams = new URLSearchParams(this.props.location.search);
+
+    if (nuevoEstado) {
+      urlParams.set('pendientes', 'true');
+      urlParams.delete('archivados');
+    } else {
+      urlParams.delete('pendientes');
+    }
+
+    window.location.href = `${generateSmartRoute('/list-pedidos')}?${urlParams.toString()}`;
+  }
+
+  changeMostrarArchivados() {
+    const nuevoEstado = !this.state.mostrarArchivados;
+    const urlParams = new URLSearchParams(this.props.location.search);
+
+    if (nuevoEstado) {
+      urlParams.set('archivados', 'true');
+      urlParams.delete('pendientes');
+    } else {
+      urlParams.delete('archivados');
+    }
+
+    window.location.href = `${generateSmartRoute('/list-pedidos')}?${urlParams.toString()}`;
   }
 
   getQuantity() {
@@ -277,6 +383,108 @@ export default class PedidoList extends Component {
     });
   }
 
+  generarExcel(pedidosData, filename) {
+    const ars = (num) =>
+      (parseFloat(num) || 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 2 });
+
+    const rows = [
+      ['FECHA', 'CLIENTE', 'COD ARTICULO', 'DESCRIPCION', 'UNIDADES', 'PRECIO', 'TOTAL'],
+    ];
+
+    let grandTotal = 0;
+
+    pedidosData.forEach((pedido) => {
+      const fecha = pedido.fecha?.slice(0, 10) || '';
+      if (pedido.productos && pedido.productos.length > 0) {
+        pedido.productos.forEach((prod, idx) => {
+          const subtotal = parseFloat(prod.subtotal) || (parseFloat(prod.precio) * parseInt(prod.cantidad, 10));
+          grandTotal += subtotal;
+          rows.push([
+            idx === 0 ? fecha : '',
+            idx === 0 ? pedido.clienteName : '',
+            prod.codigo,
+            prod.descripcion,
+            parseInt(prod.cantidad, 10),
+            ars(prod.precio),
+            ars(subtotal),
+          ]);
+        });
+      } else {
+        const total = parseFloat(pedido.total) || 0;
+        grandTotal += total;
+        rows.push([fecha, pedido.clienteName, '', '', '', '', ars(total)]);
+      }
+    });
+
+    rows.push(['', '', '', '', '', 'TOTAL GENERAL', ars(grandTotal)]);
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [
+      { wch: 15 },
+      { wch: 35 },
+      { wch: 14 },
+      { wch: 40 },
+      { wch: 12 },
+      { wch: 15 },
+      { wch: 15 },
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Pedidos');
+    XLSX.writeFile(wb, filename);
+  }
+
+  descargarDiario() {
+    const { pedidoFilter, date, entregaPedido } = this.state;
+    if (pedidoFilter.length === 0) {
+      Toast.fail('No hay pedidos para descargar', 2);
+      return;
+    }
+    const tipo = entregaPedido ? 'entrega' : 'creacion';
+    this.generarExcel(pedidoFilter, `pedidos_${tipo}_${date}.xlsx`);
+  }
+
+  abrirModalRango() {
+    this.setState({ modalRango: true });
+  }
+
+  cerrarModalRango() {
+    this.setState({ modalRango: false, fechaRangoInicio: null, fechaRangoFin: null });
+  }
+
+  descargarPorRango() {
+    const { pedidos, fechaRangoInicio, fechaRangoFin, entregaPedido } = this.state;
+
+    if (!fechaRangoInicio || !fechaRangoFin) {
+      Toast.fail('Por favor selecciona ambas fechas', 2);
+      return;
+    }
+
+    const inicio = moment(fechaRangoInicio);
+    const fin = moment(fechaRangoFin);
+
+    if (fin.isBefore(inicio)) {
+      Toast.fail('La fecha de fin debe ser posterior a la de inicio', 2);
+      return;
+    }
+
+    const pedidosFiltrados = pedidos.filter((pedido) => {
+      const fechaStr = entregaPedido ? pedido.fechaEntrega : pedido.fecha?.slice(0, 10);
+      const fechaPedido = moment(fechaStr, 'DD-MM-YYYY');
+      return fechaPedido.isSameOrAfter(inicio, 'day') && fechaPedido.isSameOrBefore(fin, 'day');
+    });
+
+    if (pedidosFiltrados.length === 0) {
+      Toast.fail('No hay pedidos en ese rango de fechas', 2);
+      return;
+    }
+
+    const desde = inicio.format('DD-MM-YYYY');
+    const hasta = fin.format('DD-MM-YYYY');
+    this.generarExcel(pedidosFiltrados, `pedidos_${desde}_al_${hasta}.xlsx`);
+    this.setState({ modalRango: false, fechaRangoInicio: null, fechaRangoFin: null });
+  }
+
   render() {
     const {
       pedidoFilter,
@@ -284,6 +492,8 @@ export default class PedidoList extends Component {
       indexOpen,
       expandAll,
       entregaPedido,
+      mostrarSoloPendientes,
+      mostrarArchivados,
       clients,
       cantVisitas,
       openModal,
@@ -292,18 +502,19 @@ export default class PedidoList extends Component {
       modalDetallesPago,
       pedidoSeleccionado,
     } = this.state;
+    const { modalRango } = this.state;
     let totalPorDia = 0;
     let totalPorDiaCosto = 0;
 
-    pedidoFilter.forEach((prd) => (totalPorDia += prd.total));
+    pedidoFilter.forEach((prd) => (totalPorDia += prd.total || 0));
     pedidoFilter.forEach((prd) => (prd?.totalCosto ? totalPorDiaCosto += prd.totalCosto : 0));
     const totalDif = totalPorDia - totalPorDiaCosto;
     const keyCodigos = Object.keys(quantityProd);
     return (
       <div className="list row">
         <div className="col-md-6">
-          <div className="new-reservation">
-                            <a className="btn btn-primary" href={generateSmartRoute("/list-client")} role="button">
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+            <a className="btn btn-primary" href={generateSmartRoute("/list-client")} role="button">
               Nuevo pedido
             </a>
             <Button
@@ -314,7 +525,31 @@ export default class PedidoList extends Component {
             >
               Cant. x prod.
             </Button>
-          </div>
+            <Button
+              variant="outlined"
+              color="success"
+              endIcon={<FileDownloadIcon />}
+              onClick={this.descargarDiario}
+            >
+              Descargar diario
+            </Button>
+            <Button
+              variant="outlined"
+              color="success"
+              endIcon={<DateRangeIcon />}
+              onClick={this.abrirModalRango}
+            >
+              Descargar por rango
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              endIcon={<BarChartIcon />}
+              href={generateSmartRoute('/estadisticas')}
+            >
+              Estadísticas
+            </Button>
+          </Box>
           <Dialog
             onClose={this.handleClose}
             aria-labelledby="customized-dialog-title"
@@ -399,6 +634,42 @@ export default class PedidoList extends Component {
                 entregaPedido
                   ? "Cambiar a fecha creación pedido"
                   : "Cambiar a fecha entrega pedido"
+              }
+            />
+            <FormControlLabel
+              sx={{ marginRight: '15px', marginTop: '20px' }}
+              control={
+                <Switch
+                  checked={mostrarSoloPendientes}
+                  onChange={this.changeMostrarPendientes}
+                  size="small"
+                  name="checkedPendientes"
+                  color="primary"
+                />
+              }
+              labelPlacement="start"
+              label={
+                mostrarSoloPendientes
+                  ? "Ver todos los pedidos"
+                  : "Ver solo pedidos pendientes"
+              }
+            />
+            <FormControlLabel
+              sx={{ marginRight: '15px', marginTop: '20px' }}
+              control={
+                <Switch
+                  checked={mostrarArchivados}
+                  onChange={this.changeMostrarArchivados}
+                  size="small"
+                  name="checkedArchivados"
+                  color="warning"
+                />
+              }
+              labelPlacement="start"
+              label={
+                mostrarArchivados
+                  ? "Ver pedidos actuales"
+                  : "Ver pedidos archivados"
               }
             />
             {/* <label className="fecha-text">
@@ -527,10 +798,10 @@ export default class PedidoList extends Component {
                               this.setOpen(index);
                             }}
                           >
-                            ${pedido.total.toFixed(2)}
+                            ${(pedido.total || 0).toFixed(2)}
                           </TableCell>
                           <TableCell
-                            className={`color__status ${pedido.status.toLowerCase().split(" ")[0]}`}
+                            className={`color__status ${(pedido.status || '').toLowerCase().split(" ")[0]}`}
                             onClick={(e) => {
                               e.preventDefault();
                               this.setOpen(index);
@@ -766,7 +1037,7 @@ export default class PedidoList extends Component {
                             ))}
                             <Box sx={{ mt: 2, p: 2, bgcolor: '#e8f5e8', borderRadius: 1 }}>
                               <Box sx={{ fontWeight: 'bold', textAlign: 'center' }}>
-                                Total Cheques: ${pedidoSeleccionado.datosPago.cheques.reduce((sum, cheque) => 
+                                Total Cheques: ${pedidoSeleccionado.datosPago.cheques.reduce((sum, cheque) =>
                                   sum + (parseFloat(cheque.monto) || 0), 0).toFixed(2)}
                               </Box>
                             </Box>
@@ -862,6 +1133,48 @@ export default class PedidoList extends Component {
             </DialogActions>
           </Dialog>
         </div>
+
+        {/* Modal de Descarga por Rango de Fechas */}
+        <Dialog
+          open={this.state.modalRango}
+          onClose={this.cerrarModalRango}
+          maxWidth="xs"
+          fullWidth
+        >
+          <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, backgroundColor: '#f5f5f5', borderBottom: '1px solid #e0e0e0' }}>
+            <DateRangeIcon color="success" />
+            Descargar pedidos por rango
+          </DialogTitle>
+          <DialogContent sx={{ pt: 3 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 1 }}>
+              <LocalizationProvider dateAdapter={AdapterMoment}>
+                <DatePicker
+                  label="Fecha desde"
+                  value={this.state.fechaRangoInicio}
+                  onChange={(val) => this.setState({ fechaRangoInicio: val })}
+                  inputFormat="DD-MM-YYYY"
+                  renderInput={(params) => <TextField {...params} fullWidth />}
+                />
+                <DatePicker
+                  label="Fecha hasta"
+                  value={this.state.fechaRangoFin}
+                  onChange={(val) => this.setState({ fechaRangoFin: val })}
+                  inputFormat="DD-MM-YYYY"
+                  renderInput={(params) => <TextField {...params} fullWidth />}
+                />
+              </LocalizationProvider>
+              <Box sx={{ fontSize: '0.85rem', color: '#666', fontStyle: 'italic' }}>
+                Se filtrarán pedidos por fecha de {entregaPedido ? 'entrega' : 'creación'} según la selección actual.
+              </Box>
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ p: 2, gap: 1 }}>
+            <Button onClick={this.cerrarModalRango} color="inherit">Cancelar</Button>
+            <Button onClick={this.descargarPorRango} variant="contained" color="success" endIcon={<FileDownloadIcon />}>
+              Descargar
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     );
   }

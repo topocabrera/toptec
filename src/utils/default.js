@@ -35,10 +35,15 @@ export const marcasLogisticMax = [
   "Otros"
 ]
 
+export const marcasLogisticNico = []
+
 export const getMarcasLogistic = () => {
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-  if (currentUser?.rol === "max") {
+  if (currentUser?.rol === "max" || currentUser?.rol === "max-vendedor") {
     return marcasLogisticMax;
+  }
+  if (currentUser?.rol === "nico" || currentUser?.rol === "nico-vendedor") {
+    return marcasLogisticNico;
   }
   return marcasLogistic;
 }

@@ -9,8 +9,10 @@ function db() {
  * @returns {Promise<{ key: string, val: object } | null>}
  */
 async function readDraft(draftId) {
+  console.log('📖 Reading draft:', draftId);
   const snap = await db().ref(`drafts/${draftId}`).once('value');
   const val = snap.val();
+  console.log('📖 Draft exists:', !!val, 'data:', val ? Object.keys(val).slice(0, 5) : 'null');
   if (!val) return null;
   return { key: draftId, val };
 }

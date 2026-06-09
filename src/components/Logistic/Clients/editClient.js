@@ -11,7 +11,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import { dias } from "../../../utils/default";
-import { getSmartService, generateSmartRoute } from "../../../utils/routeHelper";
+import { getSmartService, generateSmartRoute, isNicoRole } from "../../../utils/routeHelper";
 
 const EditClient = () => {
   const { id } = useParams();
@@ -28,6 +28,7 @@ const EditClient = () => {
     motivo: "",
     estado: "",
     condicionIva: "",
+    horarioAtencion: "",
   });
 
   const [submitted, setSubmitted] = useState(false);
@@ -68,6 +69,7 @@ const EditClient = () => {
       motivo,
       estado,
       condicionIva,
+      horarioAtencion,
     } = currentClient;
 
     const data = {
@@ -82,6 +84,7 @@ const EditClient = () => {
       motivo,
       estado,
       condicionIva,
+      ...(isNicoRole() && { horarioAtencion: horarioAtencion ?? "" }),
     };
 
     const ClientsService = getSmartService('clientes');
@@ -221,6 +224,19 @@ const EditClient = () => {
                   onChange={onChangeValues}
                 />
               </Grid>
+              {isNicoRole() && (
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    fullWidth
+                    id="horarioAtencion"
+                    label="Horario de atención"
+                    name="horarioAtencion"
+                    value={currentClient.horarioAtencion ?? ""}
+                    onChange={onChangeValues}
+                  />
+                </Grid>
+              )}
             </Grid>
             <Button
               type="button"

@@ -29,7 +29,7 @@ import {
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { getSmartService, generateSmartRoute } from "../../../utils/routeHelper";
+import { getSmartService, generateSmartRoute, getPriceLabels, isWindyRole, isNicoRole } from "../../../utils/routeHelper";
 import SearchIcon from "@mui/icons-material/Search";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import EditIcon from "@mui/icons-material/Edit";
@@ -115,6 +115,7 @@ export default class Pedido extends Component {
       tipoPrecio: "precio",
       precioMayorista: 0,
       precioMinorista: 0,
+      precioAlternativo: 0,
       // Estados para el modal de forma de pago
       modalFormaPago: false,
       formaPagoSeleccionada: "",
@@ -185,8 +186,10 @@ export default class Pedido extends Component {
         stock: data.stock,
         precio: data.precio,
         precioMayorista: data.precioMayorista,
+        precioAlternativo: data.precioAlternativo,
         precioCosto: data.precioCosto,
         peso: data.peso,
+        unidadesPorBulto: data.unidadesPorBulto,
       });
     });
     this.setState({ products });
@@ -248,9 +251,9 @@ export default class Pedido extends Component {
     }, 500);
   }
 
-  setActive(peso, index, precio, precioMayorista) {
+  setActive(peso, index, precio, precioMayorista, precioAlternativo) {
     // Peso siempre es 1 (readonly)
-    this.setState({ indexActive: index, peso: "1", precio, precioMayorista, precioMinorista: precio });
+    this.setState({ indexActive: index, peso: "1", precio, precioMayorista, precioMinorista: precio, precioAlternativo: precioAlternativo || 0 });
   }
 
   onChangeCantidad(e) {
@@ -293,6 +296,8 @@ export default class Pedido extends Component {
       nuevoPrecio = this.state.precioMinorista || "";
     } else if (tipoPrecio === "precioMayorista") {
       nuevoPrecio = this.state.precioMayorista || "";
+    } else if (tipoPrecio === "precioAlternativo") {
+      nuevoPrecio = this.state.precioAlternativo || "";
     }
 
     this.setState({
@@ -426,6 +431,7 @@ export default class Pedido extends Component {
       tipoPrecio: "precio",
       precioMayorista: 0,
       precioMinorista: 0,
+      precioAlternativo: 0,
       iva: false,
       medioIva: false,
     }, () => {
@@ -1039,7 +1045,7 @@ export default class Pedido extends Component {
                         onClick={(e) => {
                           e.preventDefault();
                           if (!isActive) {
-                            this.setActive(producto.peso, index, producto.precio, producto.precioMayorista);
+                            this.setActive(producto.peso, index, producto.precio, producto.precioMayorista, producto.precioAlternativo);
                           }
                         }}
                         wrap
@@ -1061,8 +1067,9 @@ export default class Pedido extends Component {
                                   onChange={this.onChangeTipo}
                                   sx={{ minWidth: 110 }}
                                 >
-                                  <MenuItem value="precio">P. Minorista</MenuItem>
-                                  <MenuItem value="precioMayorista">P. Mayorista</MenuItem>
+                                  {!isNicoRole() && <MenuItem value="precioMayorista">{getPriceLabels().mayorista}</MenuItem>}
+                                  <MenuItem value="precio">{getPriceLabels().minorista}</MenuItem>
+                                  {isWindyRole() && <MenuItem value="precioAlternativo">{getPriceLabels().alternativo}</MenuItem>}
                                   <MenuItem value="otro">Otro</MenuItem>
                                 </Select>
                               </FormControl>
@@ -1089,6 +1096,11 @@ export default class Pedido extends Component {
                           <span className="prod__stock-text">
                             S: {producto.stock}
                           </span>
+                          {isNicoRole() && producto.unidadesPorBulto !== undefined && producto.unidadesPorBulto !== null && producto.unidadesPorBulto !== "" && (
+                            <span className="prod__stock-text">
+                              U/Bulto: {producto.unidadesPorBulto}
+                            </span>
+                          )}
                           {isActive && (
                             <div>
                               <FormControlLabel

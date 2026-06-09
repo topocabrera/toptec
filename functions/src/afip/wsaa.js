@@ -53,16 +53,21 @@ function buildLoginTicketRequestXml() {
  * @param {string} keyPem
  */
 function signTraWithOpenssl(certPem, keyPem) {
+  console.log('🔐 signTraWithOpenssl called, cert length:', certPem.length, 'key length:', keyPem.length);
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'afip-wsaa-'));
   const xmlPath = path.join(dir, 'tra.xml');
   const certPath = path.join(dir, 'cert.pem');
   const keyPath = path.join(dir, 'key.pem');
   const cmsPath = path.join(dir, 'tra.cms');
   try {
-    fs.writeFileSync(xmlPath, buildLoginTicketRequestXml(), 'utf8');
+    const tra = buildLoginTicketRequestXml();
+    console.log('✅ TRA XML built, length:', tra.length);
+    fs.writeFileSync(xmlPath, tra, 'utf8');
     fs.writeFileSync(certPath, certPem, 'utf8');
     fs.writeFileSync(keyPath, keyPem, 'utf8');
+    console.log('✅ Files written to temp directory:', dir);
 
+    console.log('🔏 Calling openssl cms -sign...');
     execFileSync(
       'openssl',
       [
@@ -82,9 +87,15 @@ function signTraWithOpenssl(certPem, keyPem) {
       ],
       { stdio: 'pipe' }
     );
+    console.log('✅ OpenSSL CMS signing completed');
 
     const der = fs.readFileSync(cmsPath);
-    return der.toString('base64');
+    const b64 = der.toString('base64');
+    console.log('✅ CMS converted to base64, length:', b64.length);
+    return b64;
+  } catch (err) {
+    console.error('❌ signTraWithOpenssl failed:', err.name, err.message);
+    throw err;
   } finally {
     for (const f of [xmlPath, certPath, keyPath, cmsPath]) {
       try {
@@ -107,7 +118,10 @@ function signTraWithOpenssl(certPem, keyPem) {
  * @param {string} keyPem
  */
 async function fetchNewTicketFromWsaa(env, certPem, keyPem) {
+  console.log('🌐 fetchNewTicketFromWsaa called, env:', env);
   const { wsaaUrl, wsaaSoapNs } = getEndpoints(env);
+  console.log('🌐 WSAA URL:', wsaaUrl);
+
   const cmsB64 = signTraWithOpenssl(certPem, keyPem);
   const body = `<?xml version="1.0" encoding="utf-8"?>
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsaa="${wsaaSoapNs}">
@@ -118,6 +132,7 @@ async function fetchNewTicketFromWsaa(env, certPem, keyPem) {
   </soapenv:Body>
 </soapenv:Envelope>`;
 
+  console.log('📤 Posting to WSAA, body length:', body.length);
   const res = await axios.post(wsaaUrl, body, {
     headers: {
       'Content-Type': 'text/xml; charset=utf-8',
@@ -126,8 +141,10 @@ async function fetchNewTicketFromWsaa(env, certPem, keyPem) {
     timeout: 60000,
     validateStatus: () => true,
   });
+  console.log('📥 WSAA response status:', res.status);
 
   if (res.status >= 400) {
+    console.error('❌ WSAA HTTP error:', res.status, String(res.data).slice(0, 500));
     throw new Error(`WSAA HTTP ${res.status}: ${String(res.data).slice(0, 500)}`);
   }
 

@@ -26,6 +26,9 @@ import AddProduct from "./components/Logistic/Products/addProduct";
 import ListProduct from "./components/Logistic/Products/listProduct";
 import EditProduct from "./components/Logistic/Products/editProduct";
 import ChangePriceProduct from "./components/Logistic/Products/changePrice";
+import ListMarcasLogistic from "./components/Logistic/Marcas/listMarcas";
+import AddMarcaLogistic from "./components/Logistic/Marcas/addMarca";
+import EditMarcaLogistic from "./components/Logistic/Marcas/editMarca";
 import Pedido from "./components/Logistic/Pedido/pedido";
 import PedidoList from "./components/Logistic/Pedido/pedidoList";
 import EditPedidoWrapper from "./components/Logistic/Pedido/EditPedidoWrapper";
@@ -81,11 +84,9 @@ import PedidoListWrapper from "./components/Logistic/Pedido/PedidoListWrapper";
 import ClientPedidos from "./components/Logistic/Clients/clientPedidos";
 import ComprasList from "./components/Logistic/Compras/comprasList";
 import AddCompra from "./components/Logistic/Compras/addCompra";
-// Nico (solo productos)
-import ListProductNico from "./components/Logistic/Products/Nico/ListProductNico";
-import AddProductNico from "./components/Logistic/Products/Nico/AddProductNico";
-import EditProductNico from "./components/Logistic/Products/Nico/EditProductNico";
-import BulkUploadNico from "./components/Logistic/Products/Nico/BulkUploadNico";
+import GastosList from "./components/Logistic/Gastos/gastosList";
+import AddGasto from "./components/Logistic/Gastos/addGasto";
+import Estadisticas from "./components/Logistic/Estadisticas/estadisticas";
 
 
 
@@ -154,7 +155,7 @@ class App extends Component {
     </div>
   </div>
 </nav> */}
-        {(currentUser?.rol === "windy" || currentUser?.rol === "windy-vendedor" || currentUser?.rol === "admin" || currentUser?.rol === "seguros" || currentUser?.rol === "max" || currentUser?.rol === "max-vendedor" || currentUser?.rol === "nico")
+        {(currentUser?.rol === "windy" || currentUser?.rol === "windy-vendedor" || currentUser?.rol === "admin" || currentUser?.rol === "seguros" || currentUser?.rol === "max" || currentUser?.rol === "max-vendedor" || currentUser?.rol === "nico" || currentUser?.rol === "nico-vendedor")
           ? (
             <NavBar />
           ) : (
@@ -234,22 +235,22 @@ class App extends Component {
                           </ul>
                         </div>
                       )}
-                    {currentUser?.rol === "nico" && (
+                    {(currentUser?.rol === "nico" || currentUser?.rol === "nico-vendedor") && (
                         <div className="dropdown-container">
                           <ul className="navbar-nav">
+                            <li className="nav-item">
+                              <Link to={"/nico/list-client"} className="nav-link">
+                                Clientes
+                              </Link>
+                            </li>
                             <li className="nav-item">
                               <Link to={"/nico/list-products"} className="nav-link">
                                 Productos
                               </Link>
                             </li>
                             <li className="nav-item">
-                              <Link to={"/nico/products"} className="nav-link">
-                                Nuevo producto
-                              </Link>
-                            </li>
-                            <li className="nav-item">
-                              <Link to={"/nico/products-bulk"} className="nav-link">
-                                Carga masiva
+                              <Link to={"/nico/list-pedidos"} className="nav-link">
+                                Pedidos
                               </Link>
                             </li>
                           </ul>
@@ -375,6 +376,9 @@ class App extends Component {
                   <Route path="/logistic/list-client" element={<ListClient />} />
                   <Route path="/logistic/client" element={<AddClient />} />
                   <Route path="/logistic/client/:id" element={<EditClient />} />
+                  <Route path="/logistic/list-marcas" element={<ListMarcasLogistic />} />
+                  <Route path="/logistic/marca" element={<AddMarcaLogistic />} />
+                  <Route path="/logistic/marca/:id" element={<EditMarcaLogistic />} />
                   <Route path="/logistic/list-products" element={<ListProduct />} />
                   <Route path="/logistic/products" element={<AddProduct />} />
                   <Route path="/logistic/product/:id" element={<EditProduct />} />
@@ -387,17 +391,41 @@ class App extends Component {
                   <Route path="/logistic/client-pedidos/:id" element={<ClientPedidos />} />
                   <Route path="/logistic/compras-list" element={<ComprasList />} />
                   <Route path="/logistic/compra" element={<AddCompra />} />
+                  <Route path="/logistic/gastos-list" element={<GastosList />} />
+                  <Route path="/logistic/gasto" element={<AddGasto />} />
+                  <Route path="/logistic/estadisticas" element={<Estadisticas />} />
                 </React.Fragment>
               )}
 
-            {/* // Nico (solo productos) */}
-            {currentUser?.rol === "nico" && (
+            {/* // Nico */}
+            {(currentUser?.rol === "nico" ||
+              currentUser?.rol === "nico-vendedor" ||
+              currentUser?.rol === "admin") && (
                 <React.Fragment>
-                  <Route path="/" element={<ListProductNico />} />
-                  <Route path="/nico/list-products" element={<ListProductNico />} />
-                  <Route path="/nico/products" element={<AddProductNico />} />
-                  <Route path="/nico/product/:id" element={<EditProductNico />} />
-                  <Route path="/nico/products-bulk" element={<BulkUploadNico />} />
+                  {(currentUser?.rol === "nico" || currentUser?.rol === "nico-vendedor") && (
+                    <Route path="/" element={<ListClient />} />
+                  )}
+                  <Route path="/nico/list-client" element={<ListClient />} />
+                  <Route path="/nico/client" element={<AddClient />} />
+                  <Route path="/nico/client/:id" element={<EditClient />} />
+                  <Route path="/nico/list-marcas" element={<ListMarcasLogistic />} />
+                  <Route path="/nico/marca" element={<AddMarcaLogistic />} />
+                  <Route path="/nico/marca/:id" element={<EditMarcaLogistic />} />
+                  <Route path="/nico/list-products" element={<ListProduct />} />
+                  <Route path="/nico/products" element={<AddProduct />} />
+                  <Route path="/nico/product/:id" element={<EditProduct />} />
+                  <Route path="/nico/imprimir/:id" element={<Factura />} />
+                  <Route path="/nico/change-price" element={<ChangePriceProduct />} />
+                  <Route path="/nico/new-visit" element={<Visita />} />
+                  <Route path="/nico/list-pedidos" element={<PedidoListWrapper />} />
+                  <Route path="/nico/pedido/:id" element={<PedidoWrapper />} />
+                  <Route path="/nico/edit-pedido/:id" element={<EditPedidoWrapper />} />
+                  <Route path="/nico/client-pedidos/:id" element={<ClientPedidos />} />
+                  <Route path="/nico/compras-list" element={<ComprasList />} />
+                  <Route path="/nico/compra" element={<AddCompra />} />
+                  <Route path="/nico/gastos-list" element={<GastosList />} />
+                  <Route path="/nico/gasto" element={<AddGasto />} />
+                  <Route path="/nico/estadisticas" element={<Estadisticas />} />
                 </React.Fragment>
               )}
 
@@ -412,6 +440,9 @@ class App extends Component {
                   <Route path="/max/list-client" element={<ListClient />} />
                   <Route path="/max/client" element={<AddClient />} />
                   <Route path="/max/client/:id" element={<EditClient />} />
+                  <Route path="/max/list-marcas" element={<ListMarcasLogistic />} />
+                  <Route path="/max/marca" element={<AddMarcaLogistic />} />
+                  <Route path="/max/marca/:id" element={<EditMarcaLogistic />} />
                   <Route path="/max/list-products" element={<ListProduct />} />
                   <Route path="/max/products" element={<AddProduct />} />
                   <Route path="/max/product/:id" element={<EditProduct />} />
@@ -424,6 +455,9 @@ class App extends Component {
                   <Route path="/max/client-pedidos/:id" element={<ClientPedidos />} />
                   <Route path="/max/compras-list" element={<ComprasList />} />
                   <Route path="/max/compra" element={<AddCompra />} />
+                  <Route path="/max/gastos-list" element={<GastosList />} />
+                  <Route path="/max/gasto" element={<AddGasto />} />
+                  <Route path="/max/estadisticas" element={<Estadisticas />} />
                 </React.Fragment>
               )}
 

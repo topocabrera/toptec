@@ -5,6 +5,7 @@ export const getRoutePrefix = (userRole) => {
     case 'max-vendedor':
       return '/max';
     case 'nico':
+    case 'nico-vendedor':
       return '/nico';
     case 'windy':
     case 'windy-vendedor':
@@ -34,9 +35,10 @@ export const hasPermission = (permission) => {
     'admin': ['view_cost_price', 'edit_products', 'change_prices', 'create_orders', 'edit_orders', 'view_purchases'],
     'windy': ['view_cost_price', 'edit_products', 'change_prices', 'create_orders', 'edit_orders', 'view_purchases'],
     'max': ['view_cost_price', 'edit_products', 'change_prices', 'create_orders', 'edit_orders', 'view_purchases'],
-    'nico': ['edit_products', 'view_products', 'bulk_products'], // Solo productos: crear, listar, editar, eliminar, carga masiva
+    'nico': ['view_cost_price', 'edit_products', 'change_prices', 'create_orders', 'edit_orders', 'view_purchases'],
     'max-vendedor': ['create_orders', 'view_products'], // Solo puede crear pedidos y ver productos (sin precio costo)
     'windy-vendedor': ['create_orders', 'view_products'], // Solo puede crear pedidos y ver productos (sin precio costo)
+    'nico-vendedor': ['create_orders', 'view_products'], // Solo puede crear pedidos y ver productos (sin precio costo)
   };
 
   return permissions[role]?.includes(permission) || false;
@@ -55,6 +57,10 @@ export const canChangePrice = () => hasPermission('change_prices');
 export const getRoleFromPath = () => {
   const path = window.location.pathname;
   if (path.startsWith('/nico/')) {
+    const currentUser = getCurrentUser();
+    if (currentUser?.rol === 'nico-vendedor') {
+      return 'nico-vendedor';
+    }
     return 'nico';
   }
   if (path.startsWith('/max/')) {
@@ -85,11 +91,23 @@ export const generateRoute = (userRole, path) => {
 
 // Función para obtener el servicio correcto según el rol
 export const getServiceByRole = (userRole, serviceType) => {
-  if (userRole === 'nico') {
-    if (serviceType === 'productos') {
-      return require('../services/productos-nico.service').default;
+  if (userRole === 'nico' || userRole === 'nico-vendedor') {
+    switch (serviceType) {
+      case 'productos':
+        return require('../services/productos-nico.service').default;
+      case 'clientes':
+        return require('../services/clients-nico.service').default;
+      case 'pedidos':
+        return require('../services/pedidos-nico.service').default;
+      case 'compras':
+        return require('../services/compras-nico.service').default;
+      case 'marcas':
+        return require('../services/marcas-nico.service').default;
+      case 'gastos':
+        return require('../services/gastos-nico.service').default;
+      default:
+        return null;
     }
-    return null;
   }
   if (userRole === 'max' || userRole === 'max-vendedor') {
     switch (serviceType) {
@@ -101,6 +119,10 @@ export const getServiceByRole = (userRole, serviceType) => {
         return require('../services/pedidos-max.service').default;
       case 'compras':
         return require('../services/compras-max.service').default;
+      case 'marcas':
+        return require('../services/marcas-max.service').default;
+      case 'gastos':
+        return require('../services/gastos-max.service').default;
       default:
         return null;
     }
@@ -115,6 +137,10 @@ export const getServiceByRole = (userRole, serviceType) => {
         return require('../services/pedidos.service').default;
       case 'compras':
         return require('../services/compras.service').default;
+      case 'marcas':
+        return require('../services/marcas.service').default;
+      case 'gastos':
+        return require('../services/gastos.service').default;
       default:
         return null;
     }
@@ -131,4 +157,28 @@ export const getSmartService = (serviceType) => {
 export const generateSmartRoute = (path) => {
   const roleFromPath = getRoleFromPath();
   return generateRoute(roleFromPath, path);
-}; 
+};
+
+export const isWindyRole = () => {
+  const role = getRoleFromPath();
+  return role === 'windy' || role === 'windy-vendedor';
+};
+
+export const isNicoRole = () => {
+  const role = getRoleFromPath();
+  return role === 'nico' || role === 'nico-vendedor';
+};
+
+export const getPriceLabels = () => {
+  if (isWindyRole()) {
+    return { minorista: 'Lista 2', mayorista: 'Lista 1', alternativo: 'Lista 3' };
+  }
+  if (isNicoRole()) {
+    return { minorista: 'Precio Venta', mayorista: 'Precio Venta', alternativo: 'Precio Venta' };
+  }
+  return {
+    minorista: 'P. Minorista',
+    mayorista: 'P. Mayorista',
+    alternativo: 'P. Alternativo',
+  };
+};

@@ -2,6 +2,8 @@ import * as firebase from "firebase";
 import "firebase/database";
 import "firebase/auth";
 import "firebase/firestore";
+import "firebase/functions";
+import "firebase/storage";
 
 let config = {
   apiKey: "AIzaSyB31L20GfT5Gpz8ZGRnQy56BNze6Jvsi_Q",
@@ -17,8 +19,17 @@ firebase.initializeApp(config);
 
 const provider = new firebase.auth.GoogleAuthProvider();
 export const auth = firebase.auth();
-export default firebase.database();
+export const database = firebase.database();
+export default database;
 export const firestore = firebase.firestore();
+export const functionsRegional = firebase.app().functions('southamerica-east1');
+export const storage = firebase.storage();
+
+// Using production database and local Functions emulator
+if (window.location.hostname === 'localhost') {
+  console.log('✅ Using production Database');
+  console.log('✅ Using local Functions emulator at localhost:5001');
+}
 
 export const signInWithGoogle = () => {
   auth.signInWithPopup(provider);

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(ssh-add -l)",
+      "Bash(ssh-add:*)"
+    ]
+  }
+}
