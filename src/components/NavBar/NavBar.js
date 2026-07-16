@@ -79,6 +79,14 @@ const pageWindy = [
         name: 'Estadísticas',
         url: '/logistic/estadisticas'
     },
+    {
+        name: 'Cta. Corrientes',
+        url: '/logistic/cuentas-corrientes'
+    },
+    {
+        name: 'Libro de Banco',
+        url: '/logistic/libro-banco'
+    },
 ]
 
 const pageMax = [
@@ -114,6 +122,10 @@ const pageMax = [
         name: 'Estadísticas',
         url: '/max/estadisticas'
     },
+    {
+        name: 'Cta. Corrientes',
+        url: '/max/cuentas-corrientes'
+    },
 ]
 
 const pageNico = [
@@ -148,6 +160,10 @@ const pageNico = [
     {
         name: 'Estadísticas',
         url: '/nico/estadisticas'
+    },
+    {
+        name: 'Cta. Corrientes',
+        url: '/nico/cuentas-corrientes'
     },
 ]
 

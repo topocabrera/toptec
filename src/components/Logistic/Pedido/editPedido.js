@@ -42,6 +42,16 @@ const alert = Modal.alert;
 const prompt = Modal.prompt;
 const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
+const parseFechaEntrega = (fecha) => {
+  if (!fecha) return null;
+  if (moment.isMoment(fecha)) return fecha.isValid() ? fecha : null;
+  let m = moment(fecha, "DD-MM-YYYY", true);
+  if (m.isValid()) return m;
+  m = moment(fecha);
+  if (m.isValid()) return m;
+  return null;
+};
+
 const Item = List.Item;
 const Brief = Item.Brief;
 
@@ -256,13 +266,15 @@ export default class EditPedido extends Component {
   }
 
   onChangeDate(e) {
-    const dateFormat = e.format("DD-MM-YYYY");
-    this.setState({
-      pedido: {
-        ...this.state.pedido,
-        fechaEntrega: dateFormat,
-      },
-    });
+    if (e && e.isValid()) {
+      const dateFormat = e.format("DD-MM-YYYY");
+      this.setState({
+        pedido: {
+          ...this.state.pedido,
+          fechaEntrega: dateFormat,
+        },
+      });
+    }
   }
 
   onChangePrecio(e) {
@@ -556,16 +568,35 @@ export default class EditPedido extends Component {
       descuento: isNaN(parseFloat(prod.descuento)) ? 0 : parseFloat(prod.descuento)
     }));
     
+    const total = isNaN(parseFloat(this.state.pedido.total)) ? 0 : parseFloat(this.state.pedido.total);
+    const status = this.state.pedido.status;
+    let montoPagado = this.state.pedido.montoPagado !== undefined ? parseFloat(this.state.pedido.montoPagado) : 0;
+    let saldoPendiente = 0;
+    let finalStatus = status;
+
+    if (status === "Pagado / Entregado") {
+      montoPagado = total;
+      saldoPendiente = 0;
+    } else if (status === "Cta Corriente / Entregado") {
+      saldoPendiente = Math.max(0, total - montoPagado);
+      if (saldoPendiente === 0 && total > 0) {
+        finalStatus = "Pagado / Entregado";
+        montoPagado = total;
+      }
+    }
+
     let data = {
       id: this.state.pedido.id,
       idCliente: this.state.pedido.idCliente,
       clienteName: this.state.pedido.clienteName,
       productos: productosSanitizados,
       fecha: this.state.pedido.fecha,
-      status: this.state.pedido.status,
+      status: finalStatus,
       fechaEntrega: this.state.pedido.fechaEntrega,
-      total: isNaN(parseFloat(this.state.pedido.total)) ? 0 : parseFloat(this.state.pedido.total),
+      total: total,
       totalCosto: isNaN(parseFloat(this.state.pedido.totalCosto)) ? 0 : parseFloat(this.state.pedido.totalCosto),
+      montoPagado: montoPagado,
+      saldoPendiente: saldoPendiente,
     };
 
     PedidosDataService.update(this.state.pedido.key, data)
@@ -780,18 +811,37 @@ export default class EditPedido extends Component {
       descuento: isNaN(parseFloat(prod.descuento)) ? 0 : parseFloat(prod.descuento)
     }));
     
+    const total = isNaN(parseFloat(this.state.pedido.total)) ? 0 : parseFloat(this.state.pedido.total);
+    const status = this.state.pedido.status;
+    let montoPagado = this.state.pedido.montoPagado !== undefined ? parseFloat(this.state.pedido.montoPagado) : 0;
+    let saldoPendiente = 0;
+    let finalStatus = status;
+
+    if (status === "Pagado / Entregado") {
+      montoPagado = total;
+      saldoPendiente = 0;
+    } else if (status === "Cta Corriente / Entregado") {
+      saldoPendiente = Math.max(0, total - montoPagado);
+      if (saldoPendiente === 0 && total > 0) {
+        finalStatus = "Pagado / Entregado";
+        montoPagado = total;
+      }
+    }
+
     let data = {
       id: this.state.pedido.id,
       idCliente: this.state.pedido.idCliente,
       clienteName: this.state.pedido.clienteName,
       productos: productosSanitizados,
       fecha: this.state.pedido.fecha,
-      status: this.state.pedido.status,
+      status: finalStatus,
       fechaEntrega: this.state.pedido.fechaEntrega,
-      total: isNaN(parseFloat(this.state.pedido.total)) ? 0 : parseFloat(this.state.pedido.total),
+      total: total,
       totalCosto: isNaN(parseFloat(this.state.pedido.totalCosto)) ? 0 : parseFloat(this.state.pedido.totalCosto),
       condPago: this.state.pedido.condPago,
       datosPago: this.state.pedido.datosPago,
+      montoPagado: montoPagado,
+      saldoPendiente: saldoPendiente,
     };
 
     PedidosDataService.update(this.state.pedido.key, data)
@@ -888,7 +938,7 @@ export default class EditPedido extends Component {
               <LocalizationProvider dateAdapter={AdapterMoment}>
                 <DatePicker
                   label="Fecha entrega pedido"
-                  value={pedido.fechaEntrega ? moment(pedido.fechaEntrega, "DD-MM-YYYY") : null}
+                  value={parseFechaEntrega(pedido.fechaEntrega)}
                   onChange={this.onChangeDate}
                   inputFormat="DD-MM-YYYY" // en v5 es "inputFormat", no "format"
                   renderInput={(params) => (

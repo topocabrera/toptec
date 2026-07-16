@@ -22,7 +22,9 @@ import {
     TableRow,
     Paper,
     CircularProgress,
-    Autocomplete
+    Autocomplete,
+    FormControlLabel,
+    Checkbox
 } from "@mui/material";
 import { Add, Delete } from "@mui/icons-material";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -60,8 +62,15 @@ export default class AddCompra extends Component {
                 factura: "",
                 tipoCompra: "producto",
                 productos: [], // Array de productos
-                total: 0
+                total: 0,
+                condPago: "Contado",
+                status: "Pagado",
+                montoPagado: 0,
+                saldoPendiente: 0
             },
+            pagarConBanco: false,
+            cuentasBancarias: [],
+            selectedCuentaId: "",
             submitted: false,
             lastId: 0,
             loading: false
@@ -81,6 +90,22 @@ export default class AddCompra extends Component {
         ProductosService.getAll()
             .orderByChild("descripcion")
             .once("value", this.onDataChange);
+
+        // Obtener configuración de cuenta de banco
+        const CuentasBancoService = getSmartService('cuentasBanco');
+        if (CuentasBancoService) {
+            CuentasBancoService.getAll().once("value", (snapshot) => {
+                const list = [];
+                snapshot.forEach((item) => {
+                    list.push({ key: item.key, ...item.val() });
+                });
+                this.setState({
+                    cuentasBancarias: list,
+                    selectedCuentaId: list.length > 0 ? list[0].key : "",
+                    pagarConBanco: list.length > 0 ? true : false
+                });
+            });
+        }
     }
 
     componentWillUnmount() {
@@ -89,6 +114,24 @@ export default class AddCompra extends Component {
         ProductosService.getAll().off("value", this.onDataChange);
         ComprasService.getAll().off("child_added", this.getLastId);
     }
+
+    onChangeCondPago = (e) => {
+        const val = e.target.value;
+        const total = this.state.compra.total || 0;
+        this.setState({
+            compra: {
+                ...this.state.compra,
+                condPago: val,
+                status: val === "Contado" ? "Pagado" : "Cta Corriente",
+                montoPagado: val === "Contado" ? total : 0,
+                saldoPendiente: val === "Contado" ? 0 : total
+            }
+        });
+    };
+
+    onChangePagarConBanco = (e) => {
+        this.setState({ pagarConBanco: e.target.checked });
+    };
 
     getLastId(items) {
         this.setState({
@@ -214,10 +257,14 @@ export default class AddCompra extends Component {
             return sum + (producto.subtotal || 0);
         }, 0);
 
+        const condPago = this.state.compra.condPago || "Contado";
+
         this.setState({
             compra: {
                 ...this.state.compra,
-                total: total
+                total: total,
+                montoPagado: condPago === "Contado" ? total : 0,
+                saldoPendiente: condPago === "Contado" ? 0 : total
             }
         });
     }
@@ -258,6 +305,10 @@ export default class AddCompra extends Component {
 
         const compraData = {
             ...compra,
+            condPago: compra.condPago || "Contado",
+            status: compra.status || "Pagado",
+            montoPagado: isNaN(parseFloat(compra.montoPagado)) ? 0 : parseFloat(compra.montoPagado),
+            saldoPendiente: isNaN(parseFloat(compra.saldoPendiente)) ? 0 : parseFloat(compra.saldoPendiente),
             productos: compra.productos.map(p => ({
                 ...p,
                 precio: parseFloat(p.precio),
@@ -271,6 +322,32 @@ export default class AddCompra extends Component {
 
         const ComprasService = getSmartService('compras');
         ComprasService.create(compraData)
+            .then((res) => {
+                const compraKey = res.key;
+                if (compraData.condPago === "Contado" && this.state.pagarConBanco && this.state.selectedCuentaId) {
+                    const LibroBancoService = getSmartService('libroBanco');
+                    const CuentasBancoService = getSmartService('cuentasBanco');
+                    const cuentaSeleccionada = this.state.cuentasBancarias.find(c => c.key === this.state.selectedCuentaId);
+                    if (cuentaSeleccionada) {
+                        const nuevoSaldo = (cuentaSeleccionada.saldoActual || 0) - compraData.total;
+                        const movimiento = {
+                            fecha: compraData.fecha,
+                            concepto: `Pago Compra: ${compraData.proveedor} - Factura: ${compraData.factura}`,
+                            monto: -compraData.total,
+                            estado: "vinculado",
+                            tipoVinculo: "proveedor",
+                            idVinculo: compraKey,
+                            cuentaId: this.state.selectedCuentaId,
+                            referenciaAdicional: `Factura: ${compraData.factura}`,
+                            fechaCreacion: new Date().toISOString()
+                        };
+                        return Promise.all([
+                            LibroBancoService.create(movimiento),
+                            CuentasBancoService.update(this.state.selectedCuentaId, { saldoActual: nuevoSaldo })
+                        ]);
+                    }
+                }
+            })
             .then(() => {
                 // Actualizar el stock de todos los productos
                 this.updateProductStock();
@@ -350,8 +427,14 @@ export default class AddCompra extends Component {
                 factura: "",
                 tipoCompra: "producto",
                 productos: [],
-                total: 0
+                total: 0,
+                condPago: "Contado",
+                status: "Pagado",
+                montoPagado: 0,
+                saldoPendiente: 0
             },
+            pagarConBanco: this.state.cuentasBancarias.length > 0 ? true : false,
+            selectedCuentaId: this.state.cuentasBancarias.length > 0 ? this.state.cuentasBancarias[0].key : "",
             submitted: false
         });
     }
@@ -443,6 +526,46 @@ export default class AddCompra extends Component {
                                     onChange={this.onChangeFactura}
                                     variant="outlined"
                                 />
+
+                                {/* Condición de Pago */}
+                                <FormControl fullWidth variant="outlined">
+                                    <InputLabel id="cond-pago-label">Condición de Pago</InputLabel>
+                                    <Select
+                                        labelId="cond-pago-label"
+                                        id="condPago"
+                                        value={compra.condPago || "Contado"}
+                                        onChange={this.onChangeCondPago}
+                                        label="Condición de Pago"
+                                    >
+                                        <MenuItem value="Contado">Contado / Pagado</MenuItem>
+                                        <MenuItem value="Cta Corriente">Cuenta Corriente</MenuItem>
+                                    </Select>
+                                </FormControl>
+
+                                {/* Pagar con Banco Asociado */}
+                                 {compra.condPago === "Contado" && this.state.cuentasBancarias.length > 0 && (
+                                     <FormControl fullWidth variant="outlined" sx={{ mt: 1 }}>
+                                         <InputLabel id="select-cuenta-pago-label">Pagar con Cuenta Bancaria</InputLabel>
+                                         <Select
+                                             labelId="select-cuenta-pago-label"
+                                             value={this.state.selectedCuentaId}
+                                             onChange={(e) => {
+                                                 this.setState({
+                                                     selectedCuentaId: e.target.value,
+                                                     pagarConBanco: e.target.value !== ""
+                                                 });
+                                             }}
+                                             label="Pagar con Cuenta Bancaria"
+                                         >
+                                             <MenuItem value="">-- No pagar con Banco (Solo registrar Compra) --</MenuItem>
+                                             {this.state.cuentasBancarias.map((c) => (
+                                                 <MenuItem key={c.key} value={c.key}>
+                                                     {c.bancoNombre} ({c.nroCuenta || "Sin número"}) - Saldo: ${c.saldoActual?.toFixed(2)}
+                                                 </MenuItem>
+                                             ))}
+                                         </Select>
+                                     </FormControl>
+                                 )}
                             </Box>
 
                             <Divider sx={{ my: 3 }} />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import {
@@ -57,8 +57,35 @@ function resolveDocTipo(condicionIva, dni) {
  * Map condición IVA string to AFIP receptor ID
  */
 function condIvaToReceptorId(condicion) {
-  const val = COND_IVA_TO_RECEPTOR_ID[condicion];
+  if (!condicion) return 5; // default CF
+  const clean = String(condicion)
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, '_');
+
+  if (clean.includes('MONO')) return 6;
+  if (clean.includes('INSCRIPTO') || clean === 'RI' || clean.includes('RESPONSABLE')) return 1;
+  if (clean.includes('CONSUMIDOR') || clean.includes('FINAL') || clean === 'CF') return 5;
+  if (clean.includes('EXENTO') || clean === 'EX') return 4;
+
+  const val = COND_IVA_TO_RECEPTOR_ID[clean];
   return val !== undefined ? val : 5; // default CF
+}
+
+/**
+ * Standardize database condition value to key for dropdown selector
+ */
+function resolveCustomerCondIvaKey(condicion) {
+  if (!condicion) return 'CF';
+  const clean = String(condicion)
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, '_');
+
+  if (clean.includes('MONO')) return 'MONO';
+  if (clean.includes('INSCRIPTO') || clean === 'RI' || clean.includes('RESPONSABLE')) return 'RI';
+  if (clean.includes('EXENTO') || clean === 'EX') return 'EXENTO';
+  return 'CF';
 }
 
 /**
@@ -81,6 +108,15 @@ const EmitirFacturaModal = ({ open, onClose, pedido, pedidoKey, currentClient })
   const [phase, setPhase] = useState('form'); // 'form' | 'submitting' | 'success' | 'error'
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+
+  // Client condition state (defaults to CF if empty, but editable in modal)
+  const [customerCondicionIva, setCustomerCondicionIva] = useState('CF');
+
+  useEffect(() => {
+    if (currentClient) {
+      setCustomerCondicionIva(resolveCustomerCondIvaKey(currentClient.condicionIva));
+    }
+  }, [currentClient]);
 
   const handleFormChange = (key, value) => {
     setFormState((prev) => ({
@@ -123,8 +159,8 @@ const EmitirFacturaModal = ({ open, onClose, pedido, pedidoKey, currentClient })
     const customer = {
       docTipo,
       docNro: dniClean,
-      // Factura A requiere receptor RI (ID=1) con CUIT obligatoriamente
-      condicionIvaReceptorId: isFacturaA ? 1 : condIvaToReceptorId(currentClient.condicionIva),
+      // Usar la condición IVA seleccionada en el modal
+      condicionIvaReceptorId: condIvaToReceptorId(customerCondicionIva),
     };
 
     const items = (pedido.productos || []).map((prod, i) => {
@@ -194,6 +230,12 @@ const EmitirFacturaModal = ({ open, onClose, pedido, pedidoKey, currentClient })
           setPhase('error');
           return;
         }
+
+        if (customerCondicionIva === 'CF') {
+          setError('Factura A no puede emitirse a un Consumidor Final. Seleccione Responsable Inscripto o Monotributista.');
+          setPhase('error');
+          return;
+        }
       }
 
       if (!pedido.productos || pedido.productos.length === 0) {
@@ -238,12 +280,34 @@ const EmitirFacturaModal = ({ open, onClose, pedido, pedidoKey, currentClient })
 
       const resultData = await response.json();
       console.log('✅ Datos de respuesta:', resultData);
-      console.log('📄 PDF URL:', resultData.pdfUrl ? 'Disponible ✅' : 'No disponible ❌');
       setResult(resultData);
 
-      // Update pedido with AFIP status
-      console.log('📋 Actualizando pedido con estado AFIP...');
       const PedidosService = getSmartService('pedidos');
+
+      if (resultData.status !== 'APPROVED') {
+        const rejectErrorMsg = resultData.rejectMsg || 'El comprobante no pudo ser aprobado por AFIP';
+        console.error('❌ AFIP Validation/Rejection:', rejectErrorMsg);
+
+        // Update pedido with failure status
+        await PedidosService.update(pedidoKey, {
+          afipStatus: 'EMIT_FAILED',
+          afipLastEmitError: rejectErrorMsg,
+          afipInvoiceId: resultData.invoiceId || null,
+          afipCae: null,
+          afipCaeVto: null,
+          afipCbteNro: null,
+          afipPdfUrl: null,
+        });
+
+        setError(`Rechazado por AFIP: ${rejectErrorMsg}`);
+        setPhase('error');
+        return;
+      }
+
+      console.log('📄 PDF URL:', resultData.pdfUrl ? 'Disponible ✅' : 'No disponible ❌');
+
+      // Update pedido with AFIP success status
+      console.log('📋 Actualizando pedido con estado AFIP...');
       await PedidosService.update(pedidoKey, {
         afipStatus: 'EMITTED',
         afipInvoiceId: resultData.invoiceId,
@@ -251,8 +315,19 @@ const EmitirFacturaModal = ({ open, onClose, pedido, pedidoKey, currentClient })
         afipCaeVto: resultData.afip.caeVto,
         afipCbteNro: resultData.afip.cbteNro,
         afipPdfUrl: resultData.pdfUrl || null,
+        afipLastEmitError: null,
       });
       console.log('✅ Pedido actualizado');
+
+      // Update client condition in database if it was empty or changed
+      if (currentClient.key && currentClient.condicionIva !== customerCondicionIva) {
+        console.log('📋 Guardando condición IVA en perfil del cliente...');
+        const ClientesService = getSmartService('clientes');
+        await ClientesService.update(currentClient.key, {
+          condicionIva: customerCondicionIva,
+        });
+        console.log('✅ Condición IVA guardada');
+      }
 
       setPhase('success');
     } catch (err) {
@@ -348,12 +423,37 @@ const EmitirFacturaModal = ({ open, onClose, pedido, pedidoKey, currentClient })
               />
             </Box>
 
-            {/* Row 3: Customer info (read-only) */}
+            {/* Row 3: Receptor (Client) settings */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mt: 2 }}>
+              <FormControl fullWidth>
+                <InputLabel>Cond. IVA Cliente</InputLabel>
+                <Select
+                  value={customerCondicionIva}
+                  onChange={(e) => setCustomerCondicionIva(e.target.value)}
+                  label="Cond. IVA Cliente"
+                >
+                  <MenuItem value="CF">Consumidor Final</MenuItem>
+                  <MenuItem value="RI">Responsable Inscripto</MenuItem>
+                  <MenuItem value="MONO">Monotributista</MenuItem>
+                  <MenuItem value="EXENTO">Exento</MenuItem>
+                </Select>
+              </FormControl>
+
+              <TextField
+                label="CUIT/DNI Cliente"
+                value={currentClient.dni || ''}
+                disabled
+                fullWidth
+              />
+            </Box>
+
+            {/* Row 4: Customer info (read-only) */}
             <Box sx={{ mt: 2, p: 1.5, bgcolor: '#f5f5f5', borderRadius: 1 }}>
               <Typography variant="subtitle2">Cliente</Typography>
               <Typography>{pedido.clienteName}</Typography>
-              <Typography>CUIT: {currentClient.dni || '—'}</Typography>
-              <Typography>Cond. IVA: {currentClient.condicionIva || '—'}</Typography>
+              <Typography sx={{ fontSize: '0.8rem', color: '#666', mt: 0.5 }}>
+                * Nota: Si cambias la Condición de IVA del cliente aquí, se guardará automáticamente en su perfil al emitir la factura.
+              </Typography>
             </Box>
 
             {/* Row 4: Items table with per-item IVA override */}

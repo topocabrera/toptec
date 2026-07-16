@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { Toast, Modal } from "antd-mobile";
 import SearchIcon from "@mui/icons-material/Search";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
-import { IconButton, TextField, InputAdornment, Box, Autocomplete, Button } from "@mui/material";
+import { IconButton, TextField, InputAdornment, Box, Autocomplete, Button, Switch, FormControlLabel, Typography } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
@@ -44,6 +44,7 @@ export default class listProduct extends Component {
       marcas: [],
       editingPrice: null, // { productoKey, field } - null cuando no se está editando
       tempPrice: "", // Precio temporal durante la edición
+      showCostDiff: false,
     };
     
     // Verificar si el usuario puede editar precios (max, windy y nico)
@@ -406,15 +407,27 @@ export default class listProduct extends Component {
     }
     return (
       <div className="list row">
-        <div className="col-md-6">
-          <div className="new-reservation">
+        <div className="col-md-12">
+          <Typography
+            variant="h4"
+            sx={{
+              textAlign: "center",
+              fontWeight: "bold",
+              mt: 1,
+              mb: 3,
+              color: "#1976d2"
+            }}
+          >
+            Listado de productos
+          </Typography>
+          <div className="new-reservation" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '15px' }}>
             {canEditProducts() && (
-              <a className="btn btn-primary" href={generateSmartRoute("/products")} role="button">
+              <a className="btn btn-primary" href={generateSmartRoute("/products")} role="button" style={{ margin: 0 }}>
                 Nuevo producto
               </a>
             )}
             {canChangePrice() && (
-              <a className="btn btn-primary change-price-button" href={generateSmartRoute("/change-price")} role="button">
+              <a className="btn btn-primary change-price-button" href={generateSmartRoute("/change-price")} role="button" style={{ margin: 0 }}>
                 Cambiar precios masivamente
               </a>
             )}
@@ -423,10 +436,23 @@ export default class listProduct extends Component {
               color="success"
               startIcon={<FileDownloadIcon />}
               onClick={this.descargarExcel}
-              sx={{ marginLeft: '10px' }}
+              style={{ margin: 0 }}
             >
               Descargar stock
             </Button>
+            {canViewCostPrice() && (
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={this.state.showCostDiff}
+                    onChange={(e) => this.setState({ showCostDiff: e.target.checked })}
+                    color="primary"
+                  />
+                }
+                label="Ver diferencias con P. Costo"
+                sx={{ marginLeft: '10px' }}
+              />
+            )}
           </div>
           <div className="col-md-8" style={{ paddingLeft: 0 }}>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
@@ -460,7 +486,7 @@ export default class listProduct extends Component {
               </div>
             </div>
           </div>
-          <h4>Listado de productos</h4>
+          
           <div className="table-container">
             <table className="table">
               <thead className="thead-dark">
@@ -475,7 +501,7 @@ export default class listProduct extends Component {
                   {!isNicoRole() && <th scope="col">{getPriceLabels().mayorista}</th>}
                   <th scope="col">{getPriceLabels().minorista}</th>
                   {!isNicoRole() && <th scope="col">{getPriceLabels().alternativo}</th>}
-                  {canViewCostPrice() && <th scope="col">Dif. con P. Costo</th>}
+                  {canViewCostPrice() && this.state.showCostDiff && <th scope="col">Dif. con P. Costo</th>}
                   {canEditProducts() && <th scope="col">Acciones</th>}
                 </tr>
               </thead>
@@ -506,7 +532,7 @@ export default class listProduct extends Component {
                         {!isNicoRole() && this.renderPriceCell(producto, 'precioMayorista', getPriceLabels().mayorista)}
                         {this.renderPriceCell(producto, 'precio', getPriceLabels().minorista)}
                         {!isNicoRole() && this.renderPriceCell(producto, 'precioAlternativo', getPriceLabels().alternativo)}
-                        {canViewCostPrice() && (
+                        {canViewCostPrice() && this.state.showCostDiff && (
                           <td>
                             <div>
                               <div>

@@ -105,6 +105,10 @@ export const getServiceByRole = (userRole, serviceType) => {
         return require('../services/marcas-nico.service').default;
       case 'gastos':
         return require('../services/gastos-nico.service').default;
+      case 'cuentasBanco':
+        return require('../services/cuentas-banco-nico.service').default;
+      case 'libroBanco':
+        return require('../services/libro-banco-nico.service').default;
       default:
         return null;
     }
@@ -123,6 +127,10 @@ export const getServiceByRole = (userRole, serviceType) => {
         return require('../services/marcas-max.service').default;
       case 'gastos':
         return require('../services/gastos-max.service').default;
+      case 'cuentasBanco':
+        return require('../services/cuentas-banco-max.service').default;
+      case 'libroBanco':
+        return require('../services/libro-banco-max.service').default;
       default:
         return null;
     }
@@ -141,6 +149,10 @@ export const getServiceByRole = (userRole, serviceType) => {
         return require('../services/marcas.service').default;
       case 'gastos':
         return require('../services/gastos.service').default;
+      case 'cuentasBanco':
+        return require('../services/cuentas-banco.service').default;
+      case 'libroBanco':
+        return require('../services/libro-banco.service').default;
       default:
         return null;
     }

@@ -87,6 +87,8 @@ import AddCompra from "./components/Logistic/Compras/addCompra";
 import GastosList from "./components/Logistic/Gastos/gastosList";
 import AddGasto from "./components/Logistic/Gastos/addGasto";
 import Estadisticas from "./components/Logistic/Estadisticas/estadisticas";
+import CuentasCorrientes from "./components/Logistic/CuentasCorrientes/cuentasCorrientes";
+import LibroBanco from "./components/Logistic/LibroBanco/libroBanco";
 
 
 
@@ -394,6 +396,8 @@ class App extends Component {
                   <Route path="/logistic/gastos-list" element={<GastosList />} />
                   <Route path="/logistic/gasto" element={<AddGasto />} />
                   <Route path="/logistic/estadisticas" element={<Estadisticas />} />
+                  <Route path="/logistic/cuentas-corrientes" element={<CuentasCorrientes />} />
+                  <Route path="/logistic/libro-banco" element={<LibroBanco />} />
                 </React.Fragment>
               )}
 
@@ -426,6 +430,7 @@ class App extends Component {
                   <Route path="/nico/gastos-list" element={<GastosList />} />
                   <Route path="/nico/gasto" element={<AddGasto />} />
                   <Route path="/nico/estadisticas" element={<Estadisticas />} />
+                  <Route path="/nico/cuentas-corrientes" element={<CuentasCorrientes />} />
                 </React.Fragment>
               )}
 
@@ -458,6 +463,7 @@ class App extends Component {
                   <Route path="/max/gastos-list" element={<GastosList />} />
                   <Route path="/max/gasto" element={<AddGasto />} />
                   <Route path="/max/estadisticas" element={<Estadisticas />} />
+                  <Route path="/max/cuentas-corrientes" element={<CuentasCorrientes />} />
                 </React.Fragment>
               )}
 

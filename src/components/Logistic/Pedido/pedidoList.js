@@ -807,7 +807,14 @@ export default class PedidoList extends Component {
                               this.setOpen(index);
                             }}
                           >
-                            {pedido.status}
+                            <Box>
+                              {pedido.status}
+                              {pedido.status === "Cta Corriente / Entregado" && (
+                                <Box sx={{ fontSize: '0.8rem', color: '#d32f2f', mt: 0.5, fontWeight: 'bold' }}>
+                                  Saldo: ${(pedido.saldoPendiente !== undefined ? pedido.saldoPendiente : pedido.total)?.toFixed(2)}
+                                </Box>
+                              )}
+                            </Box>
                           </TableCell>
                           <TableCell>
                             {/* Botón de detalles de pago */}
@@ -933,15 +940,27 @@ export default class PedidoList extends Component {
                 <Box>
                   {/* Información general del pedido */}
                   <Box sx={{ mb: 3, p: 2, bgcolor: '#f8f9fa', borderRadius: 1 }}>
-                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
-                      <Box sx={{ flex: 1 }}>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                      <Box>
                         <Box sx={{ fontWeight: 'bold', color: '#333', mb: 0.5 }}>Cliente:</Box>
                         <Box sx={{ fontSize: '0.9rem' }}>{pedidoSeleccionado.clienteName}</Box>
                       </Box>
-                      <Box sx={{ flex: 1 }}>
+                      <Box>
                         <Box sx={{ fontWeight: 'bold', color: '#333', mb: 0.5 }}>Total:</Box>
-                        <Box sx={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#2e7d32' }}>
+                        <Box sx={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#1976d2' }}>
                           ${pedidoSeleccionado.total?.toFixed(2)}
+                        </Box>
+                      </Box>
+                      <Box>
+                        <Box sx={{ fontWeight: 'bold', color: '#333', mb: 0.5 }}>Monto Pagado:</Box>
+                        <Box sx={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#2e7d32' }}>
+                          ${(pedidoSeleccionado.montoPagado !== undefined ? pedidoSeleccionado.montoPagado : (pedidoSeleccionado.status === "Pagado / Entregado" ? pedidoSeleccionado.total : 0))?.toFixed(2)}
+                        </Box>
+                      </Box>
+                      <Box>
+                        <Box sx={{ fontWeight: 'bold', color: '#333', mb: 0.5 }}>Saldo Pendiente:</Box>
+                        <Box sx={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#d32f2f' }}>
+                          ${(pedidoSeleccionado.saldoPendiente !== undefined ? pedidoSeleccionado.saldoPendiente : (pedidoSeleccionado.status === "Cta Corriente / Entregado" ? pedidoSeleccionado.total : 0))?.toFixed(2)}
                         </Box>
                       </Box>
                     </Box>

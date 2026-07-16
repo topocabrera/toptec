@@ -1,0 +1,63 @@
+{
+  "rules": {
+    ".read": true,
+    ".write": true,
+    "users": {
+      ".indexOn": ["email"]
+    },
+    "clients": {
+      ".indexOn": ["id"]
+    },
+    "clientes-nico": {
+      ".indexOn": ["id"]
+    },
+    "clientes-max": {
+      ".indexOn": ["id"]
+    },
+    "productos": {
+      ".indexOn": ["id", "marca", "codigo"]
+    },
+    "productos-max": {
+      ".indexOn": ["id", "marca", "codigo"]
+    },
+    "productos-nico": {
+      ".indexOn": ["id", "marca", "codigo"]
+    },
+    "pedidos": {
+      ".indexOn": ["id", "dia", "idCliente", "fecha"]
+    },
+    "pedidos-max": {
+      ".indexOn": ["id", "dia", "idCliente", "fecha"]
+    },
+    "pedidos-nico": {
+      ".indexOn": ["id", "dia", "idCliente", "fecha"]
+    },
+    "compras": {
+      ".indexOn": ["id", "fecha"]
+    },
+    "compras-max": {
+      ".indexOn": ["id", "fecha"]
+    },
+    "compras-nico": {
+      ".indexOn": ["id", "fecha"]
+    },
+    "marcas": {
+      ".indexOn": ["id"]
+    },
+    "marcas-nico": {
+      ".indexOn": ["id"]
+    },
+    "marcas-max": {
+      ".indexOn": ["id"]
+    },
+    "gastos": {
+      ".indexOn": ["fecha"]
+    },
+    "gastos-max": {
+      ".indexOn": ["fecha"]
+    },
+    "gastos-nico": {
+      ".indexOn": ["fecha"]
+    }
+  }
+}

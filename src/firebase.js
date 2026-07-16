@@ -20,6 +20,9 @@ firebase.initializeApp(config);
 const provider = new firebase.auth.GoogleAuthProvider();
 export const auth = firebase.auth();
 export const database = firebase.database();
+if (firebase.database.INTERNAL && typeof firebase.database.INTERNAL.forceLongPolling === 'function') {
+  firebase.database.INTERNAL.forceLongPolling();
+}
 export default database;
 export const firestore = firebase.firestore();
 export const functionsRegional = firebase.app().functions('southamerica-east1');

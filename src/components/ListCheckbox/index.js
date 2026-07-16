@@ -21,6 +21,17 @@ import {
   TableRow,
   TableSortLabel,
   Toolbar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  MenuItem,
+  Box,
+  InputAdornment,
+  Select,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import { esES } from "@mui/material/locale";
 import { green, purple } from "@mui/material/colors";
@@ -30,7 +41,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import SaveIcon from "@mui/icons-material/Save";
 import DoneOutlineRoundedIcon from "@mui/icons-material/DoneOutlineRounded";
-import PedidoService from "../../services/pedidos.service";
+import { getSmartService } from "../../utils/routeHelper";
 const alert = Modal.alert;
 
 function createData(codigo, peso, cantidad, descripcion, marca, subtotal) {
@@ -100,7 +111,7 @@ function EnhancedTableHead(props) {
             checked={rowCount > 0 && numSelected === rowCount}
             onChange={onSelectAllClick}
             inputProps={{ "aria-label": "select all desserts" }}
-            disabled={pedido.status === "Confirmado"}
+            disabled={isConfirmed(pedido.status)}
           />
         </TableCell>
         {headCells.map((headCell) => (
@@ -160,9 +171,13 @@ const useToolbarStyles = makeStyles((theme) => ({
   },
 }));
 
+const isConfirmed = (status) => {
+  return status && status !== "Creado";
+};
+
 const EnhancedTableToolbar = (props) => {
   const classes = useToolbarStyles();
-  const { numSelected, onChangeClick, updatePedido, pedido } = props;
+  const { numSelected, onChangeClick, onConfirmClick, pedido } = props;
   return (
     <Toolbar
       className={clsx(classes.root, {
@@ -193,42 +208,15 @@ const EnhancedTableToolbar = (props) => {
         <IconButton
           aria-label="delete"
           onClick={onChangeClick}
-          disabled={pedido.status === "Confirmado"}
+          disabled={isConfirmed(pedido.status)}
         >
           <DeleteIcon />
         </IconButton>
       ) : (
         <Button
           variant="contained"
-          // color="primary"
-          // size="small"
-          disabled={pedido.status === "Confirmado"}
-          onClick={() =>
-            alert(
-              "Asentar visita",
-              <div>Registrar pedido</div>,
-              [
-                {
-                  text: "Pagado / Entregado",
-                  onPress: () =>
-                    updatePedido("Pagado / Entregado"),
-                },
-                {
-                  text: "Cta Corriente / Entregado",
-                  onPress: () =>
-                    updatePedido("Cta Corriente / Entregado"),
-                },
-                {
-                  text: "Rechazado",
-                  onPress: () =>
-                    updatePedido("Rechazado"),
-                },
-                {
-                  text: "Cancelar",
-                },
-              ]
-            )
-          }
+          disabled={isConfirmed(pedido.status)}
+          onClick={onConfirmClick}
           className={classes.button}
           endIcon={<DoneOutlineRoundedIcon />}
         >
@@ -339,30 +327,120 @@ export default function EnhancedTable(props) {
     setSelected([]);
   };
 
-  const updatePedido = (status) => {
-    let newTotal = 0;
-    let statusPrd = status;
-    products.forEach((prd) => {
-      newTotal += prd.subtotal;
-    });
+  const [openConfirmDialog, setOpenConfirmDialog] = React.useState(false);
+  const [confirmStatus, setConfirmStatus] = React.useState("Pagado / Entregado");
+  const [montoPagadoVal, setMontoPagadoVal] = React.useState("");
+  const [saldoPendienteVal, setSaldoPendienteVal] = React.useState("");
+  const [cuentasBancarias, setCuentasBancarias] = React.useState([]);
+  const [selectedCuentaId, setSelectedCuentaId] = React.useState("");
+  const [depositarBanco, setDepositarBanco] = React.useState(false);
+
+  React.useEffect(() => {
+    const CuentasBancoService = getSmartService('cuentasBanco');
+    if (CuentasBancoService) {
+      CuentasBancoService.getAll().once("value", (snapshot) => {
+        const list = [];
+        snapshot.forEach((item) => {
+          list.push({ key: item.key, ...item.val() });
+        });
+        setCuentasBancarias(list);
+        if (list.length > 0) {
+          setSelectedCuentaId(list[0].key);
+          setDepositarBanco(true);
+        }
+      });
+    }
+  }, []);
+
+  const getPedidoTotal = () => {
+    return products.reduce((sum, prd) => sum + (parseFloat(prd.subtotal) || 0), 0);
+  };
+
+  const handleOpenConfirm = () => {
+    const total = getPedidoTotal();
+    setConfirmStatus("Pagado / Entregado");
+    setMontoPagadoVal(total.toFixed(2));
+    setSaldoPendienteVal("0.00");
+    setOpenConfirmDialog(true);
+  };
+
+  const handleMontoPagadoChange = (val) => {
+    setMontoPagadoVal(val);
+    const total = getPedidoTotal();
+    const numVal = parseFloat(val) || 0;
+    const computedSaldo = Math.max(0, total - numVal);
+    setSaldoPendienteVal(computedSaldo.toFixed(2));
+  };
+
+  const handleSaldoChange = (val) => {
+    setSaldoPendienteVal(val);
+    const total = getPedidoTotal();
+    const numVal = parseFloat(val) || 0;
+    const computedMonto = Math.max(0, total - numVal);
+    setMontoPagadoVal(computedMonto.toFixed(2));
+  };
+
+  const handleSaveConfirm = () => {
+    let finalStatus = confirmStatus;
+    let finalMontoPagado = parseFloat(montoPagadoVal) || 0;
+    let finalSaldo = parseFloat(saldoPendienteVal) || 0;
+
+    if (finalStatus === "Pagado / Entregado") {
+      finalMontoPagado = getPedidoTotal();
+      finalSaldo = 0;
+    } else if (finalStatus === "Rechazado") {
+      finalMontoPagado = 0;
+      finalSaldo = 0;
+    }
+
+    let newTotal = getPedidoTotal();
     const data = {
       id: pedido.id,
       clienteName: pedido.clienteName,
       idCliente: pedido.idCliente,
       fecha: pedido.fecha,
-      status: statusPrd,
+      status: finalStatus,
       productos: products,
       fechaConfirm: moment(new Date().getTime()).format("DD-MM-YYYY hh:mm"),
       total: newTotal,
+      montoPagado: finalMontoPagado,
+      saldoPendiente: finalSaldo,
     };
 
+    const PedidoService = getSmartService('pedidos');
     PedidoService.update(pedido.key, data)
+      .then(() => {
+        if (depositarBanco && selectedCuentaId && finalMontoPagado > 0) {
+          const LibroBancoService = getSmartService('libroBanco');
+          const CuentasBancoService = getSmartService('cuentasBanco');
+          const cuentaSeleccionada = cuentasBancarias.find(c => c.key === selectedCuentaId);
+          if (cuentaSeleccionada) {
+            const nuevoSaldo = (cuentaSeleccionada.saldoActual || 0) + finalMontoPagado;
+            const movimiento = {
+              fecha: moment().format("DD-MM-YYYY"),
+              concepto: `Cobro Pedido #${pedido.id} - Cliente: ${pedido.clienteName}`,
+              monto: finalMontoPagado,
+              estado: "vinculado",
+              tipoVinculo: "cliente",
+              idVinculo: pedido.key,
+              cuentaId: selectedCuentaId,
+              referenciaAdicional: `Pedido #${pedido.id}`,
+              fechaCreacion: new Date().toISOString()
+            };
+            return Promise.all([
+              LibroBancoService.create(movimiento),
+              CuentasBancoService.update(selectedCuentaId, { saldoActual: nuevoSaldo })
+            ]);
+          }
+        }
+      })
       .then(() => {
         Toast.success("Actualizado correctamente!!", 1, () => {
           window.location.reload(false);
         });
       })
       .catch((e) => {
+        console.error("Error al confirmar pedido:", e);
         Toast.fail("Ocurrió un error !!!", 1);
       });
   };
@@ -390,7 +468,7 @@ export default function EnhancedTable(props) {
         <EnhancedTableToolbar
           onChangeClick={deleteProduct}
           numSelected={selected.length}
-          updatePedido={updatePedido}
+          onConfirmClick={handleOpenConfirm}
           pedido={pedido}
         />
         <TableContainer>
@@ -431,7 +509,7 @@ export default function EnhancedTable(props) {
                         <Checkbox
                           checked={isItemSelected}
                           inputProps={{ "aria-labelledby": labelId }}
-                          disabled={pedido.status === "Confirmado"}
+                          disabled={isConfirmed(pedido.status)}
                         />
                       </TableCell>
                       <TableCell
@@ -470,6 +548,109 @@ export default function EnhancedTable(props) {
           onChangeRowsPerPage={handleChangeRowsPerPage}
         /> */}
       </Paper>
+
+      {/* Dialogo de Confirmacion de Pedido */}
+      <Dialog
+        open={openConfirmDialog}
+        onClose={() => setOpenConfirmDialog(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, backgroundColor: '#f5f5f5', borderBottom: '1px solid #e0e0e0' }}>
+          Confirmar Pedido #{pedido.id}
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <TextField
+              select
+              label="Estado de Entrega"
+              value={confirmStatus}
+              onChange={(e) => {
+                const status = e.target.value;
+                setConfirmStatus(status);
+                const total = getPedidoTotal();
+                if (status === "Pagado / Entregado") {
+                  setMontoPagadoVal(total.toFixed(2));
+                  setSaldoPendienteVal("0.00");
+                } else if (status === "Cta Corriente / Entregado") {
+                  setMontoPagadoVal("0.00");
+                  setSaldoPendienteVal(total.toFixed(2));
+                } else {
+                  setMontoPagadoVal("0.00");
+                  setSaldoPendienteVal("0.00");
+                }
+              }}
+              fullWidth
+              variant="outlined"
+            >
+              <MenuItem value="Pagado / Entregado">Pagado / Entregado</MenuItem>
+              <MenuItem value="Cta Corriente / Entregado">Cta Corriente / Entregado (Cta. Cte.)</MenuItem>
+              <MenuItem value="Rechazado">Rechazado</MenuItem>
+            </TextField>
+
+            <Box sx={{ p: 1.5, bgcolor: '#e3f2fd', borderRadius: 1 }}>
+              <strong>Total del Pedido:</strong> ${getPedidoTotal().toFixed(2)}
+            </Box>
+
+            {confirmStatus === "Cta Corriente / Entregado" && (
+              <>
+                <TextField
+                  label="Monto Pagado / Entrega"
+                  type="number"
+                  value={montoPagadoVal}
+                  onChange={(e) => handleMontoPagadoChange(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                  }}
+                />
+                <TextField
+                  label="Saldo Pendiente"
+                  type="number"
+                  value={saldoPendienteVal}
+                  onChange={(e) => handleSaldoChange(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                  }}
+                />
+              </>
+            )}
+
+            {cuentasBancarias.length > 0 && (confirmStatus === "Pagado / Entregado" || (confirmStatus === "Cta Corriente / Entregado" && parseFloat(montoPagadoVal) > 0)) && (
+              <FormControl fullWidth variant="outlined" sx={{ mt: 1 }}>
+                <InputLabel id="select-cuenta-deposito-label">Depositar en Cuenta Bancaria</InputLabel>
+                <Select
+                  labelId="select-cuenta-deposito-label"
+                  value={selectedCuentaId}
+                  onChange={(e) => {
+                    setSelectedCuentaId(e.target.value);
+                    setDepositarBanco(e.target.value !== "");
+                  }}
+                  label="Depositar en Cuenta Bancaria"
+                >
+                  <MenuItem value="">-- No depositar en Banco --</MenuItem>
+                  {cuentasBancarias.map((c) => (
+                    <MenuItem key={c.key} value={c.key}>
+                      {c.bancoNombre} ({c.nroCuenta || "Sin número"}) - Saldo: ${c.saldoActual?.toFixed(2)}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setOpenConfirmDialog(false)} color="inherit">
+            Cancelar
+          </Button>
+          <Button onClick={handleSaveConfirm} variant="contained" color="success">
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

@@ -133,6 +133,12 @@ const Factura = () => {
         >
           <Typography variant="body2" sx={{ color: '#c62828' }}>
             <strong>AFIP: FALLIDA</strong> — Reintente desde el botón "Emitir a AFIP"
+            {pedido.afipLastEmitError && (
+              <>
+                <br />
+                <strong>Detalle del error:</strong> {pedido.afipLastEmitError}
+              </>
+            )}
           </Typography>
         </Box>
       )}

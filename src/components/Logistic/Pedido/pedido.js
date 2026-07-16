@@ -43,6 +43,16 @@ const Item = List.Item;
 const Brief = Item.Brief;
 const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
+const parseFechaEntrega = (fecha) => {
+  if (!fecha) return null;
+  if (moment.isMoment(fecha)) return fecha.isValid() ? fecha : null;
+  let m = moment(fecha, "DD-MM-YYYY", true);
+  if (m.isValid()) return m;
+  m = moment(fecha);
+  if (m.isValid()) return m;
+  return null;
+};
+
 // Obtener servicios dinámicamente según el rol del usuario
 const PedidosDataService = getSmartService('pedidos');
 const ProductosDataService = getSmartService('productos');
@@ -81,8 +91,11 @@ export default class Pedido extends Component {
     this.agregarCheque = this.agregarCheque.bind(this);
     this.eliminarCheque = this.eliminarCheque.bind(this);
     this.onChangeCheque = this.onChangeCheque.bind(this);
+    this.saveDraft = this.saveDraft.bind(this);
+    this.checkAndRestoreDraft = this.checkAndRestoreDraft.bind(this);
 
     this.state = {
+      draftChecked: false,
       products: [],
       currentProduct: null,
       peso: "1",
@@ -174,6 +187,80 @@ export default class Pedido extends Component {
     ClientesDataService.getAll().off("child_added", this.getClient);
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.draftChecked && prevState.pedido !== this.state.pedido) {
+      this.saveDraft();
+    }
+  }
+
+  saveDraft() {
+    const { pedido, submitted, draftChecked } = this.state;
+    if (submitted || !draftChecked) return;
+    if (pedido && pedido.idCliente) {
+      if (pedido.productos && pedido.productos.length > 0) {
+        const draft = {
+          productos: pedido.productos,
+          total: pedido.total || 0,
+          totalCosto: pedido.totalCosto || 0,
+          fechaEntrega: pedido.fechaEntrega,
+          fecha: pedido.fecha
+        };
+        localStorage.setItem(`draft_pedido_${pedido.idCliente}`, JSON.stringify(draft));
+      } else {
+        localStorage.removeItem(`draft_pedido_${pedido.idCliente}`);
+      }
+    }
+  }
+
+  checkAndRestoreDraft(idCliente) {
+    const draftStr = localStorage.getItem(`draft_pedido_${idCliente}`);
+    if (draftStr) {
+      try {
+        const draft = JSON.parse(draftStr);
+        if (draft.productos && draft.productos.length > 0) {
+          alert(
+            "Borrador Encontrado",
+            "Se detectó un borrador de pedido sin guardar para este cliente. ¿Deseas recuperarlo?",
+            [
+              {
+                text: "Descartar",
+                onPress: () => {
+                  localStorage.removeItem(`draft_pedido_${idCliente}`);
+                  this.setState({ draftChecked: true });
+                }
+              },
+              {
+                text: "Recuperar",
+                onPress: () => {
+                  this.setState({
+                    pedido: {
+                      ...this.state.pedido,
+                      productos: draft.productos || [],
+                      total: draft.total || 0,
+                      totalCosto: draft.totalCosto || 0,
+                      fechaEntrega: draft.fechaEntrega || this.state.pedido.fechaEntrega,
+                      fecha: draft.fecha || this.state.pedido.fecha
+                    },
+                    draftChecked: true
+                  }, () => {
+                    Toast.success("Borrador recuperado!", 1);
+                  });
+                }
+              }
+            ]
+          );
+        } else {
+          this.setState({ draftChecked: true });
+        }
+      } catch (e) {
+        console.error("Error al parsear borrador:", e);
+        this.setState({ draftChecked: true });
+      }
+    } else {
+      this.setState({ draftChecked: true });
+    }
+  }
+
   onDataChange(items) {
     const products = [];
     items.forEach((item) => {
@@ -211,6 +298,8 @@ export default class Pedido extends Component {
         fechaEntrega: moment(new Date().getTime()).add(1, 'days').format("DD-MM-YYYY"),
         user: currentUser.userName,
       },
+    }, () => {
+      this.checkAndRestoreDraft(idCliente);
     });
   }
 
@@ -279,13 +368,15 @@ export default class Pedido extends Component {
   }
 
   onChangeDate(e) {
-    const dateFormat = e.format("DD-MM-YYYY");
-    this.setState({
-      pedido: {
-        ...this.state.pedido,
-        fechaEntrega: dateFormat,
-      },
-    });
+    if (e && e.isValid()) {
+      const dateFormat = e.format("DD-MM-YYYY");
+      this.setState({
+        pedido: {
+          ...this.state.pedido,
+          fechaEntrega: dateFormat,
+        },
+      });
+    }
   }
 
   onChangeTipo(e) {
@@ -518,6 +609,8 @@ export default class Pedido extends Component {
       .then(() => {
         // Actualizar el stock de todos los productos del pedido
         this.updateProductStock();
+        // Eliminar el borrador de localStorage
+        localStorage.removeItem(`draft_pedido_${this.state.pedido.idCliente}`);
         Toast.hide();
         Toast.loading("Loading...", 1, () => {
           this.setState({
@@ -850,7 +943,7 @@ export default class Pedido extends Component {
               <LocalizationProvider dateAdapter={AdapterMoment}>
                 <DatePicker
                   label="Fecha entrega pedido"
-                  value={pedido.fechaEntrega}
+                  value={parseFechaEntrega(pedido.fechaEntrega)}
                   onChange={this.onChangeDate}
                   inputFormat="DD-MM-YYYY" // en v5 es "inputFormat", no "format"
                   renderInput={(params) => (

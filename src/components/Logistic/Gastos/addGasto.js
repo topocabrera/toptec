@@ -9,7 +9,13 @@ import {
     Typography,
     InputAdornment,
     Autocomplete,
-    CircularProgress
+    CircularProgress,
+    FormControlLabel,
+    Checkbox,
+    Select,
+    MenuItem,
+    FormControl,
+    InputLabel
 } from "@mui/material";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
@@ -36,10 +42,34 @@ export default class AddGasto extends Component {
                 monto: "",
                 observaciones: ""
             },
+            pagarConBanco: false,
+            cuentasBancarias: [],
+            selectedCuentaId: "",
             submitted: false,
             loading: false
         };
     }
+
+    componentDidMount() {
+        const CuentasBancoService = getSmartService('cuentasBanco');
+        if (CuentasBancoService) {
+            CuentasBancoService.getAll().once("value", (snapshot) => {
+                const list = [];
+                snapshot.forEach((item) => {
+                    list.push({ key: item.key, ...item.val() });
+                });
+                this.setState({
+                    cuentasBancarias: list,
+                    selectedCuentaId: list.length > 0 ? list[0].key : "",
+                    pagarConBanco: list.length > 0 ? true : false
+                });
+            });
+        }
+    }
+
+    onChangePagarConBanco = (e) => {
+        this.setState({ pagarConBanco: e.target.checked });
+    };
 
     onChangeFecha = (momentValue) => {
         this.setState({
@@ -66,7 +96,7 @@ export default class AddGasto extends Component {
     };
 
     saveGasto = () => {
-        const { gasto } = this.state;
+        const { gasto, pagarConBanco, selectedCuentaId, cuentasBancarias } = this.state;
 
         if (!gasto.tipo) {
             Toast.fail("El tipo de gasto es obligatorio", 2);
@@ -87,11 +117,37 @@ export default class AddGasto extends Component {
         this.setState({ loading: true });
         const GastosService = getSmartService('gastos');
         GastosService.create(gastoData)
+            .then((res) => {
+                const gastoKey = res.key;
+                if (pagarConBanco && selectedCuentaId) {
+                    const LibroBancoService = getSmartService('libroBanco');
+                    const CuentasBancoService = getSmartService('cuentasBanco');
+                    const cuentaSeleccionada = cuentasBancarias.find(c => c.key === selectedCuentaId);
+                    if (cuentaSeleccionada) {
+                        const nuevoSaldo = (cuentaSeleccionada.saldoActual || 0) - gastoData.monto;
+                        const movimiento = {
+                            fecha: gastoData.fecha,
+                            concepto: `Gasto: ${gastoData.tipo}${gastoData.observaciones ? ' - ' + gastoData.observaciones : ''}`,
+                            monto: -gastoData.monto,
+                            estado: "vinculado",
+                            tipoVinculo: "gasto",
+                            idVinculo: gastoKey,
+                            cuentaId: selectedCuentaId,
+                            fechaCreacion: new Date().toISOString()
+                        };
+                        return Promise.all([
+                            LibroBancoService.create(movimiento),
+                            CuentasBancoService.update(selectedCuentaId, { saldoActual: nuevoSaldo })
+                        ]);
+                    }
+                }
+            })
             .then(() => {
                 this.setState({ submitted: true });
                 Toast.success("Gasto registrado correctamente!", 2);
             })
-            .catch(() => {
+            .catch((e) => {
+                console.error("Error al registrar gasto:", e);
                 Toast.fail("Error al guardar el gasto", 2);
             })
             .finally(() => {
@@ -107,6 +163,7 @@ export default class AddGasto extends Component {
                 monto: "",
                 observaciones: ""
             },
+            pagarConBanco: this.state.bankConfig ? true : false,
             submitted: false
         });
     };
@@ -185,6 +242,30 @@ export default class AddGasto extends Component {
                                 value={gasto.observaciones}
                                 onChange={this.onChangeObservaciones}
                             />
+
+                             {this.state.cuentasBancarias.length > 0 && (
+                                <FormControl fullWidth variant="outlined" sx={{ mt: 1 }}>
+                                    <InputLabel id="select-cuenta-pago-label">Pagar con Cuenta Bancaria</InputLabel>
+                                    <Select
+                                        labelId="select-cuenta-pago-label"
+                                        value={this.state.selectedCuentaId}
+                                        onChange={(e) => {
+                                            this.setState({
+                                                selectedCuentaId: e.target.value,
+                                                pagarConBanco: e.target.value !== ""
+                                            });
+                                        }}
+                                        label="Pagar con Cuenta Bancaria"
+                                    >
+                                        <MenuItem value="">-- No pagar con Banco (Solo registrar Gasto) --</MenuItem>
+                                        {this.state.cuentasBancarias.map((c) => (
+                                            <MenuItem key={c.key} value={c.key}>
+                                                {c.bancoNombre} ({c.nroCuenta || "Sin número"}) - Saldo: ${c.saldoActual?.toFixed(2)}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            )}
 
                             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 1 }}>
                                 <Button variant="outlined" href={generateSmartRoute("/gastos-list")}>
