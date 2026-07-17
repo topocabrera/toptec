@@ -578,7 +578,7 @@ export default class EditPedido extends Component {
       montoPagado = total;
       saldoPendiente = 0;
     } else if (status === "Cta Corriente / Entregado") {
-      saldoPendiente = Math.max(0, total - montoPagado);
+      saldoPendiente = Math.max(0, parseFloat((total - montoPagado).toFixed(2)));
       if (saldoPendiente === 0 && total > 0) {
         finalStatus = "Pagado / Entregado";
         montoPagado = total;
@@ -821,7 +821,7 @@ export default class EditPedido extends Component {
       montoPagado = total;
       saldoPendiente = 0;
     } else if (status === "Cta Corriente / Entregado") {
-      saldoPendiente = Math.max(0, total - montoPagado);
+      saldoPendiente = Math.max(0, parseFloat((total - montoPagado).toFixed(2)));
       if (saldoPendiente === 0 && total > 0) {
         finalStatus = "Pagado / Entregado";
         montoPagado = total;

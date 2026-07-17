@@ -208,18 +208,15 @@ const CuentasCorrientes = () => {
   };
 
   const handleSavePago = () => {
-    const abono = parseFloat(montoAbono);
-    if (isNaN(abono) || abono <= 0) {
-      Toast.fail("Ingrese un monto válido mayor a 0", 2);
-      return;
-    }
-    if (abono > pedidoSeleccionado.saldoPendiente) {
-      Toast.fail(`El monto no puede superar el saldo pendiente de $${pedidoSeleccionado.saldoPendiente.toFixed(2)}`, 2);
+    const abono = parseFloat(parseFloat(montoAbono).toFixed(2));
+    const pendingRounded = parseFloat(pedidoSeleccionado.saldoPendiente.toFixed(2));
+    if (abono > pendingRounded) {
+      Toast.fail(`El monto no puede superar el saldo pendiente de $${pendingRounded.toFixed(2)}`, 2);
       return;
     }
 
     const PedidosService = getSmartService('pedidos');
-    const nuevoSaldo = Math.max(0, pedidoSeleccionado.saldoPendiente - abono);
+    const nuevoSaldo = Math.max(0, parseFloat((pedidoSeleccionado.saldoPendiente - abono).toFixed(2)));
     const nuevoMontoPagado = (pedidoSeleccionado.montoPagado || 0) + abono;
 
     const updateData = {
@@ -280,32 +277,62 @@ const CuentasCorrientes = () => {
 
     const wb = XLSX.utils.book_new();
     const rows = [
-      ["CLIENTE", "DOMICILIO", "TELÉFONO", "CANT. PEDIDOS PENDIENTES", "SALDO ACUMULADO"]
+      ["CLIENTE / PEDIDO #", "FECHA", "TOTAL PEDIDO", "MONTO PAGADO", "SALDO PENDIENTE", "DOMICILIO / COMENTARIOS DE COBRO", "TELÉFONO"]
     ];
 
     cuentasFilter.forEach((c) => {
+      // Fila principal del Cliente
       rows.push([
-        c.clienteName,
+        c.clienteName.toUpperCase(),
+        "",
+        "",
+        "",
+        c.saldoTotal,
         c.domicilio,
-        c.telefono,
-        c.pedidos.length,
-        c.saldoTotal
+        c.telefono
       ]);
+
+      // Filas de detalle de pedidos
+      c.pedidos.forEach((p) => {
+        rows.push([
+          `  Pedido #${p.id}`,
+          p.fecha,
+          p.total,
+          p.montoPagado || 0,
+          p.saldoPendiente,
+          p.datosPago?.comentariosCobro || p.datosPago?.comentariosPago || "-",
+          ""
+        ]);
+      });
+
+      // Fila vacía de separación
+      rows.push(["", "", "", "", "", "", ""]);
     });
 
-    rows.push(["TOTAL DE SALDOS", "", "", "", totalCuentasPorCobrar]);
+    // Fila total general
+    rows.push([
+      "TOTAL DE SALDOS GENERAL",
+      "",
+      "",
+      "",
+      totalCuentasPorCobrar,
+      "",
+      ""
+    ]);
 
     const ws = XLSX.utils.aoa_to_sheet(rows);
     ws["!cols"] = [
-      { wch: 30 },
-      { wch: 30 },
-      { wch: 15 },
-      { wch: 25 },
-      { wch: 20 }
+      { wch: 30 }, // Cliente / Pedido #
+      { wch: 15 }, // Fecha
+      { wch: 15 }, // Total
+      { wch: 15 }, // Monto Pagado
+      { wch: 18 }, // Saldo Pendiente
+      { wch: 45 }, // Domicilio / Comentarios
+      { wch: 15 }  // Teléfono
     ];
 
-    XLSX.utils.book_append_sheet(wb, ws, "Saldos Clientes");
-    XLSX.writeFile(wb, `Saldos_Clientes_${moment().format("DD-MM-YYYY")}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, "Cta Cte Clientes Detalle");
+    XLSX.writeFile(wb, `Cuentas_Corrientes_Detalle_${moment().format("DD-MM-YYYY")}.xlsx`);
   };
 
   // Calcular total general de cuentas por cobrar

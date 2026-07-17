@@ -368,7 +368,7 @@ export default function EnhancedTable(props) {
     setMontoPagadoVal(val);
     const total = getPedidoTotal();
     const numVal = parseFloat(val) || 0;
-    const computedSaldo = Math.max(0, total - numVal);
+    const computedSaldo = Math.max(0, parseFloat((total - numVal).toFixed(2)));
     setSaldoPendienteVal(computedSaldo.toFixed(2));
   };
 
@@ -376,14 +376,14 @@ export default function EnhancedTable(props) {
     setSaldoPendienteVal(val);
     const total = getPedidoTotal();
     const numVal = parseFloat(val) || 0;
-    const computedMonto = Math.max(0, total - numVal);
+    const computedMonto = Math.max(0, parseFloat((total - numVal).toFixed(2)));
     setMontoPagadoVal(computedMonto.toFixed(2));
   };
 
   const handleSaveConfirm = () => {
     let finalStatus = confirmStatus;
-    let finalMontoPagado = parseFloat(montoPagadoVal) || 0;
-    let finalSaldo = parseFloat(saldoPendienteVal) || 0;
+    let finalMontoPagado = parseFloat(parseFloat(montoPagadoVal).toFixed(2)) || 0;
+    let finalSaldo = parseFloat(parseFloat(saldoPendienteVal).toFixed(2)) || 0;
 
     if (finalStatus === "Pagado / Entregado") {
       finalMontoPagado = getPedidoTotal();

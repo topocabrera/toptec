@@ -53,6 +53,7 @@ import WarningIcon from "@mui/icons-material/Warning";
 import moment from "moment";
 import * as XLSX from "xlsx";
 import { getSmartService, generateSmartRoute, getCurrentUser } from "../../../utils/routeHelper";
+import firebase from "../../../firebase";
 
 const alert = AntdModal.alert;
 
@@ -221,6 +222,67 @@ const LibroBanco = () => {
       setBankConfig(null);
     }
   }, [selectedCuentaId, cuentasBancarias]);
+
+  // Auto-migración de cuenta única antigua a multi-cuenta
+  useEffect(() => {
+    if (loading) return;
+    
+    if (cuentasBancarias.length === 0) {
+      let oldPath = "/cuentaBancoConfig";
+      if (currentUser?.rol === "nico") {
+        oldPath = "/cuentaBancoConfig-nico";
+      } else if (currentUser?.rol === "max") {
+        oldPath = "/cuentaBancoConfig-max";
+      }
+      
+      const oldConfigRef = firebase.ref(oldPath);
+      oldConfigRef.once("value", (snapshot) => {
+        const oldConfig = snapshot.val();
+        if (oldConfig && oldConfig.bancoNombre) {
+          console.log("Migrando cuenta única antigua a multi-cuenta...", oldConfig);
+          const CuentasBancoService = getSmartService("cuentasBanco");
+          const LibroBancoService = getSmartService("libroBanco");
+          
+          const newAccountData = {
+            bancoNombre: oldConfig.bancoNombre,
+            nroCuenta: oldConfig.nroCuenta || "",
+            cbu: oldConfig.cbu || "",
+            saldoInicial: parseFloat(oldConfig.saldoInicial) || 0,
+            saldoActual: parseFloat(oldConfig.saldoActual) || 0
+          };
+          
+          CuentasBancoService.create(newAccountData)
+            .then((res) => {
+              const newKey = res.key;
+              console.log("Cuenta migrada con éxito. Nueva key:", newKey);
+              
+              // Vincular todos los movimientos sin cuentaId
+              return LibroBancoService.getAll().once("value", (snapshotMovs) => {
+                const updates = [];
+                snapshotMovs.forEach((item) => {
+                  const m = item.val();
+                  if (!m.cuentaId) {
+                    updates.push(LibroBancoService.get(item.key).update({ cuentaId: newKey }));
+                  }
+                });
+                if (updates.length > 0) {
+                  console.log(`Migrando ${updates.length} movimientos al ID de cuenta:`, newKey);
+                  return Promise.all(updates);
+                }
+              });
+            })
+            .then(() => {
+              console.log("Migración completada con éxito.");
+              setSelectedCuentaId("");
+              return oldConfigRef.remove();
+            })
+            .catch((err) => {
+              console.error("Error en la migración de cuenta:", err);
+            });
+        }
+      });
+    }
+  }, [cuentasBancarias, loading, currentUser]);
 
   // Recargar datos para Cuenta Corriente de Proveedores y de Clientes al cambiar pestaña
   useEffect(() => {
@@ -844,7 +906,7 @@ const LibroBanco = () => {
           for (let p of pedidos) {
             if (montoRestante <= 0) break;
             const abonoLocal = Math.min(montoRestante, p.saldoPendiente);
-            const nuevoSaldo = Math.max(0, p.saldoPendiente - abonoLocal);
+            const nuevoSaldo = Math.max(0, parseFloat((p.saldoPendiente - abonoLocal).toFixed(2)));
             const nuevoMontoPagado = (p.montoPagado || 0) + abonoLocal;
 
             const updateData = {
@@ -908,7 +970,7 @@ const LibroBanco = () => {
         for (let c of compras) {
           if (montoRestante <= 0) break;
           const pagoLocal = Math.min(montoRestante, c.saldoPendiente);
-          const nuevoSaldo = Math.max(0, c.saldoPendiente - pagoLocal);
+          const nuevoSaldo = Math.max(0, parseFloat((c.saldoPendiente - pagoLocal).toFixed(2)));
           const nuevoMontoPagado = (c.montoPagado || 0) + pagoLocal;
 
           const updateData = {
@@ -1124,7 +1186,7 @@ const LibroBanco = () => {
       for (let c of compras) {
         if (montoRestante <= 0) break;
         const pagoLocal = Math.min(montoRestante, c.saldoPendiente);
-        const nuevoSaldo = Math.max(0, c.saldoPendiente - pagoLocal);
+        const nuevoSaldo = Math.max(0, parseFloat((c.saldoPendiente - pagoLocal).toFixed(2)));
         const nuevoMontoPagado = (c.montoPagado || 0) + pagoLocal;
 
         const updateData = {
